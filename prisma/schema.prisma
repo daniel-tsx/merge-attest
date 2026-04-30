@@ -1,0 +1,416 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrganizationRole {
+  owner
+  admin
+  member
+  viewer
+}
+
+enum RepositoryProvider {
+  github
+}
+
+enum RepositoryVisibility {
+  public
+  private
+}
+
+enum ConnectionStatus {
+  connected
+  disconnected
+  demo
+}
+
+enum RiskProfile {
+  low
+  medium
+  high
+}
+
+enum PullRequestStatus {
+  open
+  merged
+  closed
+}
+
+enum AgentSource {
+  cursor
+  codex
+  claude_code
+  copilot
+  devin
+  manual
+  unknown
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum TestGapStatus {
+  none
+  warning
+  high
+}
+
+enum CiStatus {
+  pending
+  passing
+  failing
+  unknown
+}
+
+enum ApprovalStatus {
+  not_required
+  pending
+  approved
+  rejected
+  risk_accepted
+}
+
+enum ActivityEventType {
+  pr_opened
+  commit_pushed
+  files_changed
+  ci_failed
+  ci_passed
+  rule_triggered
+  approval_requested
+  approved
+  rejected
+  merged
+}
+
+enum RuleTriggerType {
+  ai_assisted
+  high_risk
+  auth_changed
+  billing_changed
+  database_migration
+  dependency_changed
+  high_test_gap
+  failing_ci
+}
+
+enum RuleActionType {
+  warn
+  require_approval
+  block_merge
+  request_tests
+  request_security_review
+}
+
+enum Severity {
+  low
+  medium
+  high
+  critical
+}
+
+enum ApprovalDecision {
+  approved
+  rejected
+  requested_tests
+  risk_accepted
+  not_required
+}
+
+enum AuditEventType {
+  repository_connected
+  pr_synced
+  risk_score_calculated
+  test_gap_detected
+  rule_triggered
+  approval_requested
+  pr_approved
+  pr_rejected
+  risk_accepted
+  github_comment_posted
+  settings_changed
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships OrganizationMember[]
+  approvals   Approval[]
+  apiKeys     ApiKey[]
+}
+
+model Organization {
+  id                   String   @id @default(cuid())
+  name                 String
+  slug                 String   @unique
+  githubInstallationId String?
+  planKey              String   @default("free")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  members       OrganizationMember[]
+  repositories  Repository[]
+  pullRequests  PullRequest[]
+  activity      AgentActivity[]
+  auditEvents   AuditEvent[]
+  plans         Plan[]
+  usageRecords  UsageRecord[]
+  apiKeys       ApiKey[]
+}
+
+model OrganizationMember {
+  id             String           @id @default(cuid())
+  role           OrganizationRole @default(member)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  userId         String
+  organizationId String
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+model Repository {
+  id                    String               @id @default(cuid())
+  name                  String
+  provider              RepositoryProvider   @default(github)
+  owner                 String
+  defaultBranch         String               @default("main")
+  visibility            RepositoryVisibility
+  connectedStatus       ConnectionStatus     @default(demo)
+  lastSyncedAt          DateTime?
+  activeRulesCount      Int                  @default(0)
+  monthlyPrCheckUsage   Int                  @default(0)
+  riskProfile           RiskProfile          @default(medium)
+  providerMetadata      Json                 @default("{}")
+  organizationId        String
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pullRequests PullRequest[]
+  rules        RepoRule[]
+  activity     AgentActivity[]
+  auditEvents  AuditEvent[]
+
+  @@index([organizationId])
+}
+
+model PullRequest {
+  id                String              @id @default(cuid())
+  number            Int
+  title             String
+  author            String
+  branch            String
+  baseBranch        String
+  status            PullRequestStatus
+  aiAssisted        Boolean?
+  agentSource       AgentSource         @default(unknown)
+  riskScore         Int                 @default(0)
+  riskLevel         RiskLevel           @default(low)
+  testGapStatus     TestGapStatus       @default(none)
+  ciStatus          CiStatus            @default(unknown)
+  approvalStatus    ApprovalStatus      @default(not_required)
+  filesChangedCount Int                 @default(0)
+  linesAdded        Int                 @default(0)
+  linesDeleted      Int                 @default(0)
+  repositoryId      String
+  organizationId    String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository      Repository        @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  files           PullRequestFile[]
+  riskSignals     RiskSignal[]
+  testGapAnalysis TestGapAnalysis?
+  ruleViolations  RuleViolation[]
+  approvals       Approval[]
+  activity        AgentActivity[]
+  auditEvents     AuditEvent[]
+
+  @@unique([repositoryId, number])
+  @@index([organizationId])
+}
+
+model PullRequestFile {
+  id            String @id @default(cuid())
+  path          String
+  additions     Int
+  deletions     Int
+  changeType    String
+  pullRequestId String
+
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+model RiskSignal {
+  id            String    @id @default(cuid())
+  key           String
+  label         String
+  score         Int
+  level         RiskLevel
+  filePaths     Json      @default("[]")
+  pullRequestId String
+  createdAt     DateTime  @default(now())
+
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+model TestGapAnalysis {
+  id            String            @id @default(cuid())
+  status        TestGapStatus
+  summary       String
+  affectedFiles Json              @default("[]")
+  confidence    String
+  pullRequestId String            @unique
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  pullRequest PullRequest          @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  suggestions TestGapSuggestion[]
+}
+
+model TestGapSuggestion {
+  id                String @id @default(cuid())
+  testFile          String
+  testCase          String
+  testGapAnalysisId String
+
+  analysis TestGapAnalysis @relation(fields: [testGapAnalysisId], references: [id], onDelete: Cascade)
+}
+
+model RepoRule {
+  id             String          @id @default(cuid())
+  name           String
+  description    String
+  enabled        Boolean         @default(true)
+  triggerType    RuleTriggerType
+  actionType     RuleActionType
+  severity       Severity
+  repositoryId   String
+  organizationId String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  repository     Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  violations     RuleViolation[]
+
+  @@index([organizationId])
+}
+
+model RuleViolation {
+  id            String    @id @default(cuid())
+  summary       String
+  resolved      Boolean   @default(false)
+  ruleId        String
+  pullRequestId String
+  createdAt     DateTime  @default(now())
+
+  rule        RepoRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  pullRequest PullRequest  @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+model Approval {
+  id            String           @id @default(cuid())
+  decision      ApprovalDecision
+  note          String?
+  reviewerId    String?
+  pullRequestId String
+  createdAt     DateTime         @default(now())
+
+  reviewer    User?       @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+model AgentActivity {
+  id             String            @id @default(cuid())
+  timestamp      DateTime          @default(now())
+  actor          String
+  agentSource    AgentSource
+  eventType      ActivityEventType
+  summary        String
+  riskLevel      RiskLevel
+  metadata       Json              @default("{}")
+  repositoryId   String
+  pullRequestId  String?
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  pullRequest  PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+}
+
+model AuditEvent {
+  id             String         @id @default(cuid())
+  eventType      AuditEventType
+  actor          String?
+  summary        String
+  metadata       Json           @default("{}")
+  organizationId String
+  repositoryId   String?
+  pullRequestId  String?
+  createdAt      DateTime       @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository   Repository?  @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+  pullRequest  PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+}
+
+model Plan {
+  id             String   @id @default(cuid())
+  key            String
+  name           String
+  priceMonthly   Int
+  repositoryLimit String?
+  prCheckLimit   String?
+  auditRetentionDays Int?
+  features       Json     @default("[]")
+  organizationId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  metric         String
+  quantity       Int
+  periodStart    DateTime
+  periodEnd      DateTime
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id             String   @id @default(cuid())
+  name           String
+  prefix         String
+  hashedKey      String
+  lastUsedAt     DateTime?
+  userId         String?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}

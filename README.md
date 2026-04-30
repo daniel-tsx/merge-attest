@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgentGate
 
-## Getting Started
+AgentGate is a SaaS MVP control center for engineering teams using AI coding agents. It monitors AI-assisted pull requests, scores risky changes, detects missing tests, evaluates lightweight repository rules, records approvals, and keeps an audit trail before code reaches production.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 App Router, React 19, TypeScript
+- Tailwind CSS v4 with shadcn-style local UI primitives
+- PostgreSQL with Prisma ORM
+- BetterAuth integration route placeholder
+- Octokit GitHub App service boundary
+- Paddle billing service boundary
+- React Hook Form and Zod dependencies for validated forms
+- Recharts dashboards
+- Vitest unit tests
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env
+pnpm db:generate
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs with seeded demo data in the UI even when GitHub, Paddle, and PostgreSQL credentials are missing.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set `DATABASE_URL` to a PostgreSQL database, then run:
 
-## Learn More
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+If you do not have local Postgres installed, create a database first and update `.env` with its connection string.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verification
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-## Deploy on Vercel
+## Key Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/dashboard`
+- `/repositories`
+- `/repositories/[id]`
+- `/repositories/[id]/rules`
+- `/pull-requests`
+- `/pull-requests/[id]`
+- `/activity`
+- `/approvals`
+- `/audit-log`
+- `/settings`
+- `/settings/team`
+- `/settings/github`
+- `/settings/billing`
+- `/settings/usage`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture Notes
+
+- `lib/risk.ts`: deterministic risk scoring and risk level mapping.
+- `lib/test-gap.ts`: deterministic test gap detector with path-based suggestions.
+- `lib/rules.ts`: repository rule evaluator.
+- `lib/demo-data.ts`: realistic MVP data used by the UI and seed script.
+- `lib/github.ts`: GitHub App integration boundary. It uses Octokit when app credentials and installation data exist, otherwise returns demo-mode responses.
+- `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan gates.
+- `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
+- `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.
+
+Future integration points are intentionally narrow: replace `lib/demo-data.ts` reads with Prisma queries, persist approval actions as `Approval` and `AuditEvent` records, and call `syncPullRequests` from scheduled jobs or webhook handlers.
