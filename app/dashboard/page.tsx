@@ -1,16 +1,45 @@
 import { Activity, AlertTriangle, Boxes, CheckCircle2, GitPullRequest, ListChecks, ShieldAlert, TestTube2 } from "lucide-react";
+import { OnboardingChecklist } from "@/components/app/onboarding-checklist";
 import { PageHeader } from "@/components/app/page-header";
 import { CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge";
 import { TrendChart } from "@/components/charts/dashboard-charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { activityEvents, getDashboardMetrics, pullRequests, trendData } from "@/lib/demo-data";
+import { getCurrentOrganization, listPullRequests, listRepositories } from "@/lib/data/app-data";
+import { activityEvents, trendData } from "@/lib/demo-data";
+import { githubConfigured } from "@/lib/github";
+import { getOnboardingStatus } from "@/lib/onboarding";
 import { formatDate, formatNumber } from "@/lib/utils";
 
 const metricIcons = [Boxes, GitPullRequest, ShieldAlert, TestTube2, CheckCircle2, AlertTriangle, Activity, ListChecks];
 
-export default function DashboardPage() {
-  const metrics = getDashboardMetrics();
+export default async function DashboardPage() {
+  const organization = await getCurrentOrganization();
+  const repositories = await listRepositories(organization.id);
+  const pullRequests = await listPullRequests(organization.id);
+  const onboardingStatus = getOnboardingStatus({
+    dataMode: organization.dataMode,
+    githubConfigured: githubConfigured(),
+    hasGitHubInstallation: Boolean(organization.githubInstallationId),
+    repositoryCount: repositories.length,
+    pullRequestCount: pullRequests.length,
+  });
+  const highAttentionPullRequests = pullRequests
+    .filter((item) => item.riskScore >= 45 || item.testGapStatus !== "none")
+    .slice(0, 7);
+  const averageRiskScore = pullRequests.length
+    ? Math.round(pullRequests.reduce((total, item) => total + item.riskScore, 0) / pullRequests.length)
+    : 0;
+  const metrics = {
+    repositoriesConnected: repositories.length,
+    aiPrsThisWeek: pullRequests.filter((item) => item.aiAssisted).length,
+    highRiskPrs: pullRequests.filter((item) => item.riskLevel === "high" || item.riskLevel === "critical").length,
+    prsWithTestGaps: pullRequests.filter((item) => item.testGapStatus !== "none").length,
+    pendingApprovals: pullRequests.filter((item) => item.approvalStatus === "pending").length,
+    failedCiChecks: pullRequests.filter((item) => item.ciStatus === "failing").length,
+    averageRiskScore,
+    ruleViolations: pullRequests.reduce((total, item) => total + item.ruleViolations.length, 0),
+  };
   const metricCards = [
     ["Repositories", metrics.repositoriesConnected],
     ["AI PRs this week", metrics.aiPrsThisWeek],
@@ -28,6 +57,7 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Operational view of AI-assisted pull requests, test gaps, approval pressure, and risky changes."
       />
+      <OnboardingChecklist status={onboardingStatus} />
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {metricCards.map(([label, value], index) => {
           const Icon = metricIcons[index];
@@ -79,10 +109,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pullRequests
-                  .filter((item) => item.riskScore >= 45 || item.testGapStatus !== "none")
-                  .slice(0, 7)
-                  .map((item) => (
+                {highAttentionPullRequests.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="min-w-72">
                         <a className="font-medium text-slate-950 hover:underline" href={`/pull-requests/${item.id}`}>
@@ -107,6 +134,11 @@ export default function DashboardPage() {
                   ))}
               </TableBody>
             </Table>
+            {highAttentionPullRequests.length === 0 ? (
+              <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+                No high-attention pull requests yet. Sync repositories to populate this queue.
+              </div>
+            ) : null}
           </CardContent>
         </Card>
         <Card>

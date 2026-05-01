@@ -12,6 +12,7 @@ export type SessionOrganization = {
   name: string;
   slug: string;
   planKey: PlanKey;
+  githubInstallationId: string | null;
   role: "owner" | "admin" | "member" | "viewer";
 };
 
@@ -57,6 +58,7 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
       name: existingMembership.organization.name,
       slug: existingMembership.organization.slug,
       planKey: existingMembership.organization.planKey as PlanKey,
+      githubInstallationId: existingMembership.organization.githubInstallationId,
       role: existingMembership.role,
     };
   }
@@ -85,6 +87,7 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
     name: organization.name,
     slug: organization.slug,
     planKey: organization.planKey as PlanKey,
+    githubInstallationId: organization.githubInstallationId,
     role: "owner",
   };
 }

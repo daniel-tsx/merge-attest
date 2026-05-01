@@ -43,6 +43,8 @@ Plan entitlements are defined in `lib/entitlements.ts` and enforced in server pa
 
 Paddle checkout starts at `/api/billing/checkout` when `PADDLE_API_KEY` and the relevant `PADDLE_*_PRICE_ID` variables are configured. Paddle webhooks are accepted at `/api/paddle/webhook`, verified with `PADDLE_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
 
+The dashboard includes a first-run onboarding checklist that guides new organizations from workspace creation to GitHub installation, repository sync, and first pull request review. Repository empty states now point users to the next required setup action.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:
@@ -95,6 +97,7 @@ pnpm build
 - `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan gates.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
 - `lib/paddle-webhooks.ts`: Paddle webhook verification helpers and subscription-to-plan mapping.
+- `lib/onboarding.ts`: self-serve setup checklist state for dashboard onboarding.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
 - `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.
 

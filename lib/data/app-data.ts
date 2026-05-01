@@ -19,6 +19,7 @@ export type OrganizationContext = {
   name: string;
   slug: string;
   planKey: PlanKey;
+  githubInstallationId: string | null;
   dataMode: "live" | "demo";
 };
 
@@ -146,13 +147,16 @@ async function queryWithDemoFallback<T>(query: (client: PrismaClient) => Promise
   }
 }
 
-function mapOrganization(row: { id: string; name: string; slug: string; planKey: string } | null): OrganizationContext {
+function mapOrganization(
+  row: { id: string; name: string; slug: string; planKey: string; githubInstallationId: string | null } | null,
+): OrganizationContext {
   if (!row) {
     return {
       id: demoOrganization.id,
       name: demoOrganization.name,
       slug: demoOrganization.slug,
       planKey: demoOrganization.planKey,
+      githubInstallationId: "demo-installation",
       dataMode: "demo",
     };
   }
@@ -162,6 +166,7 @@ function mapOrganization(row: { id: string; name: string; slug: string; planKey:
     name: row.name,
     slug: row.slug,
     planKey: row.planKey as PlanKey,
+    githubInstallationId: row.githubInstallationId,
     dataMode: "live",
   };
 }
@@ -174,6 +179,7 @@ export async function getCurrentOrganization(): Promise<OrganizationContext> {
       name: sessionOrganization.name,
       slug: sessionOrganization.slug,
       planKey: sessionOrganization.planKey,
+      githubInstallationId: sessionOrganization.githubInstallationId,
       dataMode: "live",
     };
   }
