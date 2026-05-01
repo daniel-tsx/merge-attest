@@ -4,6 +4,7 @@ import {
   enqueueGitHubWebhookDelivery,
   processQueuedGitHubWebhookDeliveries,
 } from '@/lib/github-webhooks'
+import { logEvent, reportError } from '@/lib/observability'
 
 function verificationError(
   reason?: 'missing_secret' | 'missing_signature' | 'invalid_signature',
@@ -23,6 +24,13 @@ export async function POST(request: Request) {
   )
 
   if (!verification.ok) {
+    logEvent({
+      level: 'warn',
+      area: 'github',
+      action: 'webhook_verification_failed',
+      message: verificationError(verification.reason),
+      metadata: { reason: verification.reason ?? 'unknown' },
+    })
     return NextResponse.json(
       { error: verificationError(verification.reason) },
       { status: 401 },
@@ -48,6 +56,18 @@ export async function POST(request: Request) {
       })
     }
 
+    logEvent({
+      area: 'github',
+      action: 'webhook_enqueued',
+      message: result.message,
+      metadata: {
+        event,
+        deliveryId: result.deliveryId,
+        queued: result.queued,
+        duplicate: result.duplicate,
+      },
+    })
+
     return NextResponse.json(
       {
         ...result,
@@ -63,7 +83,12 @@ export async function POST(request: Request) {
       )
     }
 
-    console.error('GitHub webhook processing failed', error)
+    reportError({
+      area: 'github',
+      action: 'webhook_processing_failed',
+      error,
+      metadata: { event, deliveryId },
+    })
     return NextResponse.json(
       { error: 'GitHub webhook processing failed' },
       { status: 500 },

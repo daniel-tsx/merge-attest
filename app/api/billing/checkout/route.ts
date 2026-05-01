@@ -6,6 +6,7 @@ import {
 } from '@/lib/billing'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageBilling } from '@/lib/collaboration'
+import { logEvent } from '@/lib/observability'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/types'
 
@@ -77,6 +78,17 @@ export async function POST(request: Request) {
         toPlan: planKey,
       },
       organizationId: organization.id,
+    },
+  })
+
+  logEvent({
+    area: 'billing',
+    action: 'checkout_started',
+    message: `Checkout started for ${planKey} plan.`,
+    metadata: {
+      organizationId: organization.id,
+      fromPlan: organization.planKey,
+      toPlan: planKey,
     },
   })
 

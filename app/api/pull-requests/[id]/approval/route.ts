@@ -8,6 +8,7 @@ import {
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canRecordApproval } from '@/lib/collaboration'
 import { postPullRequestComment, publishAgentGateCheckRun } from '@/lib/github'
+import { logEvent, reportError } from '@/lib/observability'
 import { isFeatureAvailable } from '@/lib/plans'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/types'
@@ -112,6 +113,18 @@ export async function POST(
     },
   })
 
+  logEvent({
+    area: 'approval',
+    action: 'approval_decision_recorded',
+    message: approvalSummary(body.decision, pullRequest.number),
+    metadata: {
+      decision: body.decision,
+      approvalStatus,
+      pullRequestId: pullRequest.id,
+      repositoryId: pullRequest.repositoryId,
+    },
+  })
+
   try {
     const canPostGitHubComment = isFeatureAvailable(
       pullRequest.repository.organization.planKey as PlanKey,
@@ -206,7 +219,15 @@ export async function POST(
       })
     }
   } catch (error) {
-    console.warn('Approval recorded but GitHub output failed.', error)
+    reportError({
+      area: 'approval',
+      action: 'approval_github_output_failed',
+      error,
+      metadata: {
+        pullRequestId: pullRequest.id,
+        decision: body.decision,
+      },
+    })
   }
 
   return NextResponse.json({

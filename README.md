@@ -5,7 +5,11 @@ AgentGate is a SaaS control center for engineering teams using AI coding agents.
 Project documentation has moved to `docs/`.
 
 - Product and setup documentation: `docs/README.md`
-- Productization roadmap: `docs/PRODUCTIZATION_PLAN.md`
+- Original productization plan: `docs/PRODUCTIZATION_PLAN.md`
+- Enhancement roadmap: `docs/ENHANCEMENT_PLAN.md`
+- Production checklist: `docs/PRODUCTION_CHECKLIST.md`
+- API and operations notes: `docs/API.md`
+- Privacy, retention, and support notes: `docs/PRIVACY_RETENTION_SUPPORT.md`
 
 Quick start:
 

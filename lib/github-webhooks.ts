@@ -1,4 +1,5 @@
 import { getPrismaClient } from '@/lib/prisma'
+import { reportError } from '@/lib/observability'
 import {
   syncGitHubInstallation,
   syncGitHubPullRequest,
@@ -859,7 +860,16 @@ export async function processQueuedGitHubWebhookDeliveries(
       })
       summary.processed += 1
     } catch (error) {
-      console.error('Queued GitHub webhook delivery failed', error)
+      reportError({
+        area: 'jobs',
+        action: 'queued_github_webhook_failed',
+        error,
+        metadata: {
+          deliveryId: delivery.deliveryId,
+          event: delivery.event,
+          attemptCount: delivery.attemptCount + 1,
+        },
+      })
       summary.failed += 1
     }
   }

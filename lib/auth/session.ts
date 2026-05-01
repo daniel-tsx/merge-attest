@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { isProduction } from '@/lib/env'
+import { reportError } from '@/lib/observability'
 import { getPrismaClient } from '@/lib/prisma'
 import type { BillingStatus, PlanKey } from '@/lib/types'
 
@@ -41,10 +42,12 @@ export async function getServerSession() {
     })
   } catch (error) {
     if (isProduction()) throw error
-    console.warn(
-      'Unable to read auth session; continuing without a session in local mode.',
+    reportError({
+      area: 'auth',
+      action: 'session_read_failed',
       error,
-    )
+      metadata: { production: false },
+    })
     return null
   }
 }

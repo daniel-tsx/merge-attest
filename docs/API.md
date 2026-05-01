@@ -1,0 +1,33 @@
+# API Notes
+
+AgentGate exposes a small set of operational and integration endpoints.
+
+## Health And Diagnostics
+
+- `GET /api/health`: public health summary with database, GitHub, Paddle, and job queue checks.
+- `GET /api/diagnostics`: owner/admin diagnostic payload with plan limits, repository count, PR check usage, and recent webhook failures.
+
+## Webhooks
+
+- `POST /api/github/webhook`: GitHub webhook receiver. Requires a valid GitHub signature in production.
+- `POST /api/paddle/webhook`: Paddle webhook receiver. Requires Paddle webhook verification.
+
+## Billing
+
+- `POST /api/billing/checkout`: owner-only checkout entry point for paid plans.
+- `POST /api/billing/portal`: owner-only Paddle customer portal redirect.
+
+## Exports
+
+- `GET /api/audit-log/export`: owner/admin CSV export, plan gated.
+- `GET /api/pull-requests/:id/review-packet`: owner/admin markdown review packet export, plan gated.
+
+## Rate Limits
+
+API responses include rate limit headers:
+
+- `X-RateLimit-Limit`
+- `X-RateLimit-Remaining`
+- `X-RateLimit-Reset`
+
+Current categories are public, auth, webhook, and mutation routes.
