@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import {
   getCurrentOrganization,
   getRepositoryPullRequests,
@@ -17,12 +19,6 @@ import { evaluateRepoRules } from '@/lib/rules'
 import { isFeatureAvailable } from '@/lib/plans'
 import type { RepoRule } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
-
-const selectClassName =
-  'h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
-
-const textareaClassName =
-  'min-h-20 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
 
 const triggerTypes: RepoRule['triggerType'][] = [
   'ai_assisted',
@@ -84,7 +80,7 @@ function formatLabel(value: string) {
 
 function fieldLabel(label: string, children: React.ReactNode) {
   return (
-    <label className="space-y-1 text-xs font-medium text-slate-600">
+    <label className="space-y-1 text-xs font-medium text-muted-foreground">
       <span>{label}</span>
       {children}
     </label>
@@ -101,24 +97,19 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
         )}
         {fieldLabel(
           'Severity',
-          <select
-            name="severity"
-            className={selectClassName}
-            defaultValue={rule?.severity ?? 'medium'}
-          >
+          <Select name="severity" defaultValue={rule?.severity ?? 'medium'}>
             {severityTypes.map((type) => (
               <option key={type} value={type}>
                 {formatLabel(type)}
               </option>
             ))}
-          </select>,
+          </Select>,
         )}
       </div>
       {fieldLabel(
         'Description',
-        <textarea
+        <Textarea
           name="description"
-          className={textareaClassName}
           defaultValue={rule?.description}
           required
         />,
@@ -126,9 +117,8 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
       <div className="grid gap-3 md:grid-cols-2">
         {fieldLabel(
           'Trigger',
-          <select
+          <Select
             name="triggerType"
-            className={selectClassName}
             defaultValue={rule?.triggerType ?? 'ai_assisted'}
           >
             {triggerTypes.map((type) => (
@@ -136,13 +126,12 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
                 {formatLabel(type)}
               </option>
             ))}
-          </select>,
+          </Select>,
         )}
         {fieldLabel(
           'Action',
-          <select
+          <Select
             name="actionType"
-            className={selectClassName}
             defaultValue={rule?.actionType ?? 'require_approval'}
           >
             {actionTypes.map((type) => (
@@ -150,7 +139,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
                 {formatLabel(type)}
               </option>
             ))}
-          </select>,
+          </Select>,
         )}
       </div>
       <div className="grid gap-3 md:grid-cols-3">
@@ -180,23 +169,18 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
         )}
         {fieldLabel(
           'Agent source',
-          <select
-            name="agentSource"
-            className={selectClassName}
-            defaultValue={rule?.agentSource ?? ''}
-          >
+          <Select name="agentSource" defaultValue={rule?.agentSource ?? ''}>
             {agentSources.map((source) => (
               <option key={source || 'any'} value={source}>
                 {formatLabel(source)}
               </option>
             ))}
-          </select>,
+          </Select>,
         )}
         {fieldLabel(
           'Minimum risk',
-          <select
+          <Select
             name="minimumRiskLevel"
-            className={selectClassName}
             defaultValue={rule?.minimumRiskLevel ?? ''}
           >
             {riskLevels.map((level) => (
@@ -204,7 +188,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
                 {formatLabel(level)}
               </option>
             ))}
-          </select>,
+          </Select>,
         )}
         {fieldLabel(
           'Suggested reviewer',
@@ -267,7 +251,7 @@ export default async function RepositoryRulesPage({
 
       {status && statusMessages[status] ? (
         <Card>
-          <CardContent className="p-4 text-sm text-slate-700">
+          <CardContent className="p-4 text-sm text-muted-foreground">
             {statusMessages[status]}
           </CardContent>
         </Card>
@@ -277,10 +261,10 @@ export default async function RepositoryRulesPage({
         <Card>
           <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="font-medium text-slate-950">
+              <div className="font-medium text-foreground">
                 Custom rules require the Team plan
               </div>
-              <div className="text-sm text-slate-600">
+              <div className="text-sm text-muted-foreground">
                 Upgrade to create templates, scoped policies, and rule actions
                 for this repository.
               </div>
@@ -298,12 +282,14 @@ export default async function RepositoryRulesPage({
             <CardContent className="space-y-4 p-5">
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-base font-semibold text-slate-950">
+                  <h2 className="text-base font-semibold text-foreground">
                     {template.name}
                   </h2>
                   <RiskBadge level={template.severity} />
                 </div>
-                <p className="text-sm text-slate-600">{template.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  {template.description}
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge>{formatLabel(template.triggerType)}</Badge>
@@ -331,10 +317,10 @@ export default async function RepositoryRulesPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-semibold text-foreground">
               Create custom rule
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               Scope policy by branch, path, agent, label, or minimum risk level.
             </p>
           </div>
@@ -355,10 +341,10 @@ export default async function RepositoryRulesPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-semibold text-foreground">
               Active policy
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               {rules.length
                 ? `${rules.length} rules configured for this repository.`
                 : 'No repository rules configured yet.'}
@@ -368,12 +354,12 @@ export default async function RepositoryRulesPage({
             {rules.map((rule) => (
               <div
                 key={rule.id}
-                className="rounded-lg border border-slate-200 p-4"
+                className="rounded-card border border-border p-4 shadow-card"
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-medium text-slate-950">
+                      <h3 className="font-medium text-foreground">
                         {rule.name}
                       </h3>
                       <RiskBadge level={rule.severity} />
@@ -381,7 +367,9 @@ export default async function RepositoryRulesPage({
                         {rule.enabled ? 'enabled' : 'disabled'}
                       </Badge>
                     </div>
-                    <p className="text-sm text-slate-600">{rule.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {rule.description}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       <Badge>{formatLabel(rule.triggerType)}</Badge>
                       <Badge>{formatLabel(rule.actionType)}</Badge>
@@ -406,7 +394,7 @@ export default async function RepositoryRulesPage({
                         <Badge>Reviewer: {rule.codeOwnerHint}</Badge>
                       ) : null}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted-foreground">
                       Updated {formatDate(rule.updatedAt)}
                     </div>
                   </div>
@@ -461,7 +449,7 @@ export default async function RepositoryRulesPage({
                   </div>
                 </div>
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-700">
+                  <summary className="cursor-pointer text-sm font-medium text-foreground">
                     Edit rule
                   </summary>
                   <form
@@ -489,10 +477,10 @@ export default async function RepositoryRulesPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-semibold text-foreground">
               Policy preview
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               Recent pull requests evaluated against the current enabled policy.
             </p>
           </div>
@@ -501,14 +489,14 @@ export default async function RepositoryRulesPage({
               previewPullRequests.map(({ pullRequest, violations }) => (
                 <div
                   key={pullRequest.id}
-                  className="rounded-lg border border-slate-200 p-4"
+                  className="rounded-card border border-border p-4"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <div className="font-medium text-slate-950">
+                      <div className="font-medium text-foreground">
                         #{pullRequest.number} {pullRequest.title}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         {pullRequest.branch} -{' '}
                         {formatLabel(pullRequest.agentSource)}
                       </div>
@@ -520,7 +508,7 @@ export default async function RepositoryRulesPage({
                     </Badge>
                   </div>
                   {violations.length ? (
-                    <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                    <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
                       {violations.map((violation) => (
                         <li key={violation.id}>{violation.summary}</li>
                       ))}
@@ -529,7 +517,7 @@ export default async function RepositoryRulesPage({
                 </div>
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+              <div className="rounded-card border border-dashed border-border bg-surface-muted p-6 text-sm text-muted-foreground">
                 Sync pull requests to preview policy impact.
               </div>
             )}

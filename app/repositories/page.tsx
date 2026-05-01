@@ -1,5 +1,7 @@
 import type { SearchParams } from 'nuqs/server'
+import Link from 'next/link'
 import { RefreshCw } from 'lucide-react'
+import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { RepositoryFilters } from '@/app/repositories/filters'
 import { RiskBadge } from '@/components/app/status-badge'
@@ -55,10 +57,10 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
         <Card>
           <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="font-medium text-slate-950">
+              <div className="font-medium text-foreground">
                 Repository limit reached
               </div>
-              <div className="text-sm text-slate-600">
+              <div className="text-sm text-muted-foreground">
                 Your {organization.planKey} plan includes{' '}
                 {entitlements.repositoryLimit} repositories. Upgrade before
                 syncing additional repositories.
@@ -73,16 +75,11 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="space-y-4">
           {allRepositories.length === 0 ? (
-            <div className="rounded-md border border-dashed border-slate-300 p-6 text-center">
-              <h2 className="text-sm font-semibold text-slate-950">
-                No repositories synced yet
-              </h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
-                Connect the GitHub App, then sync repositories to import open
-                pull requests and start applying AgentGate rules.
-              </p>
-              <div className="mt-4 flex justify-center">
-                {organization.githubInstallationId ? (
+            <EmptyState
+              title="No repositories synced yet"
+              description="Connect the GitHub App, then sync repositories to import open pull requests and start applying AgentGate rules."
+              actions={
+                organization.githubInstallationId ? (
                   <form action="/api/github/sync/repositories" method="post">
                     <input
                       type="hidden"
@@ -96,17 +93,22 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
                   </form>
                 ) : (
                   <Button asChild>
-                    <a href="/settings/github">Connect GitHub</a>
+                    <Link href="/settings/github">Connect GitHub</Link>
                   </Button>
-                )}
-              </div>
-            </div>
+                )
+              }
+            />
           ) : (
             <>
               <RepositoryFilters />
+              <ResultSummary
+                count={repositories.length}
+                label="repositories"
+                detail={`${allRepositories.length} total connected`}
+              />
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 z-10">
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Owner</TableHead>
@@ -121,13 +123,13 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
                     {repositories.map((repository) => (
                       <TableRow key={repository.id}>
                         <TableCell>
-                          <a
+                          <Link
                             href={`/repositories/${repository.id}`}
-                            className="font-medium text-slate-950 hover:underline"
+                            className="font-medium text-foreground hover:underline"
                           >
                             {repository.name}
-                          </a>
-                          <div className="text-xs text-slate-500">
+                          </Link>
+                          <div className="text-xs text-muted-foreground">
                             {repository.provider} · {repository.defaultBranch} ·{' '}
                             {repository.visibility}
                           </div>
@@ -149,8 +151,11 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
                   </TableBody>
                 </Table>
                 {repositories.length === 0 ? (
-                  <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-                    No repositories match these filters.
+                  <div className="border-t border-border p-4">
+                    <EmptyState
+                      title="No repositories match these filters"
+                      description="Adjust or clear filters to see more repositories."
+                    />
                   </div>
                 ) : null}
               </div>

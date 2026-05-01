@@ -75,6 +75,17 @@ List filters use `nuqs` so shareable list state is parsed consistently in Server
 - Keep existing URL keys stable unless the API/export route is migrated at the same time.
 - Audit-log filter keys must remain aligned with `/api/audit-log/export`.
 
+## Core Page Patterns
+
+Phase 4 standardizes page-level UX around a few shared patterns:
+
+- Use `components/app/empty-state.tsx` for table, timeline, chart, and queue empty states.
+- Use `ResultSummary` near filter toolbars so users can understand the current filtered result set before scanning data.
+- URL filter forms show active filter chips and a clear-all affordance derived from the current `nuqs` values.
+- List tables should use sticky token-backed headers where the page is primarily a scan-and-review workflow.
+- Detail pages should use semantic feedback colors for success, info, and danger states rather than generic cards.
+- PR references should link to pull request detail pages whenever the data already includes a local pull request ID.
+
 ## Verification Checklist
 
 Before merging UI changes:

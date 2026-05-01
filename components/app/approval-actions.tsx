@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, MessageSquare, ShieldAlert, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import type { Approval } from '@/lib/types'
 
 export function ApprovalActions({
@@ -53,15 +54,14 @@ export function ApprovalActions({
   return (
     <div className="space-y-3">
       {!canRecord ? (
-        <p className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+        <p className="rounded-control border border-info-border bg-info-soft p-3 text-sm text-info">
           You have read-only access to approval decisions.
         </p>
       ) : null}
-      <textarea
+      <Textarea
         value={note}
         onChange={(event) => setNote(event.target.value)}
         placeholder="Optional reviewer note"
-        className="min-h-20 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
         maxLength={1000}
         disabled={!canRecord}
       />
@@ -102,7 +102,9 @@ export function ApprovalActions({
           {submitting === 'rejected' ? 'Rejecting...' : 'Reject'}
         </Button>
       </div>
-      <p className="text-xs text-slate-500">{message}</p>
+      <p className="text-xs text-muted-foreground" aria-live="polite">
+        {message}
+      </p>
     </div>
   )
 }

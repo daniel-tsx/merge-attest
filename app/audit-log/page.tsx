@@ -1,4 +1,6 @@
 import type { SearchParams } from 'nuqs/server'
+import Link from 'next/link'
+import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { AuditLogFilters } from '@/app/audit-log/filters'
 import { Button } from '@/components/ui/button'
@@ -76,14 +78,15 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
       />
       <Card>
         <CardContent className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Showing the latest {auditEvents.length} events within your plan
-            retention window.
-          </p>
           <AuditLogFilters repositories={repositories} />
+          <ResultSummary
+            count={auditEvents.length}
+            label="audit events"
+            detail="Within your plan retention window"
+          />
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10">
                 <TableRow>
                   <TableHead>Event</TableHead>
                   <TableHead>Repository</TableHead>
@@ -96,18 +99,27 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
                 {auditEvents.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="min-w-80">
-                      <div className="font-medium text-slate-950">
+                      <div className="font-medium text-foreground">
                         {event.summary}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         {event.eventType.replaceAll('_', ' ')}
                       </div>
                     </TableCell>
                     <TableCell>{event.repositoryName}</TableCell>
                     <TableCell>
-                      {event.pullRequestNumber
-                        ? `#${event.pullRequestNumber}`
-                        : 'none'}
+                      {event.pullRequestNumber && event.pullRequestId ? (
+                        <Link
+                          href={`/pull-requests/${event.pullRequestId}`}
+                          className="font-medium text-foreground hover:underline"
+                        >
+                          #{event.pullRequestNumber}
+                        </Link>
+                      ) : event.pullRequestNumber ? (
+                        `#${event.pullRequestNumber}`
+                      ) : (
+                        'none'
+                      )}
                     </TableCell>
                     <TableCell>{event.actor ?? 'system'}</TableCell>
                     <TableCell>{formatDate(event.createdAt)}</TableCell>
@@ -116,10 +128,11 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
               </TableBody>
             </Table>
             {auditEvents.length === 0 ? (
-              <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-                No audit events have been recorded yet. Repository sync,
-                approvals, billing changes, and webhook activity will appear
-                here.
+              <div className="border-t border-border p-4">
+                <EmptyState
+                  title="No audit events recorded yet"
+                  description="Repository sync, approvals, billing changes, and webhook activity will appear here."
+                />
               </div>
             ) : null}
           </div>
@@ -128,10 +141,10 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="space-y-4 p-5">
           <div>
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-semibold text-foreground">
               Saved audit exports
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               CSV exports are recorded for compliance traceability.
             </p>
           </div>
@@ -148,7 +161,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
               <TableBody>
                 {savedExports.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium text-slate-950">
+                    <TableCell className="font-medium text-foreground">
                       {item.fileName}
                     </TableCell>
                     <TableCell>{item.eventCount}</TableCell>
@@ -159,8 +172,11 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
               </TableBody>
             </Table>
             {savedExports.length === 0 ? (
-              <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-                No audit exports have been saved yet.
+              <div className="border-t border-border p-4">
+                <EmptyState
+                  title="No saved audit exports"
+                  description="CSV export records will appear here after the first export."
+                />
               </div>
             ) : null}
           </div>

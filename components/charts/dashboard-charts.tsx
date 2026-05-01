@@ -9,7 +9,9 @@ const TrendChartInner = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className="h-64 w-full rounded-md bg-slate-50" />,
+    loading: () => (
+      <div className="h-64 w-full rounded-card bg-surface-muted" />
+    ),
   },
 )
 

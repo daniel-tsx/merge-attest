@@ -1,4 +1,6 @@
 import type { SearchParams } from 'nuqs/server'
+import Link from 'next/link'
+import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { ApprovalActions } from '@/components/app/approval-actions'
 import { ApprovalFilters } from '@/app/approvals/filters'
@@ -58,10 +60,10 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
         <Card>
           <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="font-medium text-slate-950">
+              <div className="font-medium text-foreground">
                 Approval workflow requires the Team plan
               </div>
-              <div className="text-sm text-slate-600">
+              <div className="text-sm text-muted-foreground">
                 Upgrade to record approval decisions, reviewer assignments, and
                 risk acceptance.
               </div>
@@ -73,10 +75,19 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
         </Card>
       ) : null}
       <Card>
-        <CardContent>
+        <CardContent className="space-y-4">
           <ApprovalFilters
             repositories={repositories}
             teamMembers={teamMembers}
+          />
+          <ResultSummary
+            count={pending.length}
+            label="approval queue items"
+            detail={
+              filters.approvalStatus === 'all'
+                ? 'Pending reviews and high test-gap PRs'
+                : 'Matching the selected approval status'
+            }
           />
         </CardContent>
       </Card>
@@ -85,10 +96,16 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
           <Card key={pr.id}>
             <CardHeader>
               <CardTitle>
-                <a href={`/pull-requests/${pr.id}`} className="hover:underline">
+                <Link
+                  href={`/pull-requests/${pr.id}`}
+                  className="hover:underline"
+                >
                   #{pr.number} {pr.title}
-                </a>
+                </Link>
               </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {pr.repositoryName} · Updated {formatDate(pr.updatedAt)}
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap gap-2">
@@ -97,9 +114,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                 <CiBadge status={pr.ciStatus} />
                 <ApprovalBadge status={pr.approvalStatus} />
               </div>
-              <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
-                <div>{pr.repositoryName}</div>
-                <div>Updated {formatDate(pr.updatedAt)}</div>
+              <div className="grid gap-2 text-sm text-muted-foreground md:grid-cols-2">
                 <div>{pr.filesChangedCount} files changed</div>
                 <div>{pr.ruleViolations.length} rule violations</div>
                 <div>
@@ -153,9 +168,16 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       </div>
       {pending.length === 0 ? (
         <Card>
-          <CardContent className="p-6 text-sm text-slate-600">
-            No approval items match these filters. New high-risk, AI-assisted,
-            or test-gap pull requests will appear here.
+          <CardContent className="p-4">
+            <EmptyState
+              title="No approval items match these filters"
+              description="New high-risk, AI-assisted, or test-gap pull requests will appear here."
+              actions={
+                <Button asChild variant="secondary">
+                  <Link href="/pull-requests">View pull requests</Link>
+                </Button>
+              }
+            />
           </CardContent>
         </Card>
       ) : null}

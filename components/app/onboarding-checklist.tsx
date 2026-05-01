@@ -6,10 +6,10 @@ import type { OnboardingStatus, OnboardingStep } from '@/lib/onboarding'
 
 function StepIcon({ status }: { status: OnboardingStep['status'] }) {
   if (status === 'complete')
-    return <CheckCircle2 className="size-5 text-emerald-600" />
+    return <CheckCircle2 className="size-5 text-success" />
   if (status === 'blocked')
-    return <LockKeyhole className="size-5 text-slate-400" />
-  return <Circle className="size-5 text-blue-600" />
+    return <LockKeyhole className="size-5 text-subtle-foreground" />
+  return <Circle className="size-5 text-info" />
 }
 
 function StepBadge({ status }: { status: OnboardingStep['status'] }) {
@@ -27,7 +27,7 @@ export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
         <CardTitle>Finish Setup</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           Connect GitHub and sync your first repository so AgentGate can start
           monitoring pull requests.
         </p>
@@ -35,16 +35,16 @@ export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
           {status.steps.map((step) => (
             <div
               key={step.id}
-              className="rounded-md border border-slate-200 p-3"
+              className="rounded-control border border-border p-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <StepIcon status={step.status} />
                 <StepBadge status={step.status} />
               </div>
-              <h3 className="mt-3 text-sm font-semibold text-slate-950">
+              <h3 className="mt-3 text-sm font-semibold text-foreground">
                 {step.title}
               </h3>
-              <p className="mt-1 min-h-10 text-sm text-slate-600">
+              <p className="mt-1 min-h-10 text-sm text-muted-foreground">
                 {step.description}
               </p>
               {step.actionHref && step.status !== 'complete' ? (

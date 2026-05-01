@@ -1,4 +1,6 @@
 import type { SearchParams } from 'nuqs/server'
+import Link from 'next/link'
+import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { ActivityFilters } from '@/app/activity/filters'
 import { RiskBadge } from '@/components/app/status-badge'
@@ -32,37 +34,53 @@ export default async function ActivityPage({ searchParams }: PageProps) {
       <Card>
         <CardContent className="space-y-4">
           <ActivityFilters repositories={repositories} />
-          <div className="divide-y divide-slate-100">
+          <ResultSummary
+            count={activityEvents.length}
+            label="activity events"
+            detail="Matching repository, source, and risk filters"
+          />
+          <div className="divide-y divide-border">
             {activityEvents.map((event) => (
               <div
                 key={event.id}
                 className="grid gap-3 py-3 md:grid-cols-[180px_1fr_140px_120px] md:items-center"
               >
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-muted-foreground">
                   {formatDate(event.timestamp)}
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-slate-950">
+                  <div className="text-sm font-medium text-foreground">
                     {event.summary}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-muted-foreground">
                     {event.repositoryName} ·{' '}
-                    {event.pullRequestNumber
-                      ? `PR #${event.pullRequestNumber}`
-                      : 'No PR'}{' '}
+                    {event.pullRequestNumber && event.pullRequestId ? (
+                      <Link
+                        href={`/pull-requests/${event.pullRequestId}`}
+                        className="font-medium text-foreground hover:underline"
+                      >
+                        PR #{event.pullRequestNumber}
+                      </Link>
+                    ) : event.pullRequestNumber ? (
+                      `PR #${event.pullRequestNumber}`
+                    ) : (
+                      'No PR'
+                    )}{' '}
                     · {event.actor}
                   </div>
                 </div>
-                <div className="text-sm text-slate-700">
+                <div className="text-sm text-muted-foreground">
                   {event.agentSource.replace('_', ' ')}
                 </div>
                 <RiskBadge level={event.riskLevel} />
               </div>
             ))}
             {activityEvents.length === 0 ? (
-              <div className="py-6 text-sm text-slate-600">
-                No activity matches these filters. Sync repositories or clear
-                the filters to see more events.
+              <div className="py-4">
+                <EmptyState
+                  title="No activity matches these filters"
+                  description="Sync repositories or clear the filters to see more events."
+                />
               </div>
             ) : null}
           </div>

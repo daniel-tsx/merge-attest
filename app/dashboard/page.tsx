@@ -8,6 +8,8 @@ import {
   ShieldAlert,
   TestTube2,
 } from 'lucide-react'
+import Link from 'next/link'
+import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
 import { CiBadge, RiskBadge, TestGapBadge } from '@/components/app/status-badge'
@@ -91,14 +93,14 @@ export default async function DashboardPage() {
     ),
   }
   const metricCards = [
-    ['Repositories', metrics.repositoriesConnected],
-    ['AI PRs this week', metrics.aiPrsThisWeek],
-    ['High-risk PRs', metrics.highRiskPrs],
-    ['PRs with test gaps', metrics.prsWithTestGaps],
-    ['Pending approvals', metrics.pendingApprovals],
-    ['Failed CI checks', metrics.failedCiChecks],
-    ['Average risk score', metrics.averageRiskScore],
-    ['Rule violations', metrics.ruleViolations],
+    ['Pending approvals', metrics.pendingApprovals, 'Decisions waiting'],
+    ['High-risk PRs', metrics.highRiskPrs, 'Needs attention'],
+    ['Failed CI checks', metrics.failedCiChecks, 'Blocking confidence'],
+    ['PRs with test gaps', metrics.prsWithTestGaps, 'Needs test review'],
+    ['Repositories', metrics.repositoriesConnected, 'Connected sources'],
+    ['AI PRs this week', metrics.aiPrsThisWeek, 'AI-assisted volume'],
+    ['Average risk score', metrics.averageRiskScore, 'Across open PRs'],
+    ['Rule violations', metrics.ruleViolations, 'Policy signals'],
   ] as const
 
   return (
@@ -109,20 +111,26 @@ export default async function DashboardPage() {
       />
       <OnboardingChecklist status={onboardingStatus} />
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {metricCards.map(([label, value], index) => {
+        {metricCards.map(([label, value, description], index) => {
           const Icon = metricIcons[index]
           return (
-            <Card key={label}>
+            <Card
+              key={label}
+              className={index < 4 ? 'border-border-strong' : undefined}
+            >
               <CardContent className="flex items-center justify-between p-4">
                 <div>
-                  <p className="text-xs font-medium uppercase text-slate-500">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {label}
                   </p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
                     {formatNumber(value)}
                   </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {description}
+                  </p>
                 </div>
-                <Icon className="size-5 text-slate-500" />
+                <Icon className="size-5 text-subtle-foreground" />
               </CardContent>
             </Card>
           )
@@ -145,10 +153,12 @@ export default async function DashboardPage() {
             ].map(([label, value]) => (
               <div
                 key={label}
-                className="rounded-md border border-slate-200 p-3"
+                className="rounded-control border border-border bg-surface-muted p-3"
               >
-                <div className="text-xs uppercase text-slate-500">{label}</div>
-                <div className="mt-2 text-xl font-semibold text-slate-950">
+                <div className="text-xs uppercase text-muted-foreground">
+                  {label}
+                </div>
+                <div className="mt-2 text-xl font-semibold text-foreground">
                   {value}
                 </div>
               </div>
@@ -164,18 +174,22 @@ export default async function DashboardPage() {
               reportingMetrics.noisyRules.map((rule) => (
                 <div
                   key={rule.ruleName}
-                  className="flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm"
+                  className="flex items-center justify-between rounded-control border border-border p-3 text-sm"
                 >
-                  <span className="font-medium text-slate-950">
+                  <span className="font-medium text-foreground">
                     {rule.ruleName}
                   </span>
-                  <span className="text-slate-500">{rule.count} triggers</span>
+                  <span className="text-muted-foreground">
+                    {rule.count} triggers
+                  </span>
                 </div>
               ))
             ) : (
-              <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-                No rule trigger data yet.
-              </div>
+              <EmptyState
+                title="No noisy rules yet"
+                description="Rule trigger data will appear after repositories have synced pull requests."
+                className="p-4"
+              />
             )}
           </CardContent>
         </Card>
@@ -187,12 +201,18 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {trendData.length ? (
-              <TrendChart data={trendData} metric="risk" />
-            ) : (
-              <div className="rounded-md border border-dashed border-slate-300 p-6 text-sm text-slate-600">
-                No risk trend data yet. Synced pull requests will populate this
-                chart.
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Tracking average risk across {trendData.length} reporting
+                  periods.
+                </p>
+                <TrendChart data={trendData} metric="risk" />
               </div>
+            ) : (
+              <EmptyState
+                title="No risk trend data yet"
+                description="Synced pull requests will populate this chart."
+              />
             )}
           </CardContent>
         </Card>
@@ -202,12 +222,18 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             {trendData.length ? (
-              <TrendChart data={trendData} metric="testGaps" />
-            ) : (
-              <div className="rounded-md border border-dashed border-slate-300 p-6 text-sm text-slate-600">
-                No test-gap trend data yet. Synced pull requests will populate
-                this chart.
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Showing detected test gaps across {trendData.length} reporting
+                  periods.
+                </p>
+                <TrendChart data={trendData} metric="testGaps" />
               </div>
+            ) : (
+              <EmptyState
+                title="No test-gap trend data yet"
+                description="Synced pull requests will populate this chart."
+              />
             )}
           </CardContent>
         </Card>
@@ -216,31 +242,42 @@ export default async function DashboardPage() {
         <CardHeader>
           <CardTitle>Repository Risk Profiles</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Repository</TableHead>
-                <TableHead>Average Risk</TableHead>
-                <TableHead>Risky PRs</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reportingMetrics.repositoryRiskProfiles.map((profile) => (
-                <TableRow key={profile.repositoryName}>
-                  <TableCell className="font-medium text-slate-950">
-                    {profile.repositoryName}
-                  </TableCell>
-                  <TableCell>{profile.averageRiskScore}</TableCell>
-                  <TableCell>{profile.riskyPullRequests}</TableCell>
+        <CardContent className="p-0">
+          <div className="px-4 pt-4">
+            <ResultSummary
+              count={reportingMetrics.repositoryRiskProfiles.length}
+              label="repository profiles"
+              detail="Ranked by average risk and risky PR count"
+            />
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Repository</TableHead>
+                  <TableHead>Average Risk</TableHead>
+                  <TableHead>Risky PRs</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {reportingMetrics.repositoryRiskProfiles.map((profile) => (
+                  <TableRow key={profile.repositoryName}>
+                    <TableCell className="font-medium text-foreground">
+                      {profile.repositoryName}
+                    </TableCell>
+                    <TableCell>{profile.averageRiskScore}</TableCell>
+                    <TableCell>{profile.riskyPullRequests}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           {reportingMetrics.repositoryRiskProfiles.length === 0 ? (
-            <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-              Repository risk profiles will appear after pull requests are
-              synced.
+            <div className="p-4">
+              <EmptyState
+                title="No repository risk profiles yet"
+                description="Repository risk profiles will appear after pull requests are synced."
+              />
             </div>
           ) : null}
         </CardContent>
@@ -250,54 +287,65 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>High Attention Pull Requests</CardTitle>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>PR</TableHead>
-                  <TableHead>Repo</TableHead>
-                  <TableHead>Risk</TableHead>
-                  <TableHead>Tests</TableHead>
-                  <TableHead>CI</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {highAttentionPullRequests.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="min-w-72">
-                      <a
-                        className="font-medium text-slate-950 hover:underline"
-                        href={`/pull-requests/${item.id}`}
-                      >
-                        #{item.number} {item.title}
-                      </a>
-                      <div className="text-xs text-slate-500">
-                        {item.author}
-                      </div>
-                    </TableCell>
-                    <TableCell>{item.repositoryName}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <RiskBadge level={item.riskLevel} />
-                        <span className="text-xs text-slate-500">
-                          {item.riskScore}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TestGapBadge status={item.testGapStatus} />
-                    </TableCell>
-                    <TableCell>
-                      <CiBadge status={item.ciStatus} />
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="px-4 pt-4">
+              <ResultSummary
+                count={highAttentionPullRequests.length}
+                label="pull requests"
+                detail="High risk or missing test coverage"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>PR</TableHead>
+                    <TableHead>Repo</TableHead>
+                    <TableHead>Risk</TableHead>
+                    <TableHead>Tests</TableHead>
+                    <TableHead>CI</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {highAttentionPullRequests.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="min-w-72">
+                        <a
+                          className="font-medium text-foreground hover:underline"
+                          href={`/pull-requests/${item.id}`}
+                        >
+                          #{item.number} {item.title}
+                        </a>
+                        <div className="text-xs text-muted-foreground">
+                          {item.author}
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.repositoryName}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <RiskBadge level={item.riskLevel} />
+                          <span className="text-xs text-muted-foreground">
+                            {item.riskScore}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <TestGapBadge status={item.testGapStatus} />
+                      </TableCell>
+                      <TableCell>
+                        <CiBadge status={item.ciStatus} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
             {highAttentionPullRequests.length === 0 ? (
-              <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-                No high-attention pull requests yet. Sync repositories to
-                populate this queue.
+              <div className="p-4">
+                <EmptyState
+                  title="No high-attention pull requests"
+                  description="Sync repositories to populate this queue."
+                />
               </div>
             ) : null}
           </CardContent>
@@ -310,26 +358,36 @@ export default async function DashboardPage() {
             {activityEvents.map((event) => (
               <div
                 key={event.id}
-                className="rounded-md border border-slate-200 p-3"
+                className="rounded-control border border-border p-3"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-medium text-slate-950">
+                  <div className="text-sm font-medium text-foreground">
                     {event.repositoryName}
                   </div>
                   <RiskBadge level={event.riskLevel} />
                 </div>
-                <p className="mt-1 text-sm text-slate-700">{event.summary}</p>
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {event.summary}
+                </p>
+                <p className="mt-2 text-xs text-subtle-foreground">
                   {event.agentSource.replace('_', ' ')} by {event.actor} ·{' '}
                   {formatDate(event.timestamp)}
                 </p>
               </div>
             ))}
             {activityEvents.length === 0 ? (
-              <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-600">
-                No activity yet. Sync repositories or process GitHub webhooks to
-                populate the timeline.
-              </div>
+              <EmptyState
+                title="No activity yet"
+                description="Sync repositories or process GitHub webhooks to populate the timeline."
+                actions={
+                  <Link
+                    href="/repositories"
+                    className="text-sm font-medium text-foreground hover:underline"
+                  >
+                    View repositories
+                  </Link>
+                }
+              />
             ) : null}
           </CardContent>
         </Card>

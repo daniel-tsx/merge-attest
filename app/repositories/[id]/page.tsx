@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { RefreshCw } from 'lucide-react'
+import { EmptyState } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import {
   ApprovalBadge,
@@ -73,31 +75,39 @@ export default async function RepositoryDetailPage({
       <section className="grid gap-3 md:grid-cols-4">
         <Card>
           <CardContent>
-            <div className="text-xs uppercase text-slate-500">Connection</div>
-            <div className="mt-2 text-lg font-semibold">
+            <div className="text-xs uppercase text-muted-foreground">
+              Connection
+            </div>
+            <div className="mt-2 text-lg font-semibold text-foreground">
               {repository.connectedStatus}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <div className="text-xs uppercase text-slate-500">Active rules</div>
-            <div className="mt-2 text-lg font-semibold">{rules.length}</div>
+            <div className="text-xs uppercase text-muted-foreground">
+              Active rules
+            </div>
+            <div className="mt-2 text-lg font-semibold text-foreground">
+              {rules.length}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <div className="text-xs uppercase text-slate-500">
+            <div className="text-xs uppercase text-muted-foreground">
               Monthly usage
             </div>
-            <div className="mt-2 text-lg font-semibold">
+            <div className="mt-2 text-lg font-semibold text-foreground">
               {formatNumber(repository.monthlyPrCheckUsage)} checks
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent>
-            <div className="text-xs uppercase text-slate-500">Risk profile</div>
+            <div className="text-xs uppercase text-muted-foreground">
+              Risk profile
+            </div>
             <div className="mt-2">
               <RiskBadge level={repository.riskProfile} />
             </div>
@@ -126,11 +136,11 @@ export default async function RepositoryDetailPage({
                     <TableCell className="min-w-72">
                       <a
                         href={`/pull-requests/${pr.id}`}
-                        className="font-medium text-slate-950 hover:underline"
+                        className="font-medium text-foreground hover:underline"
                       >
                         #{pr.number} {pr.title}
                       </a>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-xs text-muted-foreground">
                         {formatDate(pr.updatedAt)}
                       </div>
                     </TableCell>
@@ -150,6 +160,19 @@ export default async function RepositoryDetailPage({
                 ))}
               </TableBody>
             </Table>
+            {prs.length === 0 ? (
+              <div className="border-t border-border p-4">
+                <EmptyState
+                  title="No pull requests for this repository"
+                  description="Sync this repository or open the pull request monitor to see review data."
+                  actions={
+                    <Button asChild variant="secondary">
+                      <Link href="/pull-requests">Open PR monitor</Link>
+                    </Button>
+                  }
+                />
+              </div>
+            ) : null}
           </CardContent>
         </Card>
         <Card>
@@ -160,14 +183,23 @@ export default async function RepositoryDetailPage({
             {auditEvents.map((event) => (
               <div
                 key={event.id}
-                className="rounded-md border border-slate-200 p-3"
+                className="rounded-control border border-border p-3"
               >
-                <div className="text-sm font-medium">{event.summary}</div>
-                <div className="mt-1 text-xs text-slate-500">
+                <div className="text-sm font-medium text-foreground">
+                  {event.summary}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
                   {formatDate(event.createdAt)}
                 </div>
               </div>
             ))}
+            {auditEvents.length === 0 ? (
+              <EmptyState
+                title="No repository audit events"
+                description="Repository-specific audit events will appear after syncs, rule changes, or review activity."
+                className="p-4"
+              />
+            ) : null}
           </CardContent>
         </Card>
       </section>
@@ -177,18 +209,20 @@ export default async function RepositoryDetailPage({
         </CardHeader>
         <CardContent className="grid gap-3 text-sm md:grid-cols-3">
           <div>
-            <div className="text-slate-500">Provider</div>
-            <div className="font-medium">{repository.provider}</div>
+            <div className="text-muted-foreground">Provider</div>
+            <div className="font-medium text-foreground">
+              {repository.provider}
+            </div>
           </div>
           <div>
-            <div className="text-slate-500">Created</div>
-            <div className="font-medium">
+            <div className="text-muted-foreground">Created</div>
+            <div className="font-medium text-foreground">
               {formatDate(repository.createdAt)}
             </div>
           </div>
           <div>
-            <div className="text-slate-500">Updated</div>
-            <div className="font-medium">
+            <div className="text-muted-foreground">Updated</div>
+            <div className="font-medium text-foreground">
               {formatDate(repository.updatedAt)}
             </div>
           </div>
