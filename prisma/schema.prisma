@@ -209,6 +209,10 @@ model Organization {
   githubInstallationId String?
   githubAccountId      String?
   githubAccountLogin   String?
+  paddleCustomerId      String?
+  paddleSubscriptionId  String?
+  paddleSubscriptionStatus String?
+  paddlePriceId         String?
   planKey              String   @default("free")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

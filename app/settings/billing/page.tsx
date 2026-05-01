@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentOrganization } from "@/lib/data/app-data";
 import { getPlanEntitlements, limitLabel } from "@/lib/entitlements";
-import { getBillingMode } from "@/lib/billing";
+import { getBillingMode, getPaddlePriceId, isPaidPlan } from "@/lib/billing";
 import { plans } from "@/lib/plans";
 
 export default async function BillingSettingsPage() {
@@ -44,9 +44,22 @@ export default async function BillingSettingsPage() {
                     <li key={feature}>• {feature}</li>
                   ))}
                 </ul>
-                <Button variant={plan.key === organization.planKey ? "secondary" : "default"} className="w-full" disabled>
-                  {plan.key === organization.planKey ? "Current plan" : billingMode === "live" ? "Checkout coming next" : "Paddle not configured"}
-                </Button>
+                {plan.key === organization.planKey ? (
+                  <Button variant="secondary" className="w-full" disabled>
+                    Current plan
+                  </Button>
+                ) : isPaidPlan(plan.key) && billingMode === "live" && getPaddlePriceId(plan.key) ? (
+                  <form action="/api/billing/checkout" method="post">
+                    <input type="hidden" name="planKey" value={plan.key} />
+                    <Button className="w-full" type="submit">
+                      Start checkout
+                    </Button>
+                  </form>
+                ) : (
+                  <Button className="w-full" disabled>
+                    {isPaidPlan(plan.key) ? "Configure Paddle price" : "Contact sales"}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           );
