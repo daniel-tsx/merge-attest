@@ -51,6 +51,18 @@ When adding local wrappers for Select, Tabs, Dialog, Dropdown Menu, Toast, or To
 - Use `bg-surface`, `border-border`, `text-foreground`, and `text-muted-foreground` before direct palette classes.
 - Ensure icon-only triggers have accessible labels.
 
+## Shell And Navigation
+
+The app shell lives in `components/app/app-shell.tsx`.
+
+- Primary navigation is grouped by product task: overview, review work, and workspace.
+- Active route state is derived from the current pathname and should set `aria-current="page"`.
+- Desktop navigation is persistent at large breakpoints.
+- Mobile navigation uses a Radix Dialog drawer with a visible close control and labelled trigger.
+- The shell includes a skip-to-content link and focuses the main region after route changes.
+- Header, sidebar, and drawer controls should keep a minimum 44px interaction target.
+- Navigation copy should describe the task outcome, not just the destination name.
+
 ## Verification Checklist
 
 Before merging UI changes:
