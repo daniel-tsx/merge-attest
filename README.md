@@ -33,6 +33,10 @@ The demo GitHub comment helper at `/api/github/comment` is POST-only and disable
 
 Authenticated app access is available through `/sign-up` and `/sign-in`. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
 
+GitHub App setup uses `GITHUB_APP_SLUG` to link to the installation screen. Configure the app's setup callback URL to `/api/github/installation`; the callback stores `installation_id` on the current organization. Repository sync can then be triggered from `/settings/github`, `/repositories`, or a repository detail page.
+
+The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, records delivery ids for idempotency, resolves the organization from `installation.id`, and processes pull request plus installation repository events through the sync pipeline.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:
@@ -79,6 +83,8 @@ pnpm build
 - `lib/rules.ts`: repository rule evaluator.
 - `lib/demo-data.ts`: realistic MVP data used by the UI and seed script.
 - `lib/github.ts`: GitHub App integration boundary. It uses Octokit when app credentials and installation data exist, otherwise returns demo-mode responses.
+- `lib/github-sync.ts`: GitHub repository and pull request import pipeline for installation-backed sync.
+- `lib/github-webhooks.ts`: GitHub webhook delivery parsing, dedupe, and event dispatch.
 - `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan gates.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
 - `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.

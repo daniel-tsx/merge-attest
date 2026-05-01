@@ -31,10 +31,13 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
         description={`${repository.owner}/${repository.name} · ${repository.visibility} · default branch ${repository.defaultBranch}`}
         actions={
           <>
-            <Button variant="secondary">
-              <RefreshCw />
-              Sync repository
-            </Button>
+            <form action={`/api/github/sync/repositories/${repository.id}`} method="post">
+              <input type="hidden" name="redirectTo" value={`/repositories/${repository.id}`} />
+              <Button variant="secondary" type="submit">
+                <RefreshCw />
+                Sync repository
+              </Button>
+            </form>
             <Button asChild>
               <a href={`/repositories/${repository.id}/rules`}>Rules</a>
             </Button>

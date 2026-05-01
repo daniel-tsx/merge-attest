@@ -4,7 +4,7 @@ import { Octokit } from "octokit";
 import { getGitHubWebhookSecret, isProduction } from "@/lib/env";
 import type { PullRequest } from "@/lib/types";
 
-function githubConfigured() {
+export function githubConfigured() {
   return Boolean(process.env.GITHUB_APP_ID && process.env.GITHUB_APP_PRIVATE_KEY);
 }
 
@@ -22,6 +22,66 @@ export function getInstallationOctokit(installationId?: string) {
       privateKey: process.env.GITHUB_APP_PRIVATE_KEY!.replace(/\\n/g, "\n"),
       installationId,
     },
+  });
+}
+
+export function getGitHubAppInstallUrl() {
+  return process.env.GITHUB_APP_SLUG ? `https://github.com/apps/${process.env.GITHUB_APP_SLUG}/installations/new` : null;
+}
+
+export async function listInstallationRepositories(installationId: string) {
+  const octokit = getInstallationOctokit(installationId);
+  if (!octokit) return null;
+
+  return octokit.paginate("GET /installation/repositories", {
+    per_page: 100,
+  });
+}
+
+export async function listGitHubPullRequests(repository: { owner: string; name: string; installationId: string }) {
+  const octokit = getInstallationOctokit(repository.installationId);
+  if (!octokit) return null;
+
+  return octokit.paginate("GET /repos/{owner}/{repo}/pulls", {
+    owner: repository.owner,
+    repo: repository.name,
+    state: "open",
+    per_page: 50,
+  });
+}
+
+export async function getGitHubPullRequest(repository: {
+  owner: string;
+  name: string;
+  pullNumber: number;
+  installationId: string;
+}) {
+  const octokit = getInstallationOctokit(repository.installationId);
+  if (!octokit) return null;
+
+  const response = await octokit.request("GET /repos/{owner}/{repo}/pulls/{pull_number}", {
+    owner: repository.owner,
+    repo: repository.name,
+    pull_number: repository.pullNumber,
+  });
+
+  return response.data;
+}
+
+export async function listGitHubPullRequestFiles(repository: {
+  owner: string;
+  name: string;
+  pullNumber: number;
+  installationId: string;
+}) {
+  const octokit = getInstallationOctokit(repository.installationId);
+  if (!octokit) return null;
+
+  return octokit.paginate("GET /repos/{owner}/{repo}/pulls/{pull_number}/files", {
+    owner: repository.owner,
+    repo: repository.name,
+    pull_number: repository.pullNumber,
+    per_page: 100,
   });
 }
 
@@ -49,8 +109,11 @@ export async function syncPullRequests(repository: { owner: string; name: string
   };
 }
 
-export async function postPullRequestComment(pr: Pick<PullRequest, "number" | "repositoryName"> & { owner?: string }, body: string) {
-  const octokit = getInstallationOctokit();
+export async function postPullRequestComment(
+  pr: Pick<PullRequest, "number" | "repositoryName"> & { owner?: string; installationId?: string },
+  body: string,
+) {
+  const octokit = getInstallationOctokit(pr.installationId);
   if (!octokit || !pr.owner) {
     return {
       mode: "demo" as const,

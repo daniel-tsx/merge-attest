@@ -30,6 +30,7 @@ async function main() {
   await prisma.organizationMember.deleteMany();
   await prisma.usageRecord.deleteMany();
   await prisma.apiKey.deleteMany();
+  await prisma.gitHubWebhookDelivery.deleteMany();
   await prisma.plan.deleteMany();
   await prisma.verification.deleteMany();
   await prisma.session.deleteMany();

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyGitHubWebhook } from "@/lib/github";
+import { processGitHubWebhookDelivery } from "@/lib/github-webhooks";
 
 function verificationError(reason?: "missing_secret" | "missing_signature" | "invalid_signature") {
   if (reason === "missing_secret") {
@@ -18,11 +19,25 @@ export async function POST(request: Request) {
   }
 
   const event = request.headers.get("x-github-event") ?? "unknown";
+  const deliveryId = request.headers.get("x-github-delivery");
 
-  return NextResponse.json({
-    mode: verification.mode,
-    received: true,
-    event,
-    message: "Webhook accepted. Persistence and PR sync are intentionally deferred for the MVP.",
-  });
+  try {
+    const result = await processGitHubWebhookDelivery({
+      deliveryId,
+      event,
+      rawBody,
+    });
+
+    return NextResponse.json({
+      ...result,
+      mode: verification.mode === "demo" ? "demo" : result.mode,
+    });
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Invalid GitHub webhook JSON payload" }, { status: 400 });
+    }
+
+    console.error("GitHub webhook processing failed", error);
+    return NextResponse.json({ error: "GitHub webhook processing failed" }, { status: 500 });
+  }
 }

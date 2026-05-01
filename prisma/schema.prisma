@@ -207,6 +207,8 @@ model Organization {
   name                 String
   slug                 String   @unique
   githubInstallationId String?
+  githubAccountId      String?
+  githubAccountLogin   String?
   planKey              String   @default("free")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -219,6 +221,7 @@ model Organization {
   plans         Plan[]
   usageRecords  UsageRecord[]
   apiKeys       ApiKey[]
+  webhookDeliveries GitHubWebhookDelivery[]
 }
 
 model OrganizationMember {
@@ -240,6 +243,9 @@ model Repository {
   name                  String
   provider              RepositoryProvider   @default(github)
   owner                 String
+  githubRepositoryId    String?
+  githubNodeId          String?
+  url                   String?
   defaultBranch         String               @default("main")
   visibility            RepositoryVisibility
   connectedStatus       ConnectionStatus     @default(demo)
@@ -259,6 +265,7 @@ model Repository {
   auditEvents  AuditEvent[]
 
   @@index([organizationId])
+  @@unique([organizationId, githubRepositoryId])
 }
 
 model PullRequest {
@@ -266,6 +273,10 @@ model PullRequest {
   number            Int
   title             String
   author            String
+  githubPullRequestId String?
+  githubNodeId      String?
+  url               String?
+  headSha           String?
   branch            String
   baseBranch        String
   status            PullRequestStatus
@@ -295,6 +306,7 @@ model PullRequest {
   auditEvents     AuditEvent[]
 
   @@unique([repositoryId, number])
+  @@unique([repositoryId, githubPullRequestId])
   @@index([organizationId])
 }
 
@@ -462,4 +474,23 @@ model ApiKey {
 
   user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model GitHubWebhookDelivery {
+  id             String    @id @default(cuid())
+  deliveryId     String    @unique
+  event          String
+  action         String?
+  status         String    @default("received")
+  message        String?
+  metadata       Json      @default("{}")
+  organizationId String?
+  createdAt      DateTime  @default(now())
+  processedAt    DateTime?
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([event])
+  @@index([status])
 }

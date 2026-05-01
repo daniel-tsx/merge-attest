@@ -18,10 +18,13 @@ export default async function RepositoriesPage() {
         title="Repositories"
         description="Connected GitHub repositories, rule coverage, usage, and risk profiles."
         actions={
-          <Button variant="secondary">
-            <RefreshCw />
-            Sync repositories
-          </Button>
+          <form action="/api/github/sync/repositories" method="post">
+            <input type="hidden" name="redirectTo" value="/repositories" />
+            <Button variant="secondary" type="submit">
+              <RefreshCw />
+              Sync repositories
+            </Button>
+          </form>
         }
       />
       <Card>
