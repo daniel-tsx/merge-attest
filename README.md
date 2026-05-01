@@ -45,6 +45,8 @@ Paddle checkout starts at `/api/billing/checkout` when `PADDLE_API_KEY` and the 
 
 The dashboard includes a first-run onboarding checklist that guides new organizations from workspace creation to GitHub installation, repository sync, and first pull request review. Repository empty states now point users to the next required setup action.
 
+Audit exports are available at `/api/audit-log/export` for plans with the `auditExport` entitlement. The export returns CSV within the organization's current retention window, with unlimited retention for Enterprise.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:
@@ -98,6 +100,7 @@ pnpm build
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
 - `lib/paddle-webhooks.ts`: Paddle webhook verification helpers and subscription-to-plan mapping.
 - `lib/onboarding.ts`: self-serve setup checklist state for dashboard onboarding.
+- `lib/audit-export.ts`: compliance-oriented audit retention windows and CSV serialization.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
 - `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.
 

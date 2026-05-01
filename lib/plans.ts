@@ -59,6 +59,9 @@ export const plans: Plan[] = [
   },
 ];
 
-export function isFeatureAvailable(planKey: PlanKey, feature: "approvals" | "customRules" | "githubComments") {
+export function isFeatureAvailable(
+  planKey: PlanKey,
+  feature: "approvals" | "customRules" | "githubComments" | "auditExport",
+) {
   return getPlanEntitlements(planKey).features[feature];
 }

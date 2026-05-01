@@ -397,7 +397,7 @@ export async function getPullRequest(organizationId: string, id: string) {
 
 export async function listAuditEvents(
   organizationId: string,
-  filters: { repositoryId?: string; pullRequestId?: string; take?: number } = {},
+  filters: { repositoryId?: string; pullRequestId?: string; since?: Date; take?: number } = {},
 ) {
   return queryWithDemoFallback(
     async (client) => {
@@ -406,6 +406,7 @@ export async function listAuditEvents(
           organizationId,
           repositoryId: filters.repositoryId,
           pullRequestId: filters.pullRequestId,
+          createdAt: filters.since ? { gte: filters.since } : undefined,
         },
         include: { repository: true, pullRequest: true },
         orderBy: { createdAt: "desc" },
@@ -429,6 +430,7 @@ export async function listAuditEvents(
               return false;
             }
           }
+          if (filters.since && new Date(event.createdAt) < filters.since) return false;
           return true;
         })
         .slice(0, filters.take),
