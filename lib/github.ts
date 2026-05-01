@@ -2,7 +2,13 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createAppAuth } from '@octokit/auth-app'
 import { Octokit } from 'octokit'
 import { getGitHubWebhookSecret, isProduction } from '@/lib/env'
-import type { PullRequest } from '@/lib/types'
+import type {
+  ApprovalStatus,
+  CiStatus,
+  PullRequest,
+  RiskLevel,
+  TestGapStatus,
+} from '@/lib/types'
 
 export function githubConfigured() {
   return Boolean(
@@ -132,6 +138,7 @@ export async function postPullRequestComment(
   pr: Pick<PullRequest, 'number' | 'repositoryName'> & {
     owner?: string
     installationId?: string
+    commentId?: string | null
   },
   body: string,
 ) {
@@ -143,14 +150,158 @@ export async function postPullRequestComment(
     }
   }
 
-  await octokit.rest.issues.createComment({
+  const commentId = pr.commentId ? Number(pr.commentId) : null
+  if (commentId && Number.isFinite(commentId)) {
+    try {
+      const response = await octokit.rest.issues.updateComment({
+        owner: pr.owner,
+        repo: pr.repositoryName,
+        comment_id: commentId,
+        body,
+      })
+
+      return {
+        mode: 'live' as const,
+        action: 'updated' as const,
+        commentId: String(response.data.id),
+        message: 'GitHub comment updated.',
+      }
+    } catch (error) {
+      if (!isGitHubNotFoundError(error)) throw error
+    }
+  }
+
+  const response = await octokit.rest.issues.createComment({
     owner: pr.owner,
     repo: pr.repositoryName,
     issue_number: pr.number,
     body,
   })
 
-  return { mode: 'live' as const, message: 'GitHub comment posted.' }
+  return {
+    mode: 'live' as const,
+    action: 'created' as const,
+    commentId: String(response.data.id),
+    message: 'GitHub comment posted.',
+  }
+}
+
+export function getAgentGateCheckConclusion(input: {
+  approvalStatus: ApprovalStatus
+  riskLevel: RiskLevel
+  testGapStatus: TestGapStatus
+  ciStatus: CiStatus
+}) {
+  if (input.approvalStatus === 'rejected' || input.ciStatus === 'failing') {
+    return 'failure' as const
+  }
+
+  if (
+    input.approvalStatus === 'pending' ||
+    input.testGapStatus === 'high' ||
+    input.riskLevel === 'critical'
+  ) {
+    return 'action_required' as const
+  }
+
+  if (
+    input.approvalStatus === 'approved' ||
+    input.approvalStatus === 'risk_accepted' ||
+    input.approvalStatus === 'not_required'
+  ) {
+    return 'success' as const
+  }
+
+  return 'neutral' as const
+}
+
+export async function publishAgentGateCheckRun(
+  pr: Pick<
+    PullRequest,
+    | 'number'
+    | 'repositoryName'
+    | 'riskScore'
+    | 'riskLevel'
+    | 'testGapStatus'
+    | 'ciStatus'
+    | 'approvalStatus'
+  > & {
+    owner?: string
+    installationId?: string
+    headSha?: string | null
+    checkRunId?: string | null
+  },
+) {
+  const octokit = getInstallationOctokit(pr.installationId)
+  if (!octokit || !pr.owner || !pr.headSha) {
+    return {
+      mode: 'demo' as const,
+      message: `Mock AgentGate check run for ${pr.repositoryName}#${pr.number}.`,
+    }
+  }
+
+  const conclusion = getAgentGateCheckConclusion(pr)
+  const output = {
+    title: `AgentGate ${conclusion.replaceAll('_', ' ')}`,
+    summary: [
+      `Risk: ${pr.riskScore} (${pr.riskLevel})`,
+      `Tests: ${pr.testGapStatus}`,
+      `CI: ${pr.ciStatus}`,
+      `Approval: ${pr.approvalStatus.replaceAll('_', ' ')}`,
+    ].join('\n'),
+  }
+  const checkRunId = pr.checkRunId ? Number(pr.checkRunId) : null
+
+  if (checkRunId && Number.isFinite(checkRunId)) {
+    try {
+      const response = await octokit.rest.checks.update({
+        owner: pr.owner,
+        repo: pr.repositoryName,
+        check_run_id: checkRunId,
+        name: 'AgentGate',
+        status: 'completed',
+        conclusion,
+        output,
+      })
+
+      return {
+        mode: 'live' as const,
+        action: 'updated' as const,
+        checkRunId: String(response.data.id),
+        conclusion,
+        message: 'AgentGate check run updated.',
+      }
+    } catch (error) {
+      if (!isGitHubNotFoundError(error)) throw error
+    }
+  }
+
+  const response = await octokit.rest.checks.create({
+    owner: pr.owner,
+    repo: pr.repositoryName,
+    name: 'AgentGate',
+    head_sha: pr.headSha,
+    status: 'completed',
+    conclusion,
+    output,
+  })
+
+  return {
+    mode: 'live' as const,
+    action: 'created' as const,
+    checkRunId: String(response.data.id),
+    conclusion,
+    message: 'AgentGate check run created.',
+  }
+}
+
+function isGitHubNotFoundError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    (error as { status?: number }).status === 404
+  )
 }
 
 export function verifyGitHubWebhook(

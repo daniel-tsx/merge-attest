@@ -3,8 +3,13 @@ import { PageHeader } from '@/components/app/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
+import {
+  getCurrentOrganization,
+  listGitHubWebhookDiagnostics,
+  listRepositories,
+} from '@/lib/data/app-data'
 import { getGitHubAppInstallUrl } from '@/lib/github'
+import { formatDate } from '@/lib/utils'
 
 const envVars = [
   'GITHUB_APP_ID',
@@ -17,9 +22,15 @@ const envVars = [
 
 export default async function GitHubSettingsPage() {
   const organization = await getCurrentOrganization()
-  const repositories = await listRepositories(organization.id)
+  const [repositories, webhookDiagnostics] = await Promise.all([
+    listRepositories(organization.id),
+    listGitHubWebhookDiagnostics(organization.id),
+  ])
   const configured = envVars.every((key) => Boolean(process.env[key]))
   const installUrl = getGitHubAppInstallUrl()
+  const failedDeliveries = webhookDiagnostics.filter(
+    (delivery) => delivery.status === 'failed',
+  ).length
 
   return (
     <div className="space-y-6">
@@ -95,6 +106,103 @@ export default async function GitHubSettingsPage() {
               GitHub installation.
             </p>
           </form>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <form action="/api/github/backfill" method="post">
+              <Button type="submit" variant="secondary">
+                Backfill stale repositories
+              </Button>
+            </form>
+            <form action="/api/github/webhook/retry" method="post">
+              <Button type="submit" variant="secondary">
+                Retry failed webhooks
+              </Button>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Sync Diagnostics</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <div className="text-xs uppercase text-slate-500">
+                Recent webhook deliveries
+              </div>
+              <div className="mt-2 text-2xl font-semibold">
+                {webhookDiagnostics.length}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase text-slate-500">
+                Failed deliveries
+              </div>
+              <div className="mt-2 text-2xl font-semibold">
+                {failedDeliveries}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs uppercase text-slate-500">
+                Last delivery
+              </div>
+              <div className="mt-2 text-sm font-medium">
+                {webhookDiagnostics[0]
+                  ? formatDate(webhookDiagnostics[0].createdAt)
+                  : 'none yet'}
+              </div>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100 rounded-md border border-slate-200">
+            {webhookDiagnostics.map((delivery) => (
+              <div
+                key={delivery.id}
+                className="grid gap-2 p-3 text-sm md:grid-cols-[1fr_120px_90px_160px]"
+              >
+                <div>
+                  <div className="font-medium text-slate-950">
+                    {delivery.event}
+                    {delivery.action ? `.${delivery.action}` : ''}
+                  </div>
+                  <div className="mt-1 text-xs text-slate-500">
+                    {delivery.message ??
+                      delivery.lastError ??
+                      delivery.deliveryId}
+                  </div>
+                </div>
+                <div>
+                  <Badge
+                    tone={
+                      delivery.status === 'processed'
+                        ? 'green'
+                        : delivery.status === 'failed'
+                          ? 'red'
+                          : delivery.status === 'processing'
+                            ? 'yellow'
+                            : 'slate'
+                    }
+                  >
+                    {delivery.status}
+                  </Badge>
+                </div>
+                <div className="text-slate-600">
+                  {delivery.attemptCount} attempts
+                </div>
+                <div className="text-xs text-slate-500">
+                  {delivery.nextRetryAt
+                    ? `Retry ${formatDate(delivery.nextRetryAt)}`
+                    : delivery.processedAt
+                      ? `Processed ${formatDate(delivery.processedAt)}`
+                      : `Received ${formatDate(delivery.createdAt)}`}
+                </div>
+              </div>
+            ))}
+            {webhookDiagnostics.length === 0 ? (
+              <div className="p-4 text-sm text-slate-600">
+                No webhook deliveries have been recorded for this workspace yet.
+              </div>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
       <Card>

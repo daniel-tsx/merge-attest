@@ -174,6 +174,7 @@ export type AuditEvent = {
     | 'pr_rejected'
     | 'risk_accepted'
     | 'github_comment_posted'
+    | 'github_check_run_published'
     | 'settings_changed'
   actor?: string
   repositoryName?: string

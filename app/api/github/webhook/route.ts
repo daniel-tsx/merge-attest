@@ -1,6 +1,9 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { verifyGitHubWebhook } from '@/lib/github'
-import { processGitHubWebhookDelivery } from '@/lib/github-webhooks'
+import {
+  enqueueGitHubWebhookDelivery,
+  processQueuedGitHubWebhookDeliveries,
+} from '@/lib/github-webhooks'
 
 function verificationError(
   reason?: 'missing_secret' | 'missing_signature' | 'invalid_signature',
@@ -30,16 +33,28 @@ export async function POST(request: Request) {
   const deliveryId = request.headers.get('x-github-delivery')
 
   try {
-    const result = await processGitHubWebhookDelivery({
+    const result = await enqueueGitHubWebhookDelivery({
       deliveryId,
       event,
       rawBody,
     })
 
-    return NextResponse.json({
-      ...result,
-      mode: verification.mode === 'demo' ? 'demo' : result.mode,
-    })
+    if (result.mode === 'live' && result.queued && result.deliveryId) {
+      after(async () => {
+        await processQueuedGitHubWebhookDeliveries({
+          deliveryId: result.deliveryId,
+          limit: 1,
+        })
+      })
+    }
+
+    return NextResponse.json(
+      {
+        ...result,
+        mode: verification.mode === 'demo' ? 'demo' : result.mode,
+      },
+      { status: result.queued ? 202 : 200 },
+    )
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json(

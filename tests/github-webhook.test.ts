@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { verifyGitHubWebhook } from '../lib/github'
 import {
   getWebhookInstallationId,
+  mapGitHubCiStatus,
   parseGitHubWebhookPayload,
   shouldSyncPullRequestAction,
 } from '../lib/github-webhooks'
@@ -66,6 +67,17 @@ describe('GitHub webhook dispatch helpers', () => {
     expect(shouldSyncPullRequestAction('opened')).toBe(true)
     expect(shouldSyncPullRequestAction('synchronize')).toBe(true)
     expect(shouldSyncPullRequestAction('labeled')).toBe(false)
+  })
+
+  it('maps GitHub check states to internal CI status', () => {
+    expect(mapGitHubCiStatus({ status: 'in_progress' })).toBe('pending')
+    expect(
+      mapGitHubCiStatus({ status: 'completed', conclusion: 'success' }),
+    ).toBe('passing')
+    expect(
+      mapGitHubCiStatus({ status: 'completed', conclusion: 'failure' }),
+    ).toBe('failing')
+    expect(mapGitHubCiStatus({ status: 'completed' })).toBe('unknown')
   })
 
   it('rejects non-object webhook payloads', () => {

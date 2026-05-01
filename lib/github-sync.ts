@@ -6,6 +6,7 @@ import {
   listGitHubPullRequestFiles,
   listGitHubPullRequests,
   listInstallationRepositories,
+  publishAgentGateCheckRun,
 } from '@/lib/github'
 import { canConsume, getPlanEntitlements } from '@/lib/entitlements'
 import { getPrismaClient } from '@/lib/prisma'
@@ -53,6 +54,10 @@ type SyncSummary = {
   message: string
   repositoriesSynced: number
   pullRequestsSynced: number
+}
+
+export type BackfillSummary = SyncSummary & {
+  repositoriesChecked: number
 }
 
 export function inferAgentSource(input: {
@@ -364,6 +369,49 @@ async function syncGitHubPullRequestRecord(input: {
     data: { monthlyPrCheckUsage: { increment: 1 } },
   })
 
+  try {
+    const checkRun = await publishAgentGateCheckRun({
+      number: input.pullRequest.number,
+      repositoryName: input.name,
+      owner: input.owner,
+      installationId: input.installationId,
+      headSha: input.pullRequest.head.sha,
+      checkRunId: savedPullRequest.githubAgentGateCheckRunId,
+      riskScore: risk.score,
+      riskLevel: risk.level,
+      testGapStatus: testGap.status,
+      ciStatus: 'unknown',
+      approvalStatus,
+    })
+
+    if (checkRun.mode === 'live') {
+      if (checkRun.checkRunId !== savedPullRequest.githubAgentGateCheckRunId) {
+        await prisma.pullRequest.update({
+          where: { id: savedPullRequest.id },
+          data: { githubAgentGateCheckRunId: checkRun.checkRunId },
+        })
+      }
+
+      await prisma.auditEvent.create({
+        data: {
+          eventType: 'github_check_run_published',
+          actor: 'AgentGate',
+          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} AgentGate check run for #${input.pullRequest.number}`,
+          metadata: {
+            action: checkRun.action,
+            checkRunId: checkRun.checkRunId,
+            conclusion: checkRun.conclusion,
+          },
+          organizationId: input.organizationId,
+          repositoryId: input.repositoryId,
+          pullRequestId: savedPullRequest.id,
+        },
+      })
+    }
+  } catch (error) {
+    console.warn('Pull request synced but AgentGate check run failed.', error)
+  }
+
   return true
 }
 
@@ -571,6 +619,73 @@ export async function syncGitHubInstallation(
   return {
     mode: 'live',
     message: `Synced ${repositoriesSynced} repositories and ${pullRequestsSynced} open pull requests from GitHub.`,
+    repositoriesSynced,
+    pullRequestsSynced,
+  }
+}
+
+export async function backfillStaleGitHubRepositories(input: {
+  organizationId: string
+  olderThanMinutes?: number
+  limit?: number
+}): Promise<BackfillSummary> {
+  const prisma = getPrismaClient()
+  if (!prisma) {
+    return {
+      mode: 'demo',
+      message:
+        'Database is not configured; GitHub backfill is unavailable in demo mode.',
+      repositoriesChecked: 0,
+      repositoriesSynced: 0,
+      pullRequestsSynced: 0,
+    }
+  }
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: input.organizationId },
+    select: { githubInstallationId: true },
+  })
+  if (!organization?.githubInstallationId) {
+    return {
+      mode: 'demo',
+      message: 'Connect a GitHub installation before running backfill.',
+      repositoriesChecked: 0,
+      repositoriesSynced: 0,
+      pullRequestsSynced: 0,
+    }
+  }
+
+  const staleBefore = new Date(
+    Date.now() - (input.olderThanMinutes ?? 60) * 60_000,
+  )
+  const repositories = await prisma.repository.findMany({
+    where: {
+      organizationId: input.organizationId,
+      connectedStatus: 'connected',
+      OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: staleBefore } }],
+    },
+    orderBy: [{ lastSyncedAt: 'asc' }, { updatedAt: 'asc' }],
+    take: input.limit ?? 25,
+  })
+
+  let repositoriesSynced = 0
+  let pullRequestsSynced = 0
+
+  for (const repository of repositories) {
+    const result = await syncGitHubRepository(
+      repository.id,
+      input.organizationId,
+    )
+    if (result.mode !== 'live') continue
+
+    repositoriesSynced += result.repositoriesSynced
+    pullRequestsSynced += result.pullRequestsSynced
+  }
+
+  return {
+    mode: 'live',
+    message: `Backfilled ${repositoriesSynced} stale repositories and ${pullRequestsSynced} pull requests.`,
+    repositoriesChecked: repositories.length,
     repositoriesSynced,
     pullRequestsSynced,
   }

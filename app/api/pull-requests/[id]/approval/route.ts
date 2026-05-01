@@ -6,7 +6,7 @@ import {
   isApprovalDecision,
 } from '@/lib/approvals'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
-import { postPullRequestComment } from '@/lib/github'
+import { postPullRequestComment, publishAgentGateCheckRun } from '@/lib/github'
 import { isFeatureAvailable } from '@/lib/plans'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/types'
@@ -129,6 +129,7 @@ export async function POST(
             installationId:
               pullRequest.repository.organization.githubInstallationId ??
               undefined,
+            commentId: pullRequest.githubAgentGateCommentId,
           },
           commentBody({
             decision: body.decision,
@@ -141,12 +142,66 @@ export async function POST(
       : null
 
     if (comment?.mode === 'live') {
+      if (comment.commentId !== pullRequest.githubAgentGateCommentId) {
+        await prisma.pullRequest.update({
+          where: { id: pullRequest.id },
+          data: { githubAgentGateCommentId: comment.commentId },
+        })
+      }
+
       await prisma.auditEvent.create({
         data: {
           eventType: 'github_comment_posted',
           actor: 'AgentGate',
-          summary: `Posted GitHub approval comment for #${pullRequest.number}`,
-          metadata: { decision: body.decision },
+          summary: `${comment.action === 'updated' ? 'Updated' : 'Posted'} GitHub approval comment for #${pullRequest.number}`,
+          metadata: {
+            decision: body.decision,
+            commentId: comment.commentId,
+            action: comment.action,
+          },
+          organizationId: organization.id,
+          repositoryId: pullRequest.repositoryId,
+          pullRequestId: pullRequest.id,
+        },
+      })
+    }
+
+    const checkRun = canPostGitHubComment
+      ? await publishAgentGateCheckRun({
+          number: pullRequest.number,
+          repositoryName: pullRequest.repository.name,
+          owner: pullRequest.repository.owner,
+          installationId:
+            pullRequest.repository.organization.githubInstallationId ??
+            undefined,
+          headSha: pullRequest.headSha,
+          checkRunId: pullRequest.githubAgentGateCheckRunId,
+          riskScore: pullRequest.riskScore,
+          riskLevel: pullRequest.riskLevel,
+          testGapStatus: pullRequest.testGapStatus,
+          ciStatus: pullRequest.ciStatus,
+          approvalStatus,
+        })
+      : null
+
+    if (checkRun?.mode === 'live') {
+      if (checkRun.checkRunId !== pullRequest.githubAgentGateCheckRunId) {
+        await prisma.pullRequest.update({
+          where: { id: pullRequest.id },
+          data: { githubAgentGateCheckRunId: checkRun.checkRunId },
+        })
+      }
+
+      await prisma.auditEvent.create({
+        data: {
+          eventType: 'github_check_run_published',
+          actor: 'AgentGate',
+          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} AgentGate check run for #${pullRequest.number}`,
+          metadata: {
+            action: checkRun.action,
+            checkRunId: checkRun.checkRunId,
+            conclusion: checkRun.conclusion,
+          },
           organizationId: organization.id,
           repositoryId: pullRequest.repositoryId,
           pullRequestId: pullRequest.id,
@@ -154,7 +209,7 @@ export async function POST(
       })
     }
   } catch (error) {
-    console.warn('Approval recorded but GitHub comment failed.', error)
+    console.warn('Approval recorded but GitHub output failed.', error)
   }
 
   return NextResponse.json({

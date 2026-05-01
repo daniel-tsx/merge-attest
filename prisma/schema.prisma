@@ -137,6 +137,7 @@ enum AuditEventType {
   pr_rejected
   risk_accepted
   github_comment_posted
+  github_check_run_published
   settings_changed
 }
 
@@ -203,28 +204,28 @@ model Verification {
 }
 
 model Organization {
-  id                   String   @id @default(cuid())
-  name                 String
-  slug                 String   @unique
-  githubInstallationId String?
-  githubAccountId      String?
-  githubAccountLogin   String?
-  paddleCustomerId      String?
-  paddleSubscriptionId  String?
+  id                       String   @id @default(cuid())
+  name                     String
+  slug                     String   @unique
+  githubInstallationId     String?
+  githubAccountId          String?
+  githubAccountLogin       String?
+  paddleCustomerId         String?
+  paddleSubscriptionId     String?
   paddleSubscriptionStatus String?
-  paddlePriceId         String?
-  planKey              String   @default("free")
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  paddlePriceId            String?
+  planKey                  String   @default("free")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
-  members       OrganizationMember[]
-  repositories  Repository[]
-  pullRequests  PullRequest[]
-  activity      AgentActivity[]
-  auditEvents   AuditEvent[]
-  plans         Plan[]
-  usageRecords  UsageRecord[]
-  apiKeys       ApiKey[]
+  members           OrganizationMember[]
+  repositories      Repository[]
+  pullRequests      PullRequest[]
+  activity          AgentActivity[]
+  auditEvents       AuditEvent[]
+  plans             Plan[]
+  usageRecords      UsageRecord[]
+  apiKeys           ApiKey[]
   webhookDeliveries GitHubWebhookDelivery[]
 }
 
@@ -243,61 +244,63 @@ model OrganizationMember {
 }
 
 model Repository {
-  id                    String               @id @default(cuid())
-  name                  String
-  provider              RepositoryProvider   @default(github)
-  owner                 String
-  githubRepositoryId    String?
-  githubNodeId          String?
-  url                   String?
-  defaultBranch         String               @default("main")
-  visibility            RepositoryVisibility
-  connectedStatus       ConnectionStatus     @default(demo)
-  lastSyncedAt          DateTime?
-  activeRulesCount      Int                  @default(0)
-  monthlyPrCheckUsage   Int                  @default(0)
-  riskProfile           RiskProfile          @default(medium)
-  providerMetadata      Json                 @default("{}")
-  organizationId        String
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
+  id                  String               @id @default(cuid())
+  name                String
+  provider            RepositoryProvider   @default(github)
+  owner               String
+  githubRepositoryId  String?
+  githubNodeId        String?
+  url                 String?
+  defaultBranch       String               @default("main")
+  visibility          RepositoryVisibility
+  connectedStatus     ConnectionStatus     @default(demo)
+  lastSyncedAt        DateTime?
+  activeRulesCount    Int                  @default(0)
+  monthlyPrCheckUsage Int                  @default(0)
+  riskProfile         RiskProfile          @default(medium)
+  providerMetadata    Json                 @default("{}")
+  organizationId      String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
-  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   pullRequests PullRequest[]
   rules        RepoRule[]
   activity     AgentActivity[]
   auditEvents  AuditEvent[]
 
-  @@index([organizationId])
   @@unique([organizationId, githubRepositoryId])
+  @@index([organizationId])
 }
 
 model PullRequest {
-  id                String              @id @default(cuid())
-  number            Int
-  title             String
-  author            String
-  githubPullRequestId String?
-  githubNodeId      String?
-  url               String?
-  headSha           String?
-  branch            String
-  baseBranch        String
-  status            PullRequestStatus
-  aiAssisted        Boolean?
-  agentSource       AgentSource         @default(unknown)
-  riskScore         Int                 @default(0)
-  riskLevel         RiskLevel           @default(low)
-  testGapStatus     TestGapStatus       @default(none)
-  ciStatus          CiStatus            @default(unknown)
-  approvalStatus    ApprovalStatus      @default(not_required)
-  filesChangedCount Int                 @default(0)
-  linesAdded        Int                 @default(0)
-  linesDeleted      Int                 @default(0)
-  repositoryId      String
-  organizationId    String
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id                       String            @id @default(cuid())
+  number                   Int
+  title                    String
+  author                   String
+  githubPullRequestId      String?
+  githubNodeId             String?
+  githubAgentGateCommentId String?
+  githubAgentGateCheckRunId String?
+  url                      String?
+  headSha                  String?
+  branch                   String
+  baseBranch               String
+  status                   PullRequestStatus
+  aiAssisted               Boolean?
+  agentSource              AgentSource       @default(unknown)
+  riskScore                Int               @default(0)
+  riskLevel                RiskLevel         @default(low)
+  testGapStatus            TestGapStatus     @default(none)
+  ciStatus                 CiStatus          @default(unknown)
+  approvalStatus           ApprovalStatus    @default(not_required)
+  filesChangedCount        Int               @default(0)
+  linesAdded               Int               @default(0)
+  linesDeleted             Int               @default(0)
+  repositoryId             String
+  organizationId           String
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
 
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository      Repository        @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
@@ -339,16 +342,16 @@ model RiskSignal {
 }
 
 model TestGapAnalysis {
-  id            String            @id @default(cuid())
+  id            String        @id @default(cuid())
   status        TestGapStatus
   summary       String
-  affectedFiles Json              @default("[]")
+  affectedFiles Json          @default("[]")
   confidence    String
-  pullRequestId String            @unique
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  pullRequestId String        @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  pullRequest PullRequest          @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  pullRequest PullRequest         @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
   suggestions TestGapSuggestion[]
 }
 
@@ -374,22 +377,22 @@ model RepoRule {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  repository     Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  violations     RuleViolation[]
+  repository Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  violations RuleViolation[]
 
   @@index([organizationId])
 }
 
 model RuleViolation {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   summary       String
-  resolved      Boolean   @default(false)
+  resolved      Boolean  @default(false)
   ruleId        String
   pullRequestId String
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime @default(now())
 
-  rule        RepoRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-  pullRequest PullRequest  @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  rule        RepoRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 }
 
 model Approval {
@@ -439,17 +442,17 @@ model AuditEvent {
 }
 
 model Plan {
-  id             String   @id @default(cuid())
-  key            String
-  name           String
-  priceMonthly   Int
-  repositoryLimit String?
-  prCheckLimit   String?
+  id                 String   @id @default(cuid())
+  key                String
+  name               String
+  priceMonthly       Int
+  repositoryLimit    String?
+  prCheckLimit       String?
   auditRetentionDays Int?
-  features       Json     @default("[]")
-  organizationId String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  features           Json     @default("[]")
+  organizationId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
@@ -467,14 +470,14 @@ model UsageRecord {
 }
 
 model ApiKey {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String
   prefix         String
   hashedKey      String
   lastUsedAt     DateTime?
   userId         String?
   organizationId String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
   user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -487,6 +490,10 @@ model GitHubWebhookDelivery {
   action         String?
   status         String    @default("received")
   message        String?
+  attemptCount   Int       @default(0)
+  lastAttemptAt  DateTime?
+  nextRetryAt    DateTime?
+  lastError      String?
   metadata       Json      @default("{}")
   organizationId String?
   createdAt      DateTime  @default(now())
@@ -497,4 +504,5 @@ model GitHubWebhookDelivery {
   @@index([organizationId])
   @@index([event])
   @@index([status])
+  @@index([nextRetryAt])
 }

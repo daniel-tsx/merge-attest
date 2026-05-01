@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { mapPullRequest, mapRepository } from '../lib/data/app-data'
+import {
+  mapGitHubWebhookDiagnostic,
+  mapPullRequest,
+  mapRepository,
+} from '../lib/data/app-data'
 
 describe('Prisma data mappers', () => {
   it('maps database repositories to view repositories', () => {
@@ -111,5 +115,32 @@ describe('Prisma data mappers', () => {
     ])
     expect(result.ruleViolations[0].ruleName).toBe('Sensitive change review')
     expect(result.approvals[0].reviewer).toBe('Maya Chen')
+  })
+
+  it('maps webhook delivery diagnostics for GitHub settings', () => {
+    const date = new Date('2026-05-01T00:00:00.000Z')
+    const result = mapGitHubWebhookDiagnostic({
+      id: 'delivery-1',
+      deliveryId: 'github-delivery-1',
+      event: 'check_run',
+      action: 'completed',
+      status: 'failed',
+      message: 'GitHub API failed',
+      attemptCount: 2,
+      lastAttemptAt: date,
+      nextRetryAt: date,
+      lastError: 'GitHub API failed',
+      createdAt: date,
+      processedAt: null,
+    })
+
+    expect(result).toMatchObject({
+      deliveryId: 'github-delivery-1',
+      event: 'check_run',
+      action: 'completed',
+      status: 'failed',
+      attemptCount: 2,
+      lastError: 'GitHub API failed',
+    })
   })
 })

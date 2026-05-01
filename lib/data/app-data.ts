@@ -168,10 +168,40 @@ type AuditEventRow = {
   pullRequest: { number: number } | null
 }
 
+type GitHubWebhookDeliveryRow = {
+  id: string
+  deliveryId: string
+  event: string
+  action: string | null
+  status: string
+  message: string | null
+  attemptCount: number
+  lastAttemptAt: Date | null
+  nextRetryAt: Date | null
+  lastError: string | null
+  createdAt: Date
+  processedAt: Date | null
+}
+
 export type DashboardTrendPoint = {
   date: string
   risk: number
   testGaps: number
+}
+
+export type GitHubWebhookDiagnostic = {
+  id: string
+  deliveryId: string
+  event: string
+  action?: string
+  status: string
+  message?: string
+  attemptCount: number
+  lastAttemptAt?: string
+  nextRetryAt?: string
+  lastError?: string
+  createdAt: string
+  processedAt?: string
 }
 
 type SearchFilters = {
@@ -651,6 +681,25 @@ export function mapAuditEvent(row: AuditEventRow): AuditEvent {
   }
 }
 
+export function mapGitHubWebhookDiagnostic(
+  row: GitHubWebhookDeliveryRow,
+): GitHubWebhookDiagnostic {
+  return {
+    id: row.id,
+    deliveryId: row.deliveryId,
+    event: row.event,
+    action: row.action ?? undefined,
+    status: row.status,
+    message: row.message ?? undefined,
+    attemptCount: row.attemptCount,
+    lastAttemptAt: row.lastAttemptAt ? toIso(row.lastAttemptAt) : undefined,
+    nextRetryAt: row.nextRetryAt ? toIso(row.nextRetryAt) : undefined,
+    lastError: row.lastError ?? undefined,
+    createdAt: toIso(row.createdAt),
+    processedAt: row.processedAt ? toIso(row.processedAt) : undefined,
+  }
+}
+
 const pullRequestInclude = {
   repository: true,
   files: true,
@@ -821,6 +870,24 @@ export async function getDashboardTrendData(organizationId: string) {
     },
     () => demoTrendData,
     'dashboard trend data',
+  )
+}
+
+export async function listGitHubWebhookDiagnostics(
+  organizationId: string,
+  take = 8,
+) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.gitHubWebhookDelivery.findMany({
+        where: { organizationId },
+        orderBy: { createdAt: 'desc' },
+        take,
+      })
+      return rows.map(mapGitHubWebhookDiagnostic)
+    },
+    () => [],
+    'GitHub webhook diagnostics',
   )
 }
 
