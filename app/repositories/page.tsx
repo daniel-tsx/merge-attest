@@ -1,9 +1,10 @@
+import type { SearchParams } from 'nuqs/server'
 import { RefreshCw } from 'lucide-react'
 import { PageHeader } from '@/components/app/page-header'
+import { RepositoryFilters } from '@/app/repositories/filters'
 import { RiskBadge } from '@/components/app/status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -15,26 +16,14 @@ import {
 import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
 import { getPlanEntitlements, remainingLimit } from '@/lib/entitlements'
 import { formatDate, formatNumber } from '@/lib/utils'
+import { repositorySearchParamsCache } from './search-params'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-function readParam(
-  params: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const value = params[key]
-  return Array.isArray(value) ? value[0] : value
+  searchParams: Promise<SearchParams>
 }
 
 export default async function RepositoriesPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const filters = {
-    query: readParam(params, 'query'),
-    riskProfile: readParam(params, 'riskProfile'),
-    visibility: readParam(params, 'visibility'),
-  }
+  const filters = await repositorySearchParamsCache.parse(searchParams)
   const organization = await getCurrentOrganization()
   const [allRepositories, repositories] = await Promise.all([
     listRepositories(organization.id),
@@ -114,36 +103,7 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
             </div>
           ) : (
             <>
-              <form className="grid gap-3 md:grid-cols-[1fr_180px_180px_auto]">
-                <Input
-                  name="query"
-                  defaultValue={filters.query}
-                  placeholder="Filter repositories"
-                  aria-label="Filter repositories"
-                />
-                <select
-                  name="riskProfile"
-                  defaultValue={filters.riskProfile ?? 'all'}
-                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                >
-                  <option value="all">All risk profiles</option>
-                  <option value="high">High risk</option>
-                  <option value="medium">Medium risk</option>
-                  <option value="low">Low risk</option>
-                </select>
-                <select
-                  name="visibility"
-                  defaultValue={filters.visibility ?? 'all'}
-                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                >
-                  <option value="all">All visibility</option>
-                  <option value="private">Private</option>
-                  <option value="public">Public</option>
-                </select>
-                <Button type="submit" variant="secondary">
-                  Apply
-                </Button>
-              </form>
+              <RepositoryFilters />
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>

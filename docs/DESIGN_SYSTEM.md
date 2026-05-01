@@ -63,6 +63,18 @@ The app shell lives in `components/app/app-shell.tsx`.
 - Header, sidebar, and drawer controls should keep a minimum 44px interaction target.
 - Navigation copy should describe the task outcome, not just the destination name.
 
+## URL State
+
+List filters use `nuqs` so shareable list state is parsed consistently in Server Components and updated from Client Components.
+
+- Route-level parser modules live beside the page as `search-params.ts`.
+- Pages must call the route `createSearchParamsCache(...).parse(searchParams)` before using query values.
+- Client filter controls should import the same parser map and update values with `useQueryStates`.
+- Use `shallow: false` for filters that affect server-rendered data.
+- Defaults should clear from the URL so reset states remain clean.
+- Keep existing URL keys stable unless the API/export route is migrated at the same time.
+- Audit-log filter keys must remain aligned with `/api/audit-log/export`.
+
 ## Verification Checklist
 
 Before merging UI changes:

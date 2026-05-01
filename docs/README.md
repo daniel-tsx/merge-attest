@@ -6,6 +6,7 @@ AgentGate is a SaaS control center for engineering teams using AI coding agents.
 
 - Next.js 16 App Router, React 19, TypeScript
 - Tailwind CSS v4 with shadcn-style local UI primitives
+- nuqs for typed URL state on filterable App Router pages
 - PostgreSQL with Prisma ORM
 - Better Auth with Prisma-backed user, account, session, and verification tables
 - Octokit GitHub App service boundary

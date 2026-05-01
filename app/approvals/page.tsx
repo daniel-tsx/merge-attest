@@ -1,5 +1,7 @@
+import type { SearchParams } from 'nuqs/server'
 import { PageHeader } from '@/components/app/page-header'
 import { ApprovalActions } from '@/components/app/approval-actions'
+import { ApprovalFilters } from '@/app/approvals/filters'
 import {
   ApprovalBadge,
   CiBadge,
@@ -9,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import {
   getCurrentOrganization,
   listTeamMembers,
@@ -18,30 +21,14 @@ import {
 import { canRecordApproval } from '@/lib/collaboration'
 import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate } from '@/lib/utils'
+import { approvalsSearchParamsCache } from './search-params'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-function readParam(
-  params: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const value = params[key]
-  return Array.isArray(value) ? value[0] : value
+  searchParams: Promise<SearchParams>
 }
 
 export default async function ApprovalsPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const approvalStatus = readParam(params, 'approvalStatus')
-  const filters = {
-    query: readParam(params, 'query'),
-    repositoryId: readParam(params, 'repositoryId'),
-    approvalStatus,
-    riskLevel: readParam(params, 'riskLevel'),
-    assigneeId: readParam(params, 'assigneeId'),
-    slaStatus: readParam(params, 'slaStatus'),
-  }
+  const filters = await approvalsSearchParamsCache.parse(searchParams)
   const organization = await getCurrentOrganization()
   const [repositories, teamMembers, pullRequests] = await Promise.all([
     listRepositories(organization.id),
@@ -54,7 +41,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
   )
   const canRecord = approvalsAvailable && canRecordApproval(organization.role)
   const pending =
-    approvalStatus && approvalStatus !== 'all'
+    filters.approvalStatus !== 'all'
       ? pullRequests
       : pullRequests.filter(
           (pr) =>
@@ -87,77 +74,10 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       ) : null}
       <Card>
         <CardContent>
-          <form className="grid gap-3 md:grid-cols-[1fr_180px_150px_160px_150px_140px_auto]">
-            <Input
-              name="query"
-              defaultValue={filters.query}
-              placeholder="Filter approvals"
-              aria-label="Filter approvals"
-            />
-            <select
-              name="repositoryId"
-              defaultValue={filters.repositoryId ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All repositories</option>
-              {repositories.map((repository) => (
-                <option key={repository.id} value={repository.id}>
-                  {repository.name}
-                </option>
-              ))}
-            </select>
-            <select
-              name="riskLevel"
-              defaultValue={filters.riskLevel ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All severities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-            <select
-              name="assigneeId"
-              defaultValue={filters.assigneeId ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All assignees</option>
-              <option value="unassigned">Unassigned</option>
-              {teamMembers
-                .filter((member) => member.role !== 'viewer')
-                .map((member) => (
-                  <option key={member.userId} value={member.userId}>
-                    {member.name}
-                  </option>
-                ))}
-            </select>
-            <select
-              name="slaStatus"
-              defaultValue={filters.slaStatus ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All SLAs</option>
-              <option value="overdue">Overdue</option>
-              <option value="due_soon">Due soon</option>
-              <option value="on_track">On track</option>
-              <option value="none">No SLA</option>
-            </select>
-            <select
-              name="approvalStatus"
-              defaultValue={filters.approvalStatus ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">Needs review</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="risk_accepted">Risk accepted</option>
-            </select>
-            <Button type="submit" variant="secondary">
-              Apply
-            </Button>
-          </form>
+          <ApprovalFilters
+            repositories={repositories}
+            teamMembers={teamMembers}
+          />
         </CardContent>
       </Card>
       <div className="grid gap-4 xl:grid-cols-2">
@@ -202,11 +122,10 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                 method="post"
                 className="grid gap-2 md:grid-cols-[1fr_160px_auto]"
               >
-                <select
+                <Select
                   name="assigneeId"
                   defaultValue={pr.assignedReviewer?.id ?? ''}
                   disabled={!canRecord}
-                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
                 >
                   <option value="">Unassigned</option>
                   {teamMembers
@@ -216,7 +135,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                         {member.name}
                       </option>
                     ))}
-                </select>
+                </Select>
                 <Input
                   type="date"
                   name="reviewDueAt"

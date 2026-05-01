@@ -1,13 +1,13 @@
+import type { SearchParams } from 'nuqs/server'
 import { PageHeader } from '@/components/app/page-header'
+import { PullRequestFilters } from '@/app/pull-requests/filters'
 import {
   ApprovalBadge,
   CiBadge,
   RiskBadge,
   TestGapBadge,
 } from '@/components/app/status-badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -18,27 +18,14 @@ import {
 } from '@/components/ui/table'
 import { getCurrentOrganization, listPullRequests } from '@/lib/data/app-data'
 import { formatDate, formatNumber } from '@/lib/utils'
+import { pullRequestSearchParamsCache } from './search-params'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
-
-function readParam(
-  params: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const value = params[key]
-  return Array.isArray(value) ? value[0] : value
+  searchParams: Promise<SearchParams>
 }
 
 export default async function PullRequestsPage({ searchParams }: PageProps) {
-  const params = await searchParams
-  const filters = {
-    query: readParam(params, 'query'),
-    riskLevel: readParam(params, 'riskLevel'),
-    agentSource: readParam(params, 'agentSource'),
-    approvalStatus: readParam(params, 'approvalStatus'),
-  }
+  const filters = await pullRequestSearchParamsCache.parse(searchParams)
   const organization = await getCurrentOrganization()
   const pullRequests = await listPullRequests(organization.id, filters)
 
@@ -50,53 +37,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
       />
       <Card>
         <CardContent className="space-y-4">
-          <form className="grid gap-3 md:grid-cols-[1fr_160px_160px_180px_auto]">
-            <Input
-              name="query"
-              defaultValue={filters.query}
-              placeholder="Filter pull requests"
-              aria-label="Filter pull requests"
-            />
-            <select
-              name="riskLevel"
-              defaultValue={filters.riskLevel ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All risk</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <select
-              name="agentSource"
-              defaultValue={filters.agentSource ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All agents</option>
-              <option value="cursor">Cursor</option>
-              <option value="codex">Codex</option>
-              <option value="claude_code">Claude Code</option>
-              <option value="copilot">Copilot</option>
-              <option value="devin">Devin</option>
-              <option value="manual">Manual</option>
-            </select>
-            <select
-              name="approvalStatus"
-              defaultValue={filters.approvalStatus ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">Approval status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="risk_accepted">Risk accepted</option>
-              <option value="not_required">Not required</option>
-            </select>
-            <Button type="submit" variant="secondary">
-              Apply
-            </Button>
-          </form>
+          <PullRequestFilters />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { RootShell } from '@/components/app/root-shell'
 import { getCurrentOrganization } from '@/lib/data/app-data'
 import './globals.css'
@@ -32,13 +33,15 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <RootShell
-          organizationName={organization.name}
-          planKey={organization.planKey}
-          dataMode={organization.dataMode}
-        >
-          {children}
-        </RootShell>
+        <NuqsAdapter>
+          <RootShell
+            organizationName={organization.name}
+            planKey={organization.planKey}
+            dataMode={organization.dataMode}
+          >
+            {children}
+          </RootShell>
+        </NuqsAdapter>
       </body>
     </html>
   )

@@ -1,7 +1,8 @@
+import type { SearchParams } from 'nuqs/server'
 import { PageHeader } from '@/components/app/page-header'
+import { AuditLogFilters } from '@/app/audit-log/filters'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -19,34 +20,27 @@ import {
 } from '@/lib/data/app-data'
 import { getPlanEntitlements } from '@/lib/entitlements'
 import { formatDate } from '@/lib/utils'
+import {
+  auditLogSearchParamsCache,
+  serializeAuditLogSearchParams,
+} from './search-params'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
+  searchParams: Promise<SearchParams>
 }
 
-function readParam(
-  params: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const value = params[key]
-  return Array.isArray(value) ? value[0] : value
+function readDate(value: string) {
+  if (!value) return undefined
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? undefined : date
 }
 
 export default async function AuditLogPage({ searchParams }: PageProps) {
-  const params = await searchParams
+  const params = await auditLogSearchParamsCache.parse(searchParams)
   const filters = {
-    query: readParam(params, 'query'),
-    eventType: readParam(params, 'eventType'),
-    actor: readParam(params, 'actor'),
-    repositoryId: readParam(params, 'repositoryId'),
-    pullRequestNumber: readParam(params, 'pullRequestNumber'),
-    severity: readParam(params, 'severity'),
-    from: readParam(params, 'from')
-      ? new Date(String(readParam(params, 'from')))
-      : undefined,
-    to: readParam(params, 'to')
-      ? new Date(String(readParam(params, 'to')))
-      : undefined,
+    ...params,
+    from: readDate(params.from),
+    to: readDate(params.to),
   }
   const organization = await getCurrentOrganization()
   const entitlements = getPlanEntitlements(organization.planKey)
@@ -59,14 +53,9 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
     listRepositories(organization.id),
     listAuditExports(organization.id),
   ])
-  const exportParams = new URLSearchParams()
-  for (const [key, value] of Object.entries(params)) {
-    const item = Array.isArray(value) ? value[0] : value
-    if (item) exportParams.set(key, item)
-  }
-  const exportHref = `/api/audit-log/export${
-    exportParams.size ? `?${exportParams.toString()}` : ''
-  }`
+  const exportHref = `/api/audit-log/export${serializeAuditLogSearchParams(
+    params,
+  )}`
 
   return (
     <div className="space-y-6">
@@ -91,86 +80,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
             Showing the latest {auditEvents.length} events within your plan
             retention window.
           </p>
-          <form className="grid gap-3 md:grid-cols-[1fr_180px_180px_140px] lg:grid-cols-[1fr_180px_180px_140px_140px_140px_auto]">
-            <Input
-              name="query"
-              defaultValue={filters.query}
-              placeholder="Filter audit events"
-              aria-label="Filter audit events"
-            />
-            <Input
-              name="actor"
-              defaultValue={filters.actor}
-              placeholder="Actor"
-              aria-label="Filter by actor"
-            />
-            <select
-              name="repositoryId"
-              defaultValue={filters.repositoryId ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All repositories</option>
-              {repositories.map((repository) => (
-                <option key={repository.id} value={repository.id}>
-                  {repository.name}
-                </option>
-              ))}
-            </select>
-            <Input
-              name="pullRequestNumber"
-              defaultValue={filters.pullRequestNumber}
-              placeholder="PR #"
-              aria-label="Filter by pull request number"
-            />
-            <select
-              name="eventType"
-              defaultValue={filters.eventType ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All event types</option>
-              <option value="repository_connected">Repository connected</option>
-              <option value="pr_synced">PR synced</option>
-              <option value="risk_score_calculated">
-                Risk score calculated
-              </option>
-              <option value="test_gap_detected">Test gap detected</option>
-              <option value="rule_triggered">Rule triggered</option>
-              <option value="approval_requested">Approval requested</option>
-              <option value="pr_approved">PR approved</option>
-              <option value="pr_rejected">PR rejected</option>
-              <option value="risk_accepted">Risk accepted</option>
-              <option value="github_comment_posted">
-                GitHub comment posted
-              </option>
-              <option value="settings_changed">Settings changed</option>
-            </select>
-            <select
-              name="severity"
-              defaultValue={filters.severity ?? 'all'}
-              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-            >
-              <option value="all">All severities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="critical">Critical</option>
-            </select>
-            <Input
-              type="date"
-              name="from"
-              defaultValue={readParam(params, 'from')}
-              aria-label="Start date"
-            />
-            <Input
-              type="date"
-              name="to"
-              defaultValue={readParam(params, 'to')}
-              aria-label="End date"
-            />
-            <Button type="submit" variant="secondary">
-              Apply
-            </Button>
-          </form>
+          <AuditLogFilters repositories={repositories} />
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
