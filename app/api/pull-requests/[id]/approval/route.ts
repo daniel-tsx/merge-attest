@@ -7,7 +7,9 @@ import {
 } from "@/lib/approvals";
 import { ensureCurrentUserOrganization } from "@/lib/auth/session";
 import { postPullRequestComment } from "@/lib/github";
+import { isFeatureAvailable } from "@/lib/plans";
 import { getPrismaClient } from "@/lib/prisma";
+import type { PlanKey } from "@/lib/types";
 
 function canRecordApproval(role: string) {
   return role === "owner" || role === "admin" || role === "member";
@@ -35,6 +37,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (!canRecordApproval(organization.role)) {
     return NextResponse.json({ error: "You do not have permission to record approval decisions." }, { status: 403 });
+  }
+
+  if (!isFeatureAvailable(organization.planKey, "approvals")) {
+    return NextResponse.json({ error: "Approval workflows require the Team plan or higher." }, { status: 403 });
   }
 
   const body = (await request.json()) as { decision?: unknown; note?: unknown };
@@ -85,23 +91,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
 
   try {
-    const comment = await postPullRequestComment(
-      {
-        number: pullRequest.number,
-        repositoryName: pullRequest.repository.name,
-        owner: pullRequest.repository.owner,
-        installationId: pullRequest.repository.organization.githubInstallationId ?? undefined,
-      },
-      commentBody({
-        decision: body.decision,
-        note,
-        reviewer: organization.userName || organization.userEmail,
-        riskScore: pullRequest.riskScore,
-        riskLevel: pullRequest.riskLevel,
-      }),
-    );
+    const canPostGitHubComment = isFeatureAvailable(pullRequest.repository.organization.planKey as PlanKey, "githubComments");
+    const comment = canPostGitHubComment
+      ? await postPullRequestComment(
+          {
+            number: pullRequest.number,
+            repositoryName: pullRequest.repository.name,
+            owner: pullRequest.repository.owner,
+            installationId: pullRequest.repository.organization.githubInstallationId ?? undefined,
+          },
+          commentBody({
+            decision: body.decision,
+            note,
+            reviewer: organization.userName || organization.userEmail,
+            riskScore: pullRequest.riskScore,
+            riskLevel: pullRequest.riskLevel,
+          }),
+        )
+      : null;
 
-    if (comment.mode === "live") {
+    if (comment?.mode === "live") {
       await prisma.auditEvent.create({
         data: {
           eventType: "github_comment_posted",

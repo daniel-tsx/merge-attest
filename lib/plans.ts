@@ -1,4 +1,5 @@
 import type { PlanKey } from "@/lib/types";
+import { getPlanEntitlements } from "@/lib/entitlements";
 
 export type Plan = {
   key: PlanKey;
@@ -59,10 +60,5 @@ export const plans: Plan[] = [
 ];
 
 export function isFeatureAvailable(planKey: PlanKey, feature: "approvals" | "customRules" | "githubComments") {
-  const order: PlanKey[] = ["free", "starter", "team", "growth", "enterprise"];
-  const rank = order.indexOf(planKey);
-
-  if (feature === "githubComments") return rank >= order.indexOf("starter");
-  if (feature === "approvals") return rank >= order.indexOf("team");
-  if (feature === "customRules") return rank >= order.indexOf("team");
+  return getPlanEntitlements(planKey).features[feature];
 }

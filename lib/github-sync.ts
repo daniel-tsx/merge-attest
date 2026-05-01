@@ -7,8 +7,10 @@ import {
   listGitHubPullRequests,
   listInstallationRepositories,
 } from "@/lib/github";
+import { canConsume, getPlanEntitlements } from "@/lib/entitlements";
 import { getPrismaClient } from "@/lib/prisma";
-import type { PullRequestFileInput, RepoRule } from "@/lib/types";
+import { getPrCheckUsage, recordPrChecks } from "@/lib/usage";
+import type { PlanKey, PullRequestFileInput, RepoRule } from "@/lib/types";
 
 type GitHubOwner = {
   login: string;
@@ -121,6 +123,21 @@ function mapRules(
   }));
 }
 
+async function canRunPrCheck(organizationId: string) {
+  const prisma = getPrismaClient();
+  if (!prisma) return false;
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { planKey: true },
+  });
+  if (!organization) return false;
+
+  const entitlements = getPlanEntitlements(organization.planKey as PlanKey);
+  const used = await getPrCheckUsage(organizationId);
+  return canConsume(entitlements.prCheckLimit, used, 1);
+}
+
 async function syncGitHubPullRequestRecord(input: {
   organizationId: string;
   installationId: string;
@@ -131,6 +148,7 @@ async function syncGitHubPullRequestRecord(input: {
 }) {
   const prisma = getPrismaClient();
   if (!prisma) return false;
+  if (!(await canRunPrCheck(input.organizationId))) return false;
 
   const rawFiles = ((await listGitHubPullRequestFiles({
     owner: input.owner,
@@ -307,6 +325,12 @@ async function syncGitHubPullRequestRecord(input: {
     },
   });
 
+  await recordPrChecks(input.organizationId, 1);
+  await prisma.repository.update({
+    where: { id: input.repositoryId },
+    data: { monthlyPrCheckUsage: { increment: 1 } },
+  });
+
   return true;
 }
 
@@ -425,6 +449,9 @@ export async function syncGitHubInstallation(organizationId: string): Promise<Sy
   }
 
   const repositories = ((await listInstallationRepositories(organization.githubInstallationId)) ?? []) as GitHubRepository[];
+  const entitlements = getPlanEntitlements(organization.planKey as PlanKey);
+  let repositoryCount = await prisma.repository.count({ where: { organizationId } });
+  let repositoriesSynced = 0;
   let pullRequestsSynced = 0;
 
   for (const repository of repositories) {
@@ -435,6 +462,8 @@ export async function syncGitHubInstallation(organizationId: string): Promise<Sy
       },
       select: { id: true },
     });
+    if (!existing && !canConsume(entitlements.repositoryLimit, repositoryCount, 1)) continue;
+
     const savedRepository = existing
       ? await prisma.repository.update({
           where: { id: existing.id },
@@ -471,6 +500,8 @@ export async function syncGitHubInstallation(organizationId: string): Promise<Sy
             organizationId,
           },
         });
+    if (!existing) repositoryCount += 1;
+    repositoriesSynced += 1;
 
     pullRequestsSynced += await syncPullRequestsForRepository({
       organizationId,
@@ -483,8 +514,8 @@ export async function syncGitHubInstallation(organizationId: string): Promise<Sy
 
   return {
     mode: "live",
-    message: `Synced ${repositories.length} repositories and ${pullRequestsSynced} open pull requests from GitHub.`,
-    repositoriesSynced: repositories.length,
+    message: `Synced ${repositoriesSynced} repositories and ${pullRequestsSynced} open pull requests from GitHub.`,
+    repositoriesSynced,
     pullRequestsSynced,
   };
 }

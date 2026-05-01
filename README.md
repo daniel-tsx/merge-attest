@@ -39,6 +39,8 @@ The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, record
 
 Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post a GitHub comment when live installation credentials are available.
 
+Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. GitHub sync records monthly `pr_checks` usage and stops processing new checks or repositories when the current plan limit is reached.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:
@@ -89,6 +91,7 @@ pnpm build
 - `lib/github-webhooks.ts`: GitHub webhook delivery parsing, dedupe, and event dispatch.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
 - `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan gates.
+- `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
 - `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.
 
