@@ -11,7 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { organization } from "@/lib/demo-data";
+import type { PlanKey } from "@/lib/types";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
@@ -23,7 +23,17 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  organizationName,
+  planKey,
+  dataMode,
+}: {
+  children: React.ReactNode;
+  organizationName: string;
+  planKey: PlanKey;
+  dataMode: "live" | "demo";
+}) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white md:block">
@@ -33,7 +43,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div>
             <div className="text-sm font-semibold">AgentGate</div>
-            <div className="text-xs text-slate-500">{organization.name}</div>
+            <div className="text-xs text-slate-500">{organizationName}</div>
           </div>
         </div>
         <nav className="space-y-1 p-3">
@@ -51,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 p-4">
           <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
             <span>Mode</span>
-            <Badge tone="blue">demo data</Badge>
+            <Badge tone={dataMode === "live" ? "green" : "blue"}>{dataMode === "live" ? "live data" : "demo data"}</Badge>
           </div>
           <Link href="/settings/github" className="flex items-center gap-2 text-xs font-medium text-slate-700">
             <KeyRound className="size-3.5" />
@@ -65,7 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="hidden text-sm text-slate-600 md:block">
             Review, test, and approve AI-generated code before it ships.
           </div>
-          <Badge tone="slate">Team plan</Badge>
+          <Badge tone="slate">{planKey} plan</Badge>
         </header>
         <main className="mx-auto w-full max-w-7xl p-4 md:p-6">{children}</main>
       </div>

@@ -16,6 +16,7 @@
     "db:seed": "prisma generate && prisma db seed"
   },
   "dependencies": {
+    "@better-auth/prisma-adapter": "^1.6.9",
     "@hookform/resolvers": "^5.2.2",
     "@octokit/auth-app": "^8.2.0",
     "@paddle/paddle-node-sdk": "^3.8.0",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppShell } from "@/components/app/app-shell";
+import { getCurrentOrganization } from "@/lib/data/app-data";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,18 +19,26 @@ export const metadata: Metadata = {
   description: "Control center for AI-generated pull requests.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organization = await getCurrentOrganization();
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell>{children}</AppShell>
+        <AppShell
+          organizationName={organization.name}
+          planKey={organization.planKey}
+          dataMode={organization.dataMode}
+        >
+          {children}
+        </AppShell>
       </body>
     </html>
   );

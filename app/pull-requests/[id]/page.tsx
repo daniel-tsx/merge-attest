@@ -5,13 +5,15 @@ import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/ap
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { activityEvents, auditEvents, getPullRequest } from "@/lib/demo-data";
+import { getCurrentOrganization, getPullRequest, listAuditEvents } from "@/lib/data/app-data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
 export default async function PullRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const pr = getPullRequest(id);
+  const organization = await getCurrentOrganization();
+  const pr = await getPullRequest(organization.id, id);
   if (!pr) notFound();
+  const auditEvents = await listAuditEvents(organization.id, { pullRequestId: pr.id, take: 8 });
 
   return (
     <div className="space-y-6">
@@ -19,8 +21,8 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
         title={`#${pr.number} ${pr.title}`}
         description={`${pr.repositoryName} · ${pr.author} · ${pr.branch} → ${pr.baseBranch}`}
         actions={
-          <Button variant="secondary" asChild>
-            <a href="/api/github/comment">Post GitHub comment</a>
+          <Button variant="secondary" disabled>
+            GitHub comments require live approval flow
           </Button>
         }
       />
@@ -181,22 +183,12 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
               <CardTitle>Audit Events</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {auditEvents
-                .filter((event) => event.pullRequestNumber === pr.number && event.repositoryName === pr.repositoryName)
-                .map((event) => (
-                  <div key={event.id} className="text-sm">
-                    <div className="font-medium">{event.summary}</div>
-                    <div className="text-xs text-slate-500">{formatDate(event.createdAt)}</div>
-                  </div>
-                ))}
-              {activityEvents
-                .filter((event) => event.pullRequestId === pr.id)
-                .map((event) => (
-                  <div key={event.id} className="text-sm">
-                    <div className="font-medium">{event.summary}</div>
-                    <div className="text-xs text-slate-500">{formatDate(event.timestamp)}</div>
-                  </div>
-                ))}
+              {auditEvents.map((event) => (
+                <div key={event.id} className="text-sm">
+                  <div className="font-medium">{event.summary}</div>
+                  <div className="text-xs text-slate-500">{formatDate(event.createdAt)}</div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>

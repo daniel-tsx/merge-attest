@@ -5,16 +5,24 @@ import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/ap
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { auditEvents, getRepository, getRepositoryPullRequests, getRepositoryRules } from "@/lib/demo-data";
+import {
+  getCurrentOrganization,
+  getRepository,
+  getRepositoryPullRequests,
+  getRepositoryRules,
+  listAuditEvents,
+} from "@/lib/data/app-data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
 export default async function RepositoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const repository = getRepository(id);
+  const organization = await getCurrentOrganization();
+  const repository = await getRepository(organization.id, id);
   if (!repository) notFound();
 
-  const prs = getRepositoryPullRequests(id);
-  const rules = getRepositoryRules(id);
+  const prs = await getRepositoryPullRequests(organization.id, id);
+  const rules = await getRepositoryRules(organization.id, id);
+  const auditEvents = await listAuditEvents(organization.id, { repositoryId: id, take: 8 });
 
   return (
     <div className="space-y-6">
@@ -109,10 +117,7 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
             <CardTitle>Audit</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {auditEvents
-              .filter((event) => event.repositoryName === repository.name)
-              .slice(0, 8)
-              .map((event) => (
+            {auditEvents.map((event) => (
                 <div key={event.id} className="rounded-md border border-slate-200 p-3">
                   <div className="text-sm font-medium">{event.summary}</div>
                   <div className="mt-1 text-xs text-slate-500">{formatDate(event.createdAt)}</div>

@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { repositories } from "@/lib/demo-data";
+import { getCurrentOrganization, listRepositories } from "@/lib/data/app-data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
-export default function RepositoriesPage() {
+export default async function RepositoriesPage() {
+  const organization = await getCurrentOrganization();
+  const repositories = await listRepositories(organization.id);
+
   return (
     <div className="space-y-6">
       <PageHeader

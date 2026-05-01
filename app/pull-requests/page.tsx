@@ -3,10 +3,13 @@ import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/ap
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { pullRequests } from "@/lib/demo-data";
+import { getCurrentOrganization, listPullRequests } from "@/lib/data/app-data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
-export default function PullRequestsPage() {
+export default async function PullRequestsPage() {
+  const organization = await getCurrentOrganization();
+  const pullRequests = await listPullRequests(organization.id);
+
   return (
     <div className="space-y-6">
       <PageHeader

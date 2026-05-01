@@ -30,10 +30,18 @@ export function getGitHubWebhookSecret(env: Env = process.env) {
   return readEnv("GITHUB_WEBHOOK_SECRET", env);
 }
 
+export function getDatabaseUrl(env: Env = process.env) {
+  return readEnv("DATABASE_URL", env);
+}
+
+export function isDatabaseConfigured(env: Env = process.env) {
+  return Boolean(getDatabaseUrl(env));
+}
+
 export function validateProductionEnv(env: Env = process.env) {
   if (!isProduction(env)) return;
 
-  const missing = ["BETTER_AUTH_SECRET", "GITHUB_WEBHOOK_SECRET"].filter((name) => !readEnv(name, env));
+  const missing = ["DATABASE_URL", "BETTER_AUTH_SECRET", "GITHUB_WEBHOOK_SECRET"].filter((name) => !readEnv(name, env));
   if (missing.length) {
     throw new Error(`Missing required production environment variables: ${missing.join(", ")}`);
   }

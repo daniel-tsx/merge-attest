@@ -3,14 +3,15 @@ import { PageHeader } from "@/components/app/page-header";
 import { RiskBadge } from "@/components/app/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getRepository, getRepositoryRules } from "@/lib/demo-data";
+import { getCurrentOrganization, getRepository, getRepositoryRules } from "@/lib/data/app-data";
 import { formatDate } from "@/lib/utils";
 
 export default async function RepositoryRulesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const repository = getRepository(id);
+  const organization = await getCurrentOrganization();
+  const repository = await getRepository(organization.id, id);
   if (!repository) notFound();
-  const rules = getRepositoryRules(id);
+  const rules = await getRepositoryRules(organization.id, id);
 
   return (
     <div className="space-y-6">

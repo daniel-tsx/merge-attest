@@ -31,6 +31,9 @@ async function main() {
   await prisma.usageRecord.deleteMany();
   await prisma.apiKey.deleteMany();
   await prisma.plan.deleteMany();
+  await prisma.verification.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
   await prisma.organization.deleteMany();
   await prisma.user.deleteMany();
 

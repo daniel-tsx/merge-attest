@@ -7,7 +7,7 @@ AgentGate is a SaaS MVP control center for engineering teams using AI coding age
 - Next.js 16 App Router, React 19, TypeScript
 - Tailwind CSS v4 with shadcn-style local UI primitives
 - PostgreSQL with Prisma ORM
-- BetterAuth integration route placeholder
+- Better Auth with Prisma-backed user, account, session, and verification tables
 - Octokit GitHub App service boundary
 - Paddle billing service boundary
 - React Hook Form and Zod dependencies for validated forms
@@ -41,6 +41,8 @@ pnpm db:seed
 ```
 
 If you do not have local Postgres installed, create a database first and update `.env` with its connection string.
+
+The initial Prisma migration is committed under `prisma/migrations`, along with the Better Auth session/account migration. Server-side repository and pull request pages now read through an organization-scoped Prisma data layer when `DATABASE_URL` is available. In local development, failed or missing database connections fall back to demo data so the MVP UI remains usable; production deployments require a working `DATABASE_URL`.
 
 ## Verification
 
