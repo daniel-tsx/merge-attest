@@ -1,74 +1,489 @@
 import { notFound } from 'next/navigation'
+import type React from 'react'
 import { PageHeader } from '@/components/app/page-header'
 import { RiskBadge } from '@/components/app/status-badge'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
 import {
   getCurrentOrganization,
+  getRepositoryPullRequests,
   getRepository,
   getRepositoryRules,
 } from '@/lib/data/app-data'
+import { ruleTemplates } from '@/lib/rule-templates'
+import { evaluateRepoRules } from '@/lib/rules'
+import type { RepoRule } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+
+const selectClassName =
+  'h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
+
+const textareaClassName =
+  'min-h-20 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100'
+
+const triggerTypes: RepoRule['triggerType'][] = [
+  'ai_assisted',
+  'high_risk',
+  'auth_changed',
+  'billing_changed',
+  'database_migration',
+  'dependency_changed',
+  'high_test_gap',
+  'failing_ci',
+]
+
+const actionTypes: RepoRule['actionType'][] = [
+  'warn',
+  'require_approval',
+  'block_merge',
+  'request_tests',
+  'request_security_review',
+  'publish_github_check',
+]
+
+const severityTypes: RepoRule['severity'][] = [
+  'low',
+  'medium',
+  'high',
+  'critical',
+]
+
+const agentSources = [
+  '',
+  'cursor',
+  'codex',
+  'claude_code',
+  'copilot',
+  'devin',
+  'manual',
+  'unknown',
+]
+
+const riskLevels = ['', 'low', 'medium', 'high', 'critical']
+
+const statusMessages: Record<string, string> = {
+  created: 'Rule created.',
+  updated: 'Rule updated.',
+  enabled: 'Rule enabled.',
+  disabled: 'Rule disabled.',
+  deleted: 'Rule deleted.',
+  duplicated: 'Rule duplicated as a disabled draft.',
+  template_applied: 'Template applied.',
+  forbidden: 'Only organization owners and admins can manage rules.',
+  auth_required: 'Sign in is required to manage rules.',
+  not_found: 'Rule or repository not found.',
+}
+
+function formatLabel(value: string) {
+  return value ? value.replaceAll('_', ' ') : 'Any'
+}
+
+function fieldLabel(label: string, children: React.ReactNode) {
+  return (
+    <label className="space-y-1 text-xs font-medium text-slate-600">
+      <span>{label}</span>
+      {children}
+    </label>
+  )
+}
+
+function RuleFields({ rule }: { rule?: RepoRule }) {
+  return (
+    <>
+      <div className="grid gap-3 md:grid-cols-2">
+        {fieldLabel(
+          'Rule name',
+          <Input name="name" defaultValue={rule?.name} required />,
+        )}
+        {fieldLabel(
+          'Severity',
+          <select
+            name="severity"
+            className={selectClassName}
+            defaultValue={rule?.severity ?? 'medium'}
+          >
+            {severityTypes.map((type) => (
+              <option key={type} value={type}>
+                {formatLabel(type)}
+              </option>
+            ))}
+          </select>,
+        )}
+      </div>
+      {fieldLabel(
+        'Description',
+        <textarea
+          name="description"
+          className={textareaClassName}
+          defaultValue={rule?.description}
+          required
+        />,
+      )}
+      <div className="grid gap-3 md:grid-cols-2">
+        {fieldLabel(
+          'Trigger',
+          <select
+            name="triggerType"
+            className={selectClassName}
+            defaultValue={rule?.triggerType ?? 'ai_assisted'}
+          >
+            {triggerTypes.map((type) => (
+              <option key={type} value={type}>
+                {formatLabel(type)}
+              </option>
+            ))}
+          </select>,
+        )}
+        {fieldLabel(
+          'Action',
+          <select
+            name="actionType"
+            className={selectClassName}
+            defaultValue={rule?.actionType ?? 'require_approval'}
+          >
+            {actionTypes.map((type) => (
+              <option key={type} value={type}>
+                {formatLabel(type)}
+              </option>
+            ))}
+          </select>,
+        )}
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {fieldLabel(
+          'Branch pattern',
+          <Input
+            name="branchPattern"
+            placeholder="main, release/*"
+            defaultValue={rule?.branchPattern}
+          />,
+        )}
+        {fieldLabel(
+          'Path pattern',
+          <Input
+            name="pathPattern"
+            placeholder="auth, prisma/migrations"
+            defaultValue={rule?.pathPattern}
+          />,
+        )}
+        {fieldLabel(
+          'PR label',
+          <Input
+            name="labelPattern"
+            placeholder="security, billing"
+            defaultValue={rule?.labelPattern}
+          />,
+        )}
+        {fieldLabel(
+          'Agent source',
+          <select
+            name="agentSource"
+            className={selectClassName}
+            defaultValue={rule?.agentSource ?? ''}
+          >
+            {agentSources.map((source) => (
+              <option key={source || 'any'} value={source}>
+                {formatLabel(source)}
+              </option>
+            ))}
+          </select>,
+        )}
+        {fieldLabel(
+          'Minimum risk',
+          <select
+            name="minimumRiskLevel"
+            className={selectClassName}
+            defaultValue={rule?.minimumRiskLevel ?? ''}
+          >
+            {riskLevels.map((level) => (
+              <option key={level || 'any'} value={level}>
+                {formatLabel(level)}
+              </option>
+            ))}
+          </select>,
+        )}
+        {fieldLabel(
+          'Suggested reviewer',
+          <Input
+            name="codeOwnerHint"
+            placeholder="Security owner"
+            defaultValue={rule?.codeOwnerHint}
+          />,
+        )}
+      </div>
+    </>
+  )
+}
 
 export default async function RepositoryRulesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { id } = await params
+  const resolvedSearchParams = await searchParams
+  const status =
+    typeof resolvedSearchParams?.status === 'string'
+      ? resolvedSearchParams.status
+      : undefined
   const organization = await getCurrentOrganization()
   const repository = await getRepository(organization.id, id)
   if (!repository) notFound()
-  const rules = await getRepositoryRules(organization.id, id)
+  const [rules, pullRequests] = await Promise.all([
+    getRepositoryRules(organization.id, id),
+    getRepositoryPullRequests(organization.id, id),
+  ])
+  const previewPullRequests = pullRequests.slice(0, 3).map((pullRequest) => ({
+    pullRequest,
+    violations: evaluateRepoRules(rules, {
+      aiAssisted: pullRequest.aiAssisted,
+      riskLevel: pullRequest.riskLevel,
+      ciStatus: pullRequest.ciStatus,
+      testGapStatus: pullRequest.testGapStatus,
+      riskSignals: pullRequest.riskSignals,
+      branch: pullRequest.branch,
+      agentSource: pullRequest.agentSource,
+      files: pullRequest.files,
+      labels: [],
+    }),
+  }))
 
   return (
     <div className="space-y-6">
       <PageHeader
         title={`${repository.name} Rules`}
-        description="Lightweight approval and merge safety rules evaluated against every synced pull request."
+        description="Manage repository policy, scopes, actions, templates, and reviewer hints evaluated against every synced pull request."
       />
+
+      {status && statusMessages[status] ? (
+        <Card>
+          <CardContent className="p-4 text-sm text-slate-700">
+            {statusMessages[status]}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {ruleTemplates.map((template) => (
+          <Card key={template.key}>
+            <CardContent className="space-y-4 p-5">
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-base font-semibold text-slate-950">
+                    {template.name}
+                  </h2>
+                  <RiskBadge level={template.severity} />
+                </div>
+                <p className="text-sm text-slate-600">{template.description}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge>{formatLabel(template.triggerType)}</Badge>
+                <Badge>{formatLabel(template.actionType)}</Badge>
+                {template.pathPattern ? (
+                  <Badge>{template.pathPattern}</Badge>
+                ) : null}
+              </div>
+              <form action={`/api/repositories/${id}/rules`} method="post">
+                <input type="hidden" name="_action" value="apply_template" />
+                <input type="hidden" name="templateKey" value={template.key} />
+                <Button type="submit" variant="secondary">
+                  Apply template
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Rule</TableHead>
-                <TableHead>Trigger</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Severity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Updated</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rules.map((rule) => (
-                <TableRow key={rule.id}>
-                  <TableCell className="min-w-96">
-                    <div className="font-medium text-slate-950">
-                      {rule.name}
+        <CardContent className="space-y-4 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-950">
+              Create custom rule
+            </h2>
+            <p className="text-sm text-slate-500">
+              Scope policy by branch, path, agent, label, or minimum risk level.
+            </p>
+          </div>
+          <form
+            action={`/api/repositories/${id}/rules`}
+            method="post"
+            className="space-y-4"
+          >
+            <input type="hidden" name="_action" value="create" />
+            <RuleFields />
+            <Button type="submit">Create rule</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-950">
+              Active policy
+            </h2>
+            <p className="text-sm text-slate-500">
+              {rules.length
+                ? `${rules.length} rules configured for this repository.`
+                : 'No repository rules configured yet.'}
+            </p>
+          </div>
+          <div className="space-y-3">
+            {rules.map((rule) => (
+              <div
+                key={rule.id}
+                className="rounded-lg border border-slate-200 p-4"
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-medium text-slate-950">
+                        {rule.name}
+                      </h3>
+                      <RiskBadge level={rule.severity} />
+                      <Badge tone={rule.enabled ? 'green' : 'slate'}>
+                        {rule.enabled ? 'enabled' : 'disabled'}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-slate-600">{rule.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge>{formatLabel(rule.triggerType)}</Badge>
+                      <Badge>{formatLabel(rule.actionType)}</Badge>
+                      {rule.branchPattern ? (
+                        <Badge>Branch: {rule.branchPattern}</Badge>
+                      ) : null}
+                      {rule.pathPattern ? (
+                        <Badge>Path: {rule.pathPattern}</Badge>
+                      ) : null}
+                      {rule.labelPattern ? (
+                        <Badge>Label: {rule.labelPattern}</Badge>
+                      ) : null}
+                      {rule.agentSource ? (
+                        <Badge>Agent: {formatLabel(rule.agentSource)}</Badge>
+                      ) : null}
+                      {rule.minimumRiskLevel ? (
+                        <Badge>
+                          Min risk: {formatLabel(rule.minimumRiskLevel)}
+                        </Badge>
+                      ) : null}
+                      {rule.codeOwnerHint ? (
+                        <Badge>Reviewer: {rule.codeOwnerHint}</Badge>
+                      ) : null}
                     </div>
                     <div className="text-xs text-slate-500">
-                      {rule.description}
+                      Updated {formatDate(rule.updatedAt)}
                     </div>
-                  </TableCell>
-                  <TableCell>{rule.triggerType.replaceAll('_', ' ')}</TableCell>
-                  <TableCell>{rule.actionType.replaceAll('_', ' ')}</TableCell>
-                  <TableCell>
-                    <RiskBadge level={rule.severity} />
-                  </TableCell>
-                  <TableCell>{rule.enabled ? 'enabled' : 'disabled'}</TableCell>
-                  <TableCell>{formatDate(rule.updatedAt)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <form
+                      action={`/api/repositories/${id}/rules/${rule.id}`}
+                      method="post"
+                    >
+                      <input type="hidden" name="_action" value="toggle" />
+                      <input
+                        type="hidden"
+                        name="enabled"
+                        value={rule.enabled ? 'false' : 'true'}
+                      />
+                      <Button type="submit" size="sm" variant="secondary">
+                        {rule.enabled ? 'Disable' : 'Enable'}
+                      </Button>
+                    </form>
+                    <form
+                      action={`/api/repositories/${id}/rules/${rule.id}`}
+                      method="post"
+                    >
+                      <input type="hidden" name="_action" value="duplicate" />
+                      <Button type="submit" size="sm" variant="secondary">
+                        Duplicate
+                      </Button>
+                    </form>
+                    <form
+                      action={`/api/repositories/${id}/rules/${rule.id}`}
+                      method="post"
+                    >
+                      <input type="hidden" name="_action" value="delete" />
+                      <Button type="submit" size="sm" variant="danger">
+                        Delete
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-medium text-slate-700">
+                    Edit rule
+                  </summary>
+                  <form
+                    action={`/api/repositories/${id}/rules/${rule.id}`}
+                    method="post"
+                    className="mt-4 space-y-4"
+                  >
+                    <input type="hidden" name="_action" value="update" />
+                    <RuleFields rule={rule} />
+                    <Button type="submit" size="sm">
+                      Save changes
+                    </Button>
+                  </form>
+                </details>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="space-y-4 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-slate-950">
+              Policy preview
+            </h2>
+            <p className="text-sm text-slate-500">
+              Recent pull requests evaluated against the current enabled policy.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {previewPullRequests.length ? (
+              previewPullRequests.map(({ pullRequest, violations }) => (
+                <div
+                  key={pullRequest.id}
+                  className="rounded-lg border border-slate-200 p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="font-medium text-slate-950">
+                        #{pullRequest.number} {pullRequest.title}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {pullRequest.branch} -{' '}
+                        {formatLabel(pullRequest.agentSource)}
+                      </div>
+                    </div>
+                    <Badge tone={violations.length ? 'orange' : 'green'}>
+                      {violations.length
+                        ? `${violations.length} rules fire`
+                        : 'No rules fire'}
+                    </Badge>
+                  </div>
+                  {violations.length ? (
+                    <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                      {violations.map((violation) => (
+                        <li key={violation.id}>{violation.summary}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+                Sync pull requests to preview policy impact.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

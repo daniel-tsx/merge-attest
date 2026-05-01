@@ -108,7 +108,14 @@ export type RepoRule = {
     | 'block_merge'
     | 'request_tests'
     | 'request_security_review'
+    | 'publish_github_check'
   severity: Severity
+  branchPattern?: string
+  pathPattern?: string
+  labelPattern?: string
+  agentSource?: AgentSource
+  minimumRiskLevel?: RiskLevel
+  codeOwnerHint?: string
   createdAt: string
   updatedAt: string
 }

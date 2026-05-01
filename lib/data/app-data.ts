@@ -60,6 +60,12 @@ type RuleRow = {
   triggerType: string
   actionType: string
   severity: string
+  branchPattern: string | null
+  pathPattern: string | null
+  labelPattern: string | null
+  agentSource: string | null
+  minimumRiskLevel: string | null
+  codeOwnerHint: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -556,6 +562,13 @@ export function mapRepoRule(row: RuleRow): RepoRule {
     triggerType: row.triggerType as RepoRule['triggerType'],
     actionType: row.actionType as RepoRule['actionType'],
     severity: row.severity as RepoRule['severity'],
+    branchPattern: row.branchPattern ?? undefined,
+    pathPattern: row.pathPattern ?? undefined,
+    labelPattern: row.labelPattern ?? undefined,
+    agentSource: (row.agentSource as RepoRule['agentSource']) ?? undefined,
+    minimumRiskLevel:
+      (row.minimumRiskLevel as RepoRule['minimumRiskLevel']) ?? undefined,
+    codeOwnerHint: row.codeOwnerHint ?? undefined,
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
   }

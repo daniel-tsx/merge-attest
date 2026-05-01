@@ -126,6 +126,12 @@ function mapRules(
     triggerType: string
     actionType: string
     severity: string
+    branchPattern: string | null
+    pathPattern: string | null
+    labelPattern: string | null
+    agentSource: string | null
+    minimumRiskLevel: string | null
+    codeOwnerHint: string | null
     createdAt: Date
     updatedAt: Date
   }>,
@@ -139,6 +145,13 @@ function mapRules(
     triggerType: rule.triggerType as RepoRule['triggerType'],
     actionType: rule.actionType as RepoRule['actionType'],
     severity: rule.severity as RepoRule['severity'],
+    branchPattern: rule.branchPattern ?? undefined,
+    pathPattern: rule.pathPattern ?? undefined,
+    labelPattern: rule.labelPattern ?? undefined,
+    agentSource: (rule.agentSource as RepoRule['agentSource']) ?? undefined,
+    minimumRiskLevel:
+      (rule.minimumRiskLevel as RepoRule['minimumRiskLevel']) ?? undefined,
+    codeOwnerHint: rule.codeOwnerHint ?? undefined,
     createdAt: rule.createdAt.toISOString(),
     updatedAt: rule.updatedAt.toISOString(),
   }))
@@ -206,9 +219,17 @@ async function syncGitHubPullRequestRecord(input: {
     ciStatus: 'unknown',
     testGapStatus: testGap.status,
     riskSignals: risk.signals,
+    branch: input.pullRequest.head.ref,
+    agentSource,
+    files,
+    labels: [],
   })
   const approvalStatus = violations.some(
-    (violation) => violation.actionType === 'require_approval',
+    (violation) =>
+      violation.actionType === 'require_approval' ||
+      violation.actionType === 'request_security_review' ||
+      violation.actionType === 'request_tests' ||
+      violation.actionType === 'block_merge',
   )
     ? 'pending'
     : risk.score >= 50 || aiAssisted

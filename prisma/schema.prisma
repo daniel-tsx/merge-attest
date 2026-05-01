@@ -109,6 +109,7 @@ enum RuleActionType {
   block_merge
   request_tests
   request_security_review
+  publish_github_check
 }
 
 enum Severity {
@@ -274,33 +275,33 @@ model Repository {
 }
 
 model PullRequest {
-  id                       String            @id @default(cuid())
-  number                   Int
-  title                    String
-  author                   String
-  githubPullRequestId      String?
-  githubNodeId             String?
-  githubAgentGateCommentId String?
+  id                        String            @id @default(cuid())
+  number                    Int
+  title                     String
+  author                    String
+  githubPullRequestId       String?
+  githubNodeId              String?
+  githubAgentGateCommentId  String?
   githubAgentGateCheckRunId String?
-  url                      String?
-  headSha                  String?
-  branch                   String
-  baseBranch               String
-  status                   PullRequestStatus
-  aiAssisted               Boolean?
-  agentSource              AgentSource       @default(unknown)
-  riskScore                Int               @default(0)
-  riskLevel                RiskLevel         @default(low)
-  testGapStatus            TestGapStatus     @default(none)
-  ciStatus                 CiStatus          @default(unknown)
-  approvalStatus           ApprovalStatus    @default(not_required)
-  filesChangedCount        Int               @default(0)
-  linesAdded               Int               @default(0)
-  linesDeleted             Int               @default(0)
-  repositoryId             String
-  organizationId           String
-  createdAt                DateTime          @default(now())
-  updatedAt                DateTime          @updatedAt
+  url                       String?
+  headSha                   String?
+  branch                    String
+  baseBranch                String
+  status                    PullRequestStatus
+  aiAssisted                Boolean?
+  agentSource               AgentSource       @default(unknown)
+  riskScore                 Int               @default(0)
+  riskLevel                 RiskLevel         @default(low)
+  testGapStatus             TestGapStatus     @default(none)
+  ciStatus                  CiStatus          @default(unknown)
+  approvalStatus            ApprovalStatus    @default(not_required)
+  filesChangedCount         Int               @default(0)
+  linesAdded                Int               @default(0)
+  linesDeleted              Int               @default(0)
+  repositoryId              String
+  organizationId            String
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
 
   organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository      Repository        @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
@@ -365,17 +366,23 @@ model TestGapSuggestion {
 }
 
 model RepoRule {
-  id             String          @id @default(cuid())
-  name           String
-  description    String
-  enabled        Boolean         @default(true)
-  triggerType    RuleTriggerType
-  actionType     RuleActionType
-  severity       Severity
-  repositoryId   String
-  organizationId String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id               String          @id @default(cuid())
+  name             String
+  description      String
+  enabled          Boolean         @default(true)
+  triggerType      RuleTriggerType
+  actionType       RuleActionType
+  severity         Severity
+  branchPattern    String?
+  pathPattern      String?
+  labelPattern     String?
+  agentSource      AgentSource?
+  minimumRiskLevel RiskLevel?
+  codeOwnerHint    String?
+  repositoryId     String
+  organizationId   String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   repository Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   violations RuleViolation[]
