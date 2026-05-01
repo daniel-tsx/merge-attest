@@ -1,12 +1,13 @@
 import { betterAuth } from "better-auth";
+import { getBetterAuthSecret, getBetterAuthUrl } from "@/lib/env";
+
+const betterAuthUrl = getBetterAuthUrl();
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  secret:
-    process.env.BETTER_AUTH_SECRET ??
-    "agentgate-local-development-secret-change-before-production",
+  baseURL: betterAuthUrl,
+  secret: getBetterAuthSecret(),
   emailAndPassword: {
     enabled: true,
   },
-  trustedOrigins: [process.env.BETTER_AUTH_URL ?? "http://localhost:3000"],
+  trustedOrigins: [betterAuthUrl],
 });

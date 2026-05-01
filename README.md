@@ -25,6 +25,12 @@ pnpm dev
 
 The app runs with seeded demo data in the UI even when GitHub, Paddle, and PostgreSQL credentials are missing.
 
+## Production Safety
+
+Production deployments must provide `BETTER_AUTH_SECRET` and `GITHUB_WEBHOOK_SECRET`. Local development still supports demo mode, but production fails closed for missing auth and webhook secrets.
+
+The demo GitHub comment helper at `/api/github/comment` is POST-only and disabled in production until it is replaced by an authenticated, organization-scoped approval or comment workflow.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:

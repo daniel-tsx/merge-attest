@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "octokit";
+import { getGitHubWebhookSecret, isProduction } from "@/lib/env";
 import type { PullRequest } from "@/lib/types";
 
 function githubConfigured() {
@@ -67,10 +68,20 @@ export async function postPullRequestComment(pr: Pick<PullRequest, "number" | "r
   return { mode: "live" as const, message: "GitHub comment posted." };
 }
 
-export function verifyGitHubWebhook(rawBody: string, signatureHeader: string | null) {
-  const secret = process.env.GITHUB_WEBHOOK_SECRET;
-  if (!secret) return { ok: true, mode: "demo" as const };
-  if (!signatureHeader?.startsWith("sha256=")) return { ok: false, mode: "live" as const };
+export function verifyGitHubWebhook(
+  rawBody: string,
+  signatureHeader: string | null,
+  env: Record<string, string | undefined> = process.env,
+) {
+  const secret = getGitHubWebhookSecret(env);
+  if (!secret) {
+    return isProduction(env)
+      ? ({ ok: false, mode: "live" as const, reason: "missing_secret" as const })
+      : ({ ok: true, mode: "demo" as const });
+  }
+  if (!signatureHeader?.startsWith("sha256=")) {
+    return { ok: false, mode: "live" as const, reason: "missing_signature" as const };
+  }
 
   const expected = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
   const actual = signatureHeader;
@@ -78,5 +89,7 @@ export function verifyGitHubWebhook(rawBody: string, signatureHeader: string | n
     expected.length === actual.length &&
     timingSafeEqual(Buffer.from(expected, "utf8"), Buffer.from(actual, "utf8"));
 
-  return { ok, mode: "live" as const };
+  return ok
+    ? ({ ok: true, mode: "live" as const })
+    : ({ ok: false, mode: "live" as const, reason: "invalid_signature" as const });
 }

@@ -1,0 +1,28 @@
+import { describe, expect, it } from "vitest";
+import { getBetterAuthSecret, validateProductionEnv } from "../lib/env";
+
+describe("environment safety", () => {
+  it("uses a local auth secret only outside production", () => {
+    expect(getBetterAuthSecret({ NODE_ENV: "development" })).toContain("local-development-secret");
+  });
+
+  it("requires the auth secret in production", () => {
+    expect(() => getBetterAuthSecret({ NODE_ENV: "production" })).toThrow("BETTER_AUTH_SECRET");
+  });
+
+  it("validates required production secrets", () => {
+    expect(() =>
+      validateProductionEnv({
+        NODE_ENV: "production",
+        BETTER_AUTH_SECRET: "secret",
+        GITHUB_WEBHOOK_SECRET: "webhook",
+      }),
+    ).not.toThrow();
+  });
+
+  it("reports missing production secrets together", () => {
+    expect(() => validateProductionEnv({ NODE_ENV: "production" })).toThrow(
+      "BETTER_AUTH_SECRET, GITHUB_WEBHOOK_SECRET",
+    );
+  });
+});
