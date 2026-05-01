@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { AppShell } from "@/components/app/app-shell";
+import { RootShell } from "@/components/app/root-shell";
 import { getCurrentOrganization } from "@/lib/data/app-data";
 import "./globals.css";
 
@@ -32,13 +32,13 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AppShell
+        <RootShell
           organizationName={organization.name}
           planKey={organization.planKey}
           dataMode={organization.dataMode}
         >
           {children}
-        </AppShell>
+        </RootShell>
       </body>
     </html>
   );

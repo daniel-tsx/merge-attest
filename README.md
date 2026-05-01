@@ -31,6 +31,8 @@ Production deployments must provide `BETTER_AUTH_SECRET` and `GITHUB_WEBHOOK_SEC
 
 The demo GitHub comment helper at `/api/github/comment` is POST-only and disabled in production until it is replaced by an authenticated, organization-scoped approval or comment workflow.
 
+Authenticated app access is available through `/sign-up` and `/sign-in`. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:

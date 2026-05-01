@@ -9,6 +9,7 @@ import {
   repositories as demoRepositories,
 } from "@/lib/demo-data";
 import { isProduction } from "@/lib/env";
+import { ensureCurrentUserOrganization } from "@/lib/auth/session";
 import { getPrismaClient } from "@/lib/prisma";
 import type { PrismaClient } from "@/lib/generated/prisma/client";
 import type { AuditEvent, PlanKey, PullRequest, PullRequestFileInput, Repository, RepoRule, RiskSignal } from "@/lib/types";
@@ -166,12 +167,20 @@ function mapOrganization(row: { id: string; name: string; slug: string; planKey:
 }
 
 export async function getCurrentOrganization(): Promise<OrganizationContext> {
+  const sessionOrganization = await ensureCurrentUserOrganization();
+  if (sessionOrganization) {
+    return {
+      id: sessionOrganization.id,
+      name: sessionOrganization.name,
+      slug: sessionOrganization.slug,
+      planKey: sessionOrganization.planKey,
+      dataMode: "live",
+    };
+  }
+
   return queryWithDemoFallback(
     async (client) => {
       const organization = await client.organization.findFirst({ orderBy: { createdAt: "asc" } });
-      if (!organization && isProduction()) {
-        throw new Error("No organization is available for the current session.");
-      }
       return mapOrganization(organization);
     },
     () => mapOrganization(null),
