@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createCheckoutTransaction, isPaidPlan } from '@/lib/billing'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { canManageBilling } from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/types'
 
@@ -16,6 +17,13 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: 'Authentication and database access are required.' },
       { status: 401 },
+    )
+  }
+
+  if (!canManageBilling(organization.role)) {
+    return NextResponse.json(
+      { error: 'Only owners and admins can manage billing.' },
+      { status: 403 },
     )
   }
 

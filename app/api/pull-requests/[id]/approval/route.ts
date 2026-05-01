@@ -6,14 +6,11 @@ import {
   isApprovalDecision,
 } from '@/lib/approvals'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { canRecordApproval } from '@/lib/collaboration'
 import { postPullRequestComment, publishAgentGateCheckRun } from '@/lib/github'
 import { isFeatureAvailable } from '@/lib/plans'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PlanKey } from '@/lib/types'
-
-function canRecordApproval(role: string) {
-  return role === 'owner' || role === 'admin' || role === 'member'
-}
 
 function commentBody(input: {
   decision: string

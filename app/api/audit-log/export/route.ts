@@ -4,6 +4,7 @@ import {
   serializeAuditEventsToCsv,
 } from '@/lib/audit-export'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { canExportAudit } from '@/lib/collaboration'
 import { listAuditEvents } from '@/lib/data/app-data'
 import { isFeatureAvailable } from '@/lib/plans'
 
@@ -14,6 +15,13 @@ export async function GET() {
     return NextResponse.json(
       { error: 'Authentication and database access are required.' },
       { status: 401 },
+    )
+  }
+
+  if (!canExportAudit(organization.role)) {
+    return NextResponse.json(
+      { error: 'Only owners and admins can export audit logs.' },
+      { status: 403 },
     )
   }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { canManageRules } from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
 import type { AgentSource, RepoRule, RiskLevel } from '@/lib/types'
 
@@ -41,10 +42,6 @@ const agentSources: AgentSource[] = [
 ]
 
 const riskLevels: RiskLevel[] = ['low', 'medium', 'high', 'critical']
-
-function canManageRules(role: string) {
-  return role === 'owner' || role === 'admin'
-}
 
 function redirectToRules(
   request: NextRequest,

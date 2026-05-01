@@ -56,8 +56,15 @@ describe('Prisma data mappers', () => {
       filesChangedCount: 1,
       linesAdded: 20,
       linesDeleted: 4,
+      assignedReviewerId: 'user-1',
+      reviewDueAt: date,
       createdAt: date,
       updatedAt: date,
+      assignedReviewer: {
+        id: 'user-1',
+        name: 'Maya Chen',
+        email: 'maya@example.com',
+      },
       files: [
         {
           path: 'lib/auth.ts',
@@ -94,6 +101,7 @@ describe('Prisma data mappers', () => {
             name: 'Sensitive change review',
             severity: 'critical',
             actionType: 'require_approval',
+            codeOwnerHint: 'Security team',
           },
         },
       ],
@@ -106,6 +114,14 @@ describe('Prisma data mappers', () => {
           reviewer: { name: 'Maya Chen', email: 'maya@example.com' },
         },
       ],
+      comments: [
+        {
+          id: 'comment-1',
+          body: 'Waiting on tests.',
+          createdAt: date,
+          author: { name: 'Owen Reed', email: 'owen@example.com' },
+        },
+      ],
     })
 
     expect(result.repositoryName).toBe('agent-gate')
@@ -114,7 +130,10 @@ describe('Prisma data mappers', () => {
       'tests/auth.test.ts',
     ])
     expect(result.ruleViolations[0].ruleName).toBe('Sensitive change review')
+    expect(result.reviewerSuggestion).toBe('Security team')
+    expect(result.assignedReviewer?.name).toBe('Maya Chen')
     expect(result.approvals[0].reviewer).toBe('Maya Chen')
+    expect(result.comments[0].author).toBe('Owen Reed')
   })
 
   it('maps webhook delivery diagnostics for GitHub settings', () => {

@@ -118,6 +118,7 @@ export function evaluateRepoRules(
       summary: `${rule.name}: ${rule.description}`,
       severity: rule.severity,
       actionType: rule.actionType,
+      codeOwnerHint: rule.codeOwnerHint,
       resolved: false,
       createdAt: new Date().toISOString(),
     }))

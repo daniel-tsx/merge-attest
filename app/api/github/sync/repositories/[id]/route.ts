@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { canSyncGitHub } from '@/lib/collaboration'
 import { syncGitHubRepository } from '@/lib/github-sync'
 
 export async function POST(
@@ -13,6 +14,13 @@ export async function POST(
     return NextResponse.json(
       { error: 'Authentication and database access are required.' },
       { status: 401 },
+    )
+  }
+
+  if (!canSyncGitHub(organization.role)) {
+    return NextResponse.json(
+      { error: 'Only owners and admins can sync GitHub repositories.' },
+      { status: 403 },
     )
   }
 

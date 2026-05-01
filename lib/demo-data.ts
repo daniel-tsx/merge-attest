@@ -519,16 +519,33 @@ export const pullRequests: PullRequest[] = prInputs.map((input, index) => {
     linesDeleted: input.files.reduce((sum, item) => sum + item.deletions, 0),
     createdAt: `2026-04-${String(11 + (index % 18)).padStart(2, '0')}T09:30:00.000Z`,
     updatedAt: `2026-04-${String(22 + (index % 8)).padStart(2, '0')}T14:15:00.000Z`,
+    assignedReviewer:
+      risk.score >= 50 || input.aiAssisted
+        ? {
+            id: users[index % users.length].id,
+            name: users[index % users.length].name,
+            email: users[index % users.length].email,
+          }
+        : undefined,
+    reviewDueAt:
+      risk.score >= 50 || input.aiAssisted
+        ? `2026-05-0${(index % 3) + 1}T12:00:00.000Z`
+        : undefined,
+    reviewSlaStatus: risk.score >= 50 || input.aiAssisted ? 'due_soon' : 'none',
     files: input.files,
     riskSignals: risk.signals,
     testGapAnalysis: testGap,
     ruleViolations: [],
     approvals: [],
+    comments: [],
   }
   const rules = repoRules.filter(
     (ruleItem) => ruleItem.repositoryId === input.repositoryId,
   )
   base.ruleViolations = evaluateRepoRules(rules, base)
+  base.reviewerSuggestion =
+    base.ruleViolations.find((violation) => violation.codeOwnerHint)
+      ?.codeOwnerHint ?? base.assignedReviewer?.name
   base.approvals = approvalHistory(base)
   return base
 })

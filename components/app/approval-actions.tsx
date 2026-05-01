@@ -6,7 +6,13 @@ import { Check, MessageSquare, ShieldAlert, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Approval } from '@/lib/types'
 
-export function ApprovalActions({ prId }: { prId: string }) {
+export function ApprovalActions({
+  prId,
+  canRecord = true,
+}: {
+  prId: string
+  canRecord?: boolean
+}) {
   const router = useRouter()
   const [note, setNote] = useState('')
   const [message, setMessage] = useState('No decision recorded yet.')
@@ -46,18 +52,24 @@ export function ApprovalActions({ prId }: { prId: string }) {
 
   return (
     <div className="space-y-3">
+      {!canRecord ? (
+        <p className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+          You have read-only access to approval decisions.
+        </p>
+      ) : null}
       <textarea
         value={note}
         onChange={(event) => setNote(event.target.value)}
         placeholder="Optional reviewer note"
         className="min-h-20 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
         maxLength={1000}
+        disabled={!canRecord}
       />
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
           onClick={() => recordDecision('approved')}
-          disabled={Boolean(submitting)}
+          disabled={Boolean(submitting) || !canRecord}
         >
           <Check />
           {submitting === 'approved' ? 'Approving...' : 'Approve'}
@@ -66,7 +78,7 @@ export function ApprovalActions({ prId }: { prId: string }) {
           size="sm"
           variant="secondary"
           onClick={() => recordDecision('requested_tests')}
-          disabled={Boolean(submitting)}
+          disabled={Boolean(submitting) || !canRecord}
         >
           <MessageSquare />
           {submitting === 'requested_tests' ? 'Requesting...' : 'Request tests'}
@@ -75,7 +87,7 @@ export function ApprovalActions({ prId }: { prId: string }) {
           size="sm"
           variant="secondary"
           onClick={() => recordDecision('risk_accepted')}
-          disabled={Boolean(submitting)}
+          disabled={Boolean(submitting) || !canRecord}
         >
           <ShieldAlert />
           {submitting === 'risk_accepted' ? 'Recording...' : 'Accept risk'}
@@ -84,7 +96,7 @@ export function ApprovalActions({ prId }: { prId: string }) {
           size="sm"
           variant="danger"
           onClick={() => recordDecision('rejected')}
-          disabled={Boolean(submitting)}
+          disabled={Boolean(submitting) || !canRecord}
         >
           <X />
           {submitting === 'rejected' ? 'Rejecting...' : 'Reject'}

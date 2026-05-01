@@ -1,5 +1,6 @@
 import { calculateRisk } from '@/lib/risk'
 import { evaluateRepoRules } from '@/lib/rules'
+import { defaultReviewDueAt } from '@/lib/collaboration'
 import { detectTestGap } from '@/lib/test-gap'
 import {
   getGitHubPullRequest,
@@ -235,6 +236,8 @@ async function syncGitHubPullRequestRecord(input: {
     : risk.score >= 50 || aiAssisted
       ? 'pending'
       : 'not_required'
+  const reviewDueAt =
+    approvalStatus === 'pending' ? defaultReviewDueAt(risk.level) : null
   const existing = await prisma.pullRequest.findUnique({
     where: {
       repositoryId_number: {
@@ -270,6 +273,7 @@ async function syncGitHubPullRequestRecord(input: {
       testGapStatus: testGap.status,
       ciStatus: 'unknown',
       approvalStatus,
+      reviewDueAt,
       filesChangedCount: files.length,
       linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
       linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),

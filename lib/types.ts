@@ -71,11 +71,20 @@ export type PullRequest = {
   linesDeleted: number
   createdAt: string
   updatedAt: string
+  assignedReviewer?: {
+    id: string
+    name: string
+    email: string
+  }
+  reviewDueAt?: string
+  reviewSlaStatus: 'none' | 'on_track' | 'due_soon' | 'overdue'
+  reviewerSuggestion?: string
   files: PullRequestFileInput[]
   riskSignals: RiskSignal[]
   testGapAnalysis: TestGapResult
   ruleViolations: RuleViolation[]
   approvals: Approval[]
+  comments: PullRequestComment[]
 }
 
 export type TestGapResult = {
@@ -126,6 +135,7 @@ export type RuleViolation = {
   summary: string
   severity: Severity
   actionType: RepoRule['actionType']
+  codeOwnerHint?: string
   resolved: boolean
   createdAt: string
 }
@@ -140,6 +150,13 @@ export type Approval = {
     | 'risk_accepted'
     | 'not_required'
   note: string
+  createdAt: string
+}
+
+export type PullRequestComment = {
+  id: string
+  author: string
+  body: string
   createdAt: string
 }
 

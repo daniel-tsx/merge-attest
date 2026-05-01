@@ -11,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   getCurrentOrganization,
+  listTeamMembers,
   listPullRequests,
   listRepositories,
 } from '@/lib/data/app-data'
+import { canRecordApproval } from '@/lib/collaboration'
 import { formatDate } from '@/lib/utils'
 
 type PageProps = {
@@ -35,12 +37,17 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
     query: readParam(params, 'query'),
     repositoryId: readParam(params, 'repositoryId'),
     approvalStatus,
+    riskLevel: readParam(params, 'riskLevel'),
+    assigneeId: readParam(params, 'assigneeId'),
+    slaStatus: readParam(params, 'slaStatus'),
   }
   const organization = await getCurrentOrganization()
-  const [repositories, pullRequests] = await Promise.all([
+  const [repositories, teamMembers, pullRequests] = await Promise.all([
     listRepositories(organization.id),
+    listTeamMembers(organization.id),
     listPullRequests(organization.id, filters),
   ])
+  const canRecord = canRecordApproval(organization.role)
   const pending =
     approvalStatus && approvalStatus !== 'all'
       ? pullRequests
@@ -57,7 +64,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       />
       <Card>
         <CardContent>
-          <form className="grid gap-3 md:grid-cols-[1fr_200px_180px_auto]">
+          <form className="grid gap-3 md:grid-cols-[1fr_180px_150px_160px_150px_140px_auto]">
             <Input
               name="query"
               defaultValue={filters.query}
@@ -75,6 +82,43 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                   {repository.name}
                 </option>
               ))}
+            </select>
+            <select
+              name="riskLevel"
+              defaultValue={filters.riskLevel ?? 'all'}
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="all">All severities</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+            <select
+              name="assigneeId"
+              defaultValue={filters.assigneeId ?? 'all'}
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="all">All assignees</option>
+              <option value="unassigned">Unassigned</option>
+              {teamMembers
+                .filter((member) => member.role !== 'viewer')
+                .map((member) => (
+                  <option key={member.userId} value={member.userId}>
+                    {member.name}
+                  </option>
+                ))}
+            </select>
+            <select
+              name="slaStatus"
+              defaultValue={filters.slaStatus ?? 'all'}
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="all">All SLAs</option>
+              <option value="overdue">Overdue</option>
+              <option value="due_soon">Due soon</option>
+              <option value="on_track">On track</option>
+              <option value="none">No SLA</option>
             </select>
             <select
               name="approvalStatus"
@@ -115,8 +159,52 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                 <div>Updated {formatDate(pr.updatedAt)}</div>
                 <div>{pr.filesChangedCount} files changed</div>
                 <div>{pr.ruleViolations.length} rule violations</div>
+                <div>
+                  Assignee:{' '}
+                  {pr.assignedReviewer?.name ??
+                    pr.reviewerSuggestion ??
+                    'Unassigned'}
+                </div>
+                <div>
+                  SLA:{' '}
+                  {pr.reviewDueAt
+                    ? `${pr.reviewSlaStatus.replaceAll('_', ' ')} (${formatDate(
+                        pr.reviewDueAt,
+                      )})`
+                    : 'No due date'}
+                </div>
               </div>
-              <ApprovalActions prId={pr.id} />
+              <form
+                action={`/api/pull-requests/${pr.id}/assignment`}
+                method="post"
+                className="grid gap-2 md:grid-cols-[1fr_160px_auto]"
+              >
+                <select
+                  name="assigneeId"
+                  defaultValue={pr.assignedReviewer?.id ?? ''}
+                  disabled={!canRecord}
+                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                >
+                  <option value="">Unassigned</option>
+                  {teamMembers
+                    .filter((member) => member.role !== 'viewer')
+                    .map((member) => (
+                      <option key={member.userId} value={member.userId}>
+                        {member.name}
+                      </option>
+                    ))}
+                </select>
+                <Input
+                  type="date"
+                  name="reviewDueAt"
+                  defaultValue={pr.reviewDueAt?.slice(0, 10)}
+                  disabled={!canRecord}
+                />
+                <Button type="submit" variant="secondary" disabled={!canRecord}>
+                  Assign
+                </Button>
+              </form>
+              <ApprovalActions prId={pr.id} canRecord={canRecord} />
             </CardContent>
           </Card>
         ))}

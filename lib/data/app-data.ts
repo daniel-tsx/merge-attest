@@ -13,6 +13,11 @@ import {
 } from '@/lib/demo-data'
 import { isProduction } from '@/lib/env'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import {
+  getReviewSlaStatus,
+  normalizeInviteStatus,
+  suggestReviewerFromViolations,
+} from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
 import type { PrismaClient } from '@/lib/generated/prisma/client'
 import type {
@@ -26,12 +31,26 @@ import type {
   RiskSignal,
 } from '@/lib/types'
 
+export type TeamInvite = {
+  id: string
+  email: string
+  role: TeamMember['role']
+  status: 'pending' | 'accepted' | 'expired' | 'revoked'
+  token: string
+  inviteUrl: string
+  invitedBy?: string
+  expiresAt: string
+  acceptedAt?: string
+  createdAt: string
+}
+
 export type OrganizationContext = {
   id: string
   name: string
   slug: string
   planKey: PlanKey
   githubInstallationId: string | null
+  role: TeamMember['role']
   dataMode: 'live' | 'demo'
 }
 
@@ -79,6 +98,18 @@ export type TeamMember = {
   createdAt: string
 }
 
+type TeamInviteRow = {
+  id: string
+  email: string
+  role: string
+  status: string
+  token: string
+  expiresAt: Date
+  acceptedAt: Date | null
+  createdAt: Date
+  invitedBy: { name: string; email: string } | null
+}
+
 type TeamMemberRow = {
   id: string
   role: string
@@ -110,8 +141,11 @@ type PullRequestRow = {
   filesChangedCount: number
   linesAdded: number
   linesDeleted: number
+  assignedReviewerId: string | null
+  reviewDueAt: Date | null
   createdAt: Date
   updatedAt: Date
+  assignedReviewer: { id: string; name: string; email: string } | null
   files: Array<{
     path: string
     additions: number
@@ -137,7 +171,12 @@ type PullRequestRow = {
     summary: string
     resolved: boolean
     createdAt: Date
-    rule: { name: string; severity: string; actionType: string }
+    rule: {
+      name: string
+      severity: string
+      actionType: string
+      codeOwnerHint: string | null
+    }
   }>
   approvals: Array<{
     id: string
@@ -145,6 +184,12 @@ type PullRequestRow = {
     note: string | null
     createdAt: Date
     reviewer: { name: string; email: string } | null
+  }>
+  comments: Array<{
+    id: string
+    body: string
+    createdAt: Date
+    author: { name: string; email: string } | null
   }>
 }
 
@@ -224,6 +269,8 @@ type PullRequestFilters = SearchFilters & {
   riskLevel?: string
   agentSource?: string
   approvalStatus?: string
+  assigneeId?: string
+  slaStatus?: string
 }
 
 type ActivityFilters = SearchFilters & {
@@ -341,7 +388,15 @@ function applyPullRequestFilters(
       matchesOptionalFilter(pullRequest.repositoryId, filters.repositoryId) &&
       matchesOptionalFilter(pullRequest.riskLevel, filters.riskLevel) &&
       matchesOptionalFilter(pullRequest.agentSource, filters.agentSource) &&
-      matchesOptionalFilter(pullRequest.approvalStatus, filters.approvalStatus),
+      matchesOptionalFilter(
+        pullRequest.approvalStatus,
+        filters.approvalStatus,
+      ) &&
+      matchesOptionalFilter(
+        pullRequest.assignedReviewer?.id ?? 'unassigned',
+        filters.assigneeId,
+      ) &&
+      matchesOptionalFilter(pullRequest.reviewSlaStatus, filters.slaStatus),
   )
 }
 
@@ -495,6 +550,7 @@ function mapOrganization(
       slug: demoOrganization.slug,
       planKey: demoOrganization.planKey,
       githubInstallationId: 'demo-installation',
+      role: 'owner',
       dataMode: 'demo',
     }
   }
@@ -505,6 +561,7 @@ function mapOrganization(
     slug: row.slug,
     planKey: row.planKey as PlanKey,
     githubInstallationId: row.githubInstallationId,
+    role: 'owner',
     dataMode: 'live',
   }
 }
@@ -518,6 +575,7 @@ export async function getCurrentOrganization(): Promise<OrganizationContext> {
       slug: sessionOrganization.slug,
       planKey: sessionOrganization.planKey,
       githubInstallationId: sessionOrganization.githubInstallationId,
+      role: sessionOrganization.role,
       dataMode: 'live',
     }
   }
@@ -585,7 +643,40 @@ export function mapTeamMember(row: TeamMemberRow): TeamMember {
   }
 }
 
+export function mapTeamInvite(row: TeamInviteRow): TeamInvite {
+  const status = normalizeInviteStatus(
+    row.status as TeamInvite['status'],
+    row.expiresAt,
+  )
+
+  return {
+    id: row.id,
+    email: row.email,
+    role: row.role as TeamInvite['role'],
+    status,
+    token: row.token,
+    inviteUrl: `/api/team/invites/accept?token=${row.token}`,
+    invitedBy: row.invitedBy?.name ?? row.invitedBy?.email ?? 'Workspace admin',
+    expiresAt: toIso(row.expiresAt),
+    acceptedAt: row.acceptedAt ? toIso(row.acceptedAt) : undefined,
+    createdAt: toIso(row.createdAt),
+  }
+}
+
 export function mapPullRequest(row: PullRequestRow): PullRequest {
+  const ruleViolations = row.ruleViolations.map((violation) => ({
+    id: violation.id,
+    ruleName: violation.rule.name,
+    summary: violation.summary,
+    severity: violation.rule
+      .severity as PullRequest['ruleViolations'][number]['severity'],
+    actionType: violation.rule
+      .actionType as PullRequest['ruleViolations'][number]['actionType'],
+    codeOwnerHint: violation.rule.codeOwnerHint ?? undefined,
+    resolved: violation.resolved,
+    createdAt: toIso(violation.createdAt),
+  }))
+
   return {
     id: row.id,
     repositoryId: row.repositoryId,
@@ -608,6 +699,15 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
     linesDeleted: row.linesDeleted,
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
+    assignedReviewer: row.assignedReviewer
+      ? {
+          id: row.assignedReviewer.id,
+          name: row.assignedReviewer.name,
+          email: row.assignedReviewer.email,
+        }
+      : undefined,
+    reviewDueAt: row.reviewDueAt ? toIso(row.reviewDueAt) : undefined,
+    reviewSlaStatus: getReviewSlaStatus(row.reviewDueAt),
     files: row.files.map(
       (file): PullRequestFileInput => ({
         path: file.path,
@@ -639,17 +739,8 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
       confidence: (row.testGapAnalysis?.confidence ??
         'low') as PullRequest['testGapAnalysis']['confidence'],
     },
-    ruleViolations: row.ruleViolations.map((violation) => ({
-      id: violation.id,
-      ruleName: violation.rule.name,
-      summary: violation.summary,
-      severity: violation.rule
-        .severity as PullRequest['ruleViolations'][number]['severity'],
-      actionType: violation.rule
-        .actionType as PullRequest['ruleViolations'][number]['actionType'],
-      resolved: violation.resolved,
-      createdAt: toIso(violation.createdAt),
-    })),
+    ruleViolations,
+    reviewerSuggestion: suggestReviewerFromViolations(ruleViolations),
     approvals: row.approvals.map((approval) => ({
       id: approval.id,
       reviewer:
@@ -660,6 +751,13 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
         approval.decision as PullRequest['approvals'][number]['decision'],
       note: approval.note ?? '',
       createdAt: toIso(approval.createdAt),
+    })),
+    comments: row.comments.map((comment) => ({
+      id: comment.id,
+      author:
+        comment.author?.name ?? comment.author?.email ?? 'Unknown teammate',
+      body: comment.body,
+      createdAt: toIso(comment.createdAt),
     })),
   }
 }
@@ -715,11 +813,16 @@ export function mapGitHubWebhookDiagnostic(
 
 const pullRequestInclude = {
   repository: true,
+  assignedReviewer: true,
   files: true,
   riskSignals: true,
   testGapAnalysis: { include: { suggestions: true } },
   ruleViolations: { include: { rule: true } },
   approvals: { include: { reviewer: true } },
+  comments: {
+    include: { author: true },
+    orderBy: { createdAt: 'desc' as const },
+  },
 }
 
 export async function listRepositories(
@@ -791,6 +894,33 @@ export async function listTeamMembers(organizationId: string) {
         }),
       ),
     'team members',
+  )
+}
+
+export async function listTeamInvites(organizationId: string) {
+  return queryWithDemoFallback<TeamInvite[]>(
+    async (client) => {
+      const rows = await client.organizationInvite.findMany({
+        where: { organizationId },
+        include: { invitedBy: true },
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      })
+      return rows.map(mapTeamInvite)
+    },
+    () => [
+      {
+        id: 'invite-demo-viewer',
+        email: 'sam@northstar.dev',
+        role: 'viewer',
+        status: 'pending',
+        token: 'demo-invite-token',
+        inviteUrl: '/api/team/invites/accept?token=demo-invite-token',
+        invitedBy: 'Maya Chen',
+        expiresAt: '2026-05-07T08:00:00.000Z',
+        createdAt: '2026-04-30T08:00:00.000Z',
+      } satisfies TeamInvite,
+    ],
+    'team invites',
   )
 }
 
