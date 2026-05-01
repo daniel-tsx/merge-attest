@@ -1,18 +1,30 @@
 import { organization as demoOrganization } from "@/lib/demo-data";
 import {
+  activityEvents as demoActivityEvents,
   auditEvents as demoAuditEvents,
+  trendData as demoTrendData,
   getPullRequest as getDemoPullRequest,
   getRepository as getDemoRepository,
   getRepositoryPullRequests as getDemoRepositoryPullRequests,
   getRepositoryRules as getDemoRepositoryRules,
   pullRequests as demoPullRequests,
   repositories as demoRepositories,
+  users as demoUsers,
 } from "@/lib/demo-data";
 import { isProduction } from "@/lib/env";
 import { ensureCurrentUserOrganization } from "@/lib/auth/session";
 import { getPrismaClient } from "@/lib/prisma";
 import type { PrismaClient } from "@/lib/generated/prisma/client";
-import type { AuditEvent, PlanKey, PullRequest, PullRequestFileInput, Repository, RepoRule, RiskSignal } from "@/lib/types";
+import type {
+  ActivityEvent,
+  AuditEvent,
+  PlanKey,
+  PullRequest,
+  PullRequestFileInput,
+  Repository,
+  RepoRule,
+  RiskSignal,
+} from "@/lib/types";
 
 export type OrganizationContext = {
   id: string;
@@ -50,6 +62,26 @@ type RuleRow = {
   severity: string;
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type TeamMember = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  role: "owner" | "admin" | "member" | "viewer";
+  createdAt: string;
+};
+
+type TeamMemberRow = {
+  id: string;
+  role: string;
+  createdAt: Date;
+  userId: string;
+  user: {
+    name: string;
+    email: string;
+  };
 };
 
 type PullRequestRow = {
@@ -99,6 +131,21 @@ type PullRequestRow = {
   }>;
 };
 
+type ActivityEventRow = {
+  id: string;
+  timestamp: Date;
+  actor: string;
+  agentSource: string;
+  eventType: string;
+  summary: string;
+  riskLevel: string;
+  metadata: unknown;
+  repositoryId: string;
+  pullRequestId: string | null;
+  repository: { name: string };
+  pullRequest: { number: number } | null;
+};
+
 type AuditEventRow = {
   id: string;
   eventType: string;
@@ -108,6 +155,43 @@ type AuditEventRow = {
   createdAt: Date;
   repository: { name: string } | null;
   pullRequest: { number: number } | null;
+};
+
+export type DashboardTrendPoint = {
+  date: string;
+  risk: number;
+  testGaps: number;
+};
+
+type SearchFilters = {
+  query?: string;
+};
+
+type RepositoryFilters = SearchFilters & {
+  riskProfile?: string;
+  visibility?: string;
+};
+
+type PullRequestFilters = SearchFilters & {
+  repositoryId?: string;
+  riskLevel?: string;
+  agentSource?: string;
+  approvalStatus?: string;
+};
+
+type ActivityFilters = SearchFilters & {
+  repositoryId?: string;
+  agentSource?: string;
+  eventType?: string;
+  take?: number;
+};
+
+type AuditEventFilters = SearchFilters & {
+  repositoryId?: string;
+  pullRequestId?: string;
+  eventType?: string;
+  since?: Date;
+  take?: number;
 };
 
 function toIso(date: Date | string | null | undefined) {
@@ -128,6 +212,118 @@ function recordFromJson(value: unknown): Record<string, string | number | boolea
       return item === undefined || typeof item === "string" || typeof item === "number" || typeof item === "boolean";
     }),
   );
+}
+
+function normalizeFilter(value: string | undefined) {
+  const trimmed = value?.trim().toLowerCase();
+  return trimmed || undefined;
+}
+
+function includesQuery(values: Array<string | number | boolean | null | undefined>, query?: string) {
+  const normalizedQuery = normalizeFilter(query);
+  if (!normalizedQuery) return true;
+
+  return values.some((value) => String(value ?? "").toLowerCase().includes(normalizedQuery));
+}
+
+function matchesOptionalFilter(value: string | null | undefined, filter?: string) {
+  const normalizedFilter = normalizeFilter(filter);
+  if (!normalizedFilter || normalizedFilter === "all") return true;
+
+  return value?.toLowerCase() === normalizedFilter;
+}
+
+function applyRepositoryFilters(items: Repository[], filters: RepositoryFilters = {}) {
+  return items.filter(
+    (repository) =>
+      includesQuery([repository.name, repository.owner, repository.defaultBranch, repository.visibility], filters.query) &&
+      matchesOptionalFilter(repository.riskProfile, filters.riskProfile) &&
+      matchesOptionalFilter(repository.visibility, filters.visibility),
+  );
+}
+
+function applyPullRequestFilters(items: PullRequest[], filters: PullRequestFilters = {}) {
+  return items.filter(
+    (pullRequest) =>
+      includesQuery(
+        [
+          pullRequest.title,
+          pullRequest.number,
+          pullRequest.author,
+          pullRequest.repositoryName,
+          pullRequest.branch,
+          pullRequest.baseBranch,
+        ],
+        filters.query,
+      ) &&
+      matchesOptionalFilter(pullRequest.repositoryId, filters.repositoryId) &&
+      matchesOptionalFilter(pullRequest.riskLevel, filters.riskLevel) &&
+      matchesOptionalFilter(pullRequest.agentSource, filters.agentSource) &&
+      matchesOptionalFilter(pullRequest.approvalStatus, filters.approvalStatus),
+  );
+}
+
+function applyActivityFilters(items: ActivityEvent[], filters: ActivityFilters = {}) {
+  const filtered = items.filter(
+    (event) =>
+      includesQuery(
+        [event.summary, event.repositoryName, event.pullRequestNumber, event.actor, event.agentSource, event.eventType],
+        filters.query,
+      ) &&
+      matchesOptionalFilter(event.repositoryId, filters.repositoryId) &&
+      matchesOptionalFilter(event.agentSource, filters.agentSource) &&
+      matchesOptionalFilter(event.eventType, filters.eventType),
+  );
+
+  return typeof filters.take === "number" ? filtered.slice(0, filters.take) : filtered;
+}
+
+function applyAuditEventFilters(items: AuditEvent[], filters: AuditEventFilters = {}) {
+  const filtered = items.filter(
+    (event) =>
+      includesQuery(
+        [event.summary, event.eventType, event.actor, event.repositoryName, event.pullRequestNumber],
+        filters.query,
+      ) &&
+      matchesOptionalFilter(event.eventType, filters.eventType),
+  );
+
+  return typeof filters.take === "number" ? filtered.slice(0, filters.take) : filtered;
+}
+
+function formatTrendDate(date: Date) {
+  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", timeZone: "UTC" }).format(date);
+}
+
+function buildTrendData(pullRequests: PullRequest[], days = 7): DashboardTrendPoint[] {
+  const latestTimestamp = pullRequests.reduce((latest, pullRequest) => {
+    const timestamp = new Date(pullRequest.updatedAt).getTime();
+    return Number.isFinite(timestamp) ? Math.max(latest, timestamp) : latest;
+  }, 0);
+  const end = latestTimestamp ? new Date(latestTimestamp) : new Date();
+  const start = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - (days - 1)));
+  const buckets = new Map<string, { riskTotal: number; pullRequestCount: number; testGaps: number }>();
+
+  for (let index = 0; index < days; index += 1) {
+    const day = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate() + index));
+    buckets.set(day.toISOString().slice(0, 10), { riskTotal: 0, pullRequestCount: 0, testGaps: 0 });
+  }
+
+  for (const pullRequest of pullRequests) {
+    const key = new Date(pullRequest.updatedAt).toISOString().slice(0, 10);
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
+
+    bucket.riskTotal += pullRequest.riskScore;
+    bucket.pullRequestCount += 1;
+    if (pullRequest.testGapStatus !== "none") bucket.testGaps += 1;
+  }
+
+  return Array.from(buckets.entries()).map(([key, bucket]) => ({
+    date: formatTrendDate(new Date(`${key}T00:00:00.000Z`)),
+    risk: bucket.pullRequestCount ? Math.round(bucket.riskTotal / bucket.pullRequestCount) : 0,
+    testGaps: bucket.testGaps,
+  }));
 }
 
 function productionFallbackError(error: unknown): never {
@@ -227,6 +423,17 @@ export function mapRepoRule(row: RuleRow): RepoRule {
   };
 }
 
+export function mapTeamMember(row: TeamMemberRow): TeamMember {
+  return {
+    id: row.id,
+    userId: row.userId,
+    name: row.user.name,
+    email: row.user.email,
+    role: row.role as TeamMember["role"],
+    createdAt: toIso(row.createdAt),
+  };
+}
+
 export function mapPullRequest(row: PullRequestRow): PullRequest {
   return {
     id: row.id,
@@ -290,6 +497,23 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
   };
 }
 
+export function mapActivityEvent(row: ActivityEventRow): ActivityEvent {
+  return {
+    id: row.id,
+    timestamp: toIso(row.timestamp),
+    repositoryId: row.repositoryId,
+    repositoryName: row.repository.name,
+    pullRequestId: row.pullRequestId ?? undefined,
+    pullRequestNumber: row.pullRequest?.number,
+    actor: row.actor,
+    agentSource: row.agentSource as ActivityEvent["agentSource"],
+    eventType: row.eventType as ActivityEvent["eventType"],
+    summary: row.summary,
+    riskLevel: row.riskLevel as ActivityEvent["riskLevel"],
+    metadata: recordFromJson(row.metadata),
+  };
+}
+
 export function mapAuditEvent(row: AuditEventRow): AuditEvent {
   return {
     id: row.id,
@@ -312,16 +536,16 @@ const pullRequestInclude = {
   approvals: { include: { reviewer: true } },
 };
 
-export async function listRepositories(organizationId: string) {
+export async function listRepositories(organizationId: string, filters: RepositoryFilters = {}) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.repository.findMany({
         where: { organizationId },
         orderBy: [{ riskProfile: "desc" }, { name: "asc" }],
       });
-      return rows.map(mapRepository);
+      return applyRepositoryFilters(rows.map(mapRepository), filters);
     },
-    () => demoRepositories,
+    () => applyRepositoryFilters(demoRepositories, filters),
     "repositories",
   );
 }
@@ -351,7 +575,40 @@ export async function getRepositoryRules(organizationId: string, repositoryId: s
   );
 }
 
-export async function listPullRequests(organizationId: string) {
+export async function listTeamMembers(organizationId: string) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.organizationMember.findMany({
+        where: { organizationId },
+        include: { user: true },
+        orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+      });
+      return rows.map(mapTeamMember);
+    },
+    () =>
+      demoUsers.map(
+        (user): TeamMember => ({
+          id: `${user.id}-membership`,
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role as TeamMember["role"],
+          createdAt: new Date(0).toISOString(),
+        }),
+      ),
+    "team members",
+  );
+}
+
+export async function getApiKeyCount(organizationId: string) {
+  return queryWithDemoFallback(
+    async (client) => client.apiKey.count({ where: { organizationId } }),
+    () => 1,
+    "api key count",
+  );
+}
+
+export async function listPullRequests(organizationId: string, filters: PullRequestFilters = {}) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.pullRequest.findMany({
@@ -359,9 +616,9 @@ export async function listPullRequests(organizationId: string) {
         include: pullRequestInclude,
         orderBy: { updatedAt: "desc" },
       });
-      return rows.map(mapPullRequest);
+      return applyPullRequestFilters(rows.map(mapPullRequest), filters);
     },
-    () => demoPullRequests,
+    () => applyPullRequestFilters(demoPullRequests, filters),
     "pull requests",
   );
 }
@@ -395,9 +652,40 @@ export async function getPullRequest(organizationId: string, id: string) {
   );
 }
 
+export async function listActivityEvents(organizationId: string, filters: ActivityFilters = {}) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.agentActivity.findMany({
+        where: { organizationId },
+        include: { repository: true, pullRequest: true },
+        orderBy: { timestamp: "desc" },
+      });
+      return applyActivityFilters(rows.map(mapActivityEvent), filters);
+    },
+    () => applyActivityFilters(demoActivityEvents, filters),
+    "activity events",
+  );
+}
+
+export async function getDashboardTrendData(organizationId: string) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.pullRequest.findMany({
+        where: { organizationId },
+        include: pullRequestInclude,
+        orderBy: { updatedAt: "desc" },
+      });
+      const pullRequests = rows.map(mapPullRequest);
+      return pullRequests.length ? buildTrendData(pullRequests) : [];
+    },
+    () => demoTrendData,
+    "dashboard trend data",
+  );
+}
+
 export async function listAuditEvents(
   organizationId: string,
-  filters: { repositoryId?: string; pullRequestId?: string; since?: Date; take?: number } = {},
+  filters: AuditEventFilters = {},
 ) {
   return queryWithDemoFallback(
     async (client) => {
@@ -410,13 +698,13 @@ export async function listAuditEvents(
         },
         include: { repository: true, pullRequest: true },
         orderBy: { createdAt: "desc" },
-        take: filters.take,
+        take: filters.query || filters.eventType ? undefined : filters.take,
       });
-      return rows.map(mapAuditEvent);
+      return applyAuditEventFilters(rows.map(mapAuditEvent), filters);
     },
     () =>
-      demoAuditEvents
-        .filter((event) => {
+      applyAuditEventFilters(
+        demoAuditEvents.filter((event) => {
           if (filters.repositoryId) {
             const repository = getDemoRepository(filters.repositoryId);
             if (repository && event.repositoryName !== repository.name) return false;
@@ -432,8 +720,9 @@ export async function listAuditEvents(
           }
           if (filters.since && new Date(event.createdAt) < filters.since) return false;
           return true;
-        })
-        .slice(0, filters.take),
+        }),
+        filters,
+      ),
     "audit events",
   );
 }

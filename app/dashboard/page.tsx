@@ -5,8 +5,7 @@ import { CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge"
 import { TrendChart } from "@/components/charts/dashboard-charts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getCurrentOrganization, listPullRequests, listRepositories } from "@/lib/data/app-data";
-import { activityEvents, trendData } from "@/lib/demo-data";
+import { getCurrentOrganization, getDashboardTrendData, listActivityEvents, listPullRequests, listRepositories } from "@/lib/data/app-data";
 import { githubConfigured } from "@/lib/github";
 import { getOnboardingStatus } from "@/lib/onboarding";
 import { formatDate, formatNumber } from "@/lib/utils";
@@ -15,8 +14,12 @@ const metricIcons = [Boxes, GitPullRequest, ShieldAlert, TestTube2, CheckCircle2
 
 export default async function DashboardPage() {
   const organization = await getCurrentOrganization();
-  const repositories = await listRepositories(organization.id);
-  const pullRequests = await listPullRequests(organization.id);
+  const [repositories, pullRequests, activityEvents, trendData] = await Promise.all([
+    listRepositories(organization.id),
+    listPullRequests(organization.id),
+    listActivityEvents(organization.id, { take: 8 }),
+    getDashboardTrendData(organization.id),
+  ]);
   const onboardingStatus = getOnboardingStatus({
     dataMode: organization.dataMode,
     githubConfigured: githubConfigured(),
@@ -80,7 +83,13 @@ export default async function DashboardPage() {
             <CardTitle>Risk Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <TrendChart data={trendData} metric="risk" />
+            {trendData.length ? (
+              <TrendChart data={trendData} metric="risk" />
+            ) : (
+              <div className="rounded-md border border-dashed border-slate-300 p-6 text-sm text-slate-600">
+                No risk trend data yet. Synced pull requests will populate this chart.
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -88,7 +97,13 @@ export default async function DashboardPage() {
             <CardTitle>Test Gap Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <TrendChart data={trendData} metric="testGaps" />
+            {trendData.length ? (
+              <TrendChart data={trendData} metric="testGaps" />
+            ) : (
+              <div className="rounded-md border border-dashed border-slate-300 p-6 text-sm text-slate-600">
+                No test-gap trend data yet. Synced pull requests will populate this chart.
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
@@ -110,28 +125,28 @@ export default async function DashboardPage() {
               </TableHeader>
               <TableBody>
                 {highAttentionPullRequests.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="min-w-72">
-                        <a className="font-medium text-slate-950 hover:underline" href={`/pull-requests/${item.id}`}>
-                          #{item.number} {item.title}
-                        </a>
-                        <div className="text-xs text-slate-500">{item.author}</div>
-                      </TableCell>
-                      <TableCell>{item.repositoryName}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <RiskBadge level={item.riskLevel} />
-                          <span className="text-xs text-slate-500">{item.riskScore}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <TestGapBadge status={item.testGapStatus} />
-                      </TableCell>
-                      <TableCell>
-                        <CiBadge status={item.ciStatus} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  <TableRow key={item.id}>
+                    <TableCell className="min-w-72">
+                      <a className="font-medium text-slate-950 hover:underline" href={`/pull-requests/${item.id}`}>
+                        #{item.number} {item.title}
+                      </a>
+                      <div className="text-xs text-slate-500">{item.author}</div>
+                    </TableCell>
+                    <TableCell>{item.repositoryName}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <RiskBadge level={item.riskLevel} />
+                        <span className="text-xs text-slate-500">{item.riskScore}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <TestGapBadge status={item.testGapStatus} />
+                    </TableCell>
+                    <TableCell>
+                      <CiBadge status={item.ciStatus} />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
             {highAttentionPullRequests.length === 0 ? (
@@ -146,7 +161,7 @@ export default async function DashboardPage() {
             <CardTitle>Recent Agent Activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {activityEvents.slice(0, 8).map((event) => (
+            {activityEvents.map((event) => (
               <div key={event.id} className="rounded-md border border-slate-200 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-medium text-slate-950">{event.repositoryName}</div>
@@ -158,6 +173,11 @@ export default async function DashboardPage() {
                 </p>
               </div>
             ))}
+            {activityEvents.length === 0 ? (
+              <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+                No activity yet. Sync repositories or process GitHub webhooks to populate the timeline.
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </section>

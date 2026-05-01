@@ -8,9 +8,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getCurrentOrganization, listRepositories } from "@/lib/data/app-data";
 import { formatDate, formatNumber } from "@/lib/utils";
 
-export default async function RepositoriesPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function readParam(params: Record<string, string | string[] | undefined>, key: string) {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function RepositoriesPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const filters = {
+    query: readParam(params, "query"),
+    riskProfile: readParam(params, "riskProfile"),
+    visibility: readParam(params, "visibility"),
+  };
   const organization = await getCurrentOrganization();
-  const repositories = await listRepositories(organization.id);
+  const [allRepositories, repositories] = await Promise.all([
+    listRepositories(organization.id),
+    listRepositories(organization.id, filters),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -29,7 +47,7 @@ export default async function RepositoriesPage() {
       />
       <Card>
         <CardContent className="space-y-4">
-          {repositories.length === 0 ? (
+          {allRepositories.length === 0 ? (
             <div className="rounded-md border border-dashed border-slate-300 p-6 text-center">
               <h2 className="text-sm font-semibold text-slate-950">No repositories synced yet</h2>
               <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
@@ -53,20 +71,36 @@ export default async function RepositoriesPage() {
             </div>
           ) : (
             <>
-              <div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
-                <Input placeholder="Filter repositories" aria-label="Filter repositories" />
-                <select className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm">
-                  <option>All risk profiles</option>
-                  <option>High risk</option>
-                  <option>Medium risk</option>
-                  <option>Low risk</option>
+              <form className="grid gap-3 md:grid-cols-[1fr_180px_180px_auto]">
+                <Input
+                  name="query"
+                  defaultValue={filters.query}
+                  placeholder="Filter repositories"
+                  aria-label="Filter repositories"
+                />
+                <select
+                  name="riskProfile"
+                  defaultValue={filters.riskProfile ?? "all"}
+                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                >
+                  <option value="all">All risk profiles</option>
+                  <option value="high">High risk</option>
+                  <option value="medium">Medium risk</option>
+                  <option value="low">Low risk</option>
                 </select>
-                <select className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm">
-                  <option>All visibility</option>
-                  <option>Private</option>
-                  <option>Public</option>
+                <select
+                  name="visibility"
+                  defaultValue={filters.visibility ?? "all"}
+                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                >
+                  <option value="all">All visibility</option>
+                  <option value="private">Private</option>
+                  <option value="public">Public</option>
                 </select>
-              </div>
+                <Button type="submit" variant="secondary">
+                  Apply
+                </Button>
+              </form>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -103,6 +137,11 @@ export default async function RepositoriesPage() {
                     ))}
                   </TableBody>
                 </Table>
+                {repositories.length === 0 ? (
+                  <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+                    No repositories match these filters.
+                  </div>
+                ) : null}
               </div>
             </>
           )}

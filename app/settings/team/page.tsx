@@ -2,9 +2,12 @@ import { PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { users } from "@/lib/demo-data";
+import { getCurrentOrganization, listTeamMembers } from "@/lib/data/app-data";
 
-export default function TeamSettingsPage() {
+export default async function TeamSettingsPage() {
+  const organization = await getCurrentOrganization();
+  const members = await listTeamMembers(organization.id);
+
   return (
     <div className="space-y-6">
       <PageHeader title="Team Members" description="Role-ready membership model for owners, admins, members, and viewers." />
@@ -19,17 +22,22 @@ export default function TeamSettingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium text-slate-950">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+              {members.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium text-slate-950">{member.name}</TableCell>
+                  <TableCell>{member.email}</TableCell>
                   <TableCell>
-                    <Badge tone={user.role === "owner" ? "blue" : "slate"}>{user.role}</Badge>
+                    <Badge tone={member.role === "owner" ? "blue" : "slate"}>{member.role}</Badge>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          {members.length === 0 ? (
+            <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+              No members found for this workspace. The first signed-in user is added as owner automatically.
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>

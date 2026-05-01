@@ -8,10 +8,25 @@ import { getCurrentOrganization, listAuditEvents } from "@/lib/data/app-data";
 import { getPlanEntitlements } from "@/lib/entitlements";
 import { formatDate } from "@/lib/utils";
 
-export default async function AuditLogPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function readParam(params: Record<string, string | string[] | undefined>, key: string) {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function AuditLogPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const filters = {
+    query: readParam(params, "query"),
+    eventType: readParam(params, "eventType"),
+  };
   const organization = await getCurrentOrganization();
   const entitlements = getPlanEntitlements(organization.planKey);
   const auditEvents = await listAuditEvents(organization.id, {
+    ...filters,
     since: getAuditRetentionStart(organization.planKey),
     take: 200,
   });
@@ -38,15 +53,30 @@ export default async function AuditLogPage() {
           <p className="text-sm text-slate-600">
             Showing the latest {auditEvents.length} events within your plan retention window.
           </p>
-          <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-            <Input placeholder="Filter audit events" aria-label="Filter audit events" />
-            <select className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm">
-              <option>All event types</option>
-              <option>Risk score calculated</option>
-              <option>Rule triggered</option>
-              <option>Approval requested</option>
+          <form className="grid gap-3 md:grid-cols-[1fr_210px_auto]">
+            <Input name="query" defaultValue={filters.query} placeholder="Filter audit events" aria-label="Filter audit events" />
+            <select
+              name="eventType"
+              defaultValue={filters.eventType ?? "all"}
+              className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
+            >
+              <option value="all">All event types</option>
+              <option value="repository_connected">Repository connected</option>
+              <option value="pr_synced">PR synced</option>
+              <option value="risk_score_calculated">Risk score calculated</option>
+              <option value="test_gap_detected">Test gap detected</option>
+              <option value="rule_triggered">Rule triggered</option>
+              <option value="approval_requested">Approval requested</option>
+              <option value="pr_approved">PR approved</option>
+              <option value="pr_rejected">PR rejected</option>
+              <option value="risk_accepted">Risk accepted</option>
+              <option value="github_comment_posted">GitHub comment posted</option>
+              <option value="settings_changed">Settings changed</option>
             </select>
-          </div>
+            <Button type="submit" variant="secondary">
+              Apply
+            </Button>
+          </form>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
