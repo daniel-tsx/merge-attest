@@ -22,7 +22,7 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
         description={`${pr.repositoryName} · ${pr.author} · ${pr.branch} → ${pr.baseBranch}`}
         actions={
           <Button variant="secondary" disabled>
-            GitHub comments require live approval flow
+            GitHub comments post from approval decisions
           </Button>
         }
       />
@@ -169,13 +169,17 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
               <CardTitle>Approval History</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {pr.approvals.map((approval) => (
+              {pr.approvals.length ? (
+                pr.approvals.map((approval) => (
                 <div key={approval.id} className="rounded-md border border-slate-200 p-3 text-sm">
                   <div className="font-medium">{approval.reviewer}</div>
                   <div className="text-slate-600">{approval.decision.replaceAll("_", " ")}</div>
                   <div className="text-xs text-slate-500">{approval.note}</div>
                 </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No approval decisions recorded yet.</p>
+              )}
             </CardContent>
           </Card>
           <Card>

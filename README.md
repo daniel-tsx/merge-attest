@@ -37,6 +37,8 @@ GitHub App setup uses `GITHUB_APP_SLUG` to link to the installation screen. Conf
 
 The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, records delivery ids for idempotency, resolves the organization from `installation.id`, and processes pull request plus installation repository events through the sync pipeline.
 
+Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post a GitHub comment when live installation credentials are available.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:
@@ -85,6 +87,7 @@ pnpm build
 - `lib/github.ts`: GitHub App integration boundary. It uses Octokit when app credentials and installation data exist, otherwise returns demo-mode responses.
 - `lib/github-sync.ts`: GitHub repository and pull request import pipeline for installation-backed sync.
 - `lib/github-webhooks.ts`: GitHub webhook delivery parsing, dedupe, and event dispatch.
+- `lib/approvals.ts`: approval decision validation and status/audit mapping.
 - `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan gates.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.
 - `prisma/seed.ts`: seeds one organization, three users, four repositories, twenty pull requests, risk signals, test gap analyses, rules, approvals, audit events, and usage records.

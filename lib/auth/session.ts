@@ -5,6 +5,9 @@ import { getPrismaClient } from "@/lib/prisma";
 import type { PlanKey } from "@/lib/types";
 
 export type SessionOrganization = {
+  userId: string;
+  userName: string;
+  userEmail: string;
   id: string;
   name: string;
   slug: string;
@@ -47,6 +50,9 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
 
   if (existingMembership) {
     return {
+      userId: session.user.id,
+      userName: session.user.name,
+      userEmail: session.user.email,
       id: existingMembership.organization.id,
       name: existingMembership.organization.name,
       slug: existingMembership.organization.slug,
@@ -72,6 +78,9 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
   });
 
   return {
+    userId: session.user.id,
+    userName: session.user.name,
+    userEmail: session.user.email,
     id: organization.id,
     name: organization.name,
     slug: organization.slug,
