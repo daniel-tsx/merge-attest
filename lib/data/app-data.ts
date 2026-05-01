@@ -22,6 +22,7 @@ import { getPrismaClient } from '@/lib/prisma'
 import type { PrismaClient } from '@/lib/generated/prisma/client'
 import type {
   ActivityEvent,
+  AuditExport,
   AuditEvent,
   PlanKey,
   PullRequest,
@@ -214,9 +215,21 @@ type AuditEventRow = {
   actor: string | null
   summary: string
   metadata: unknown
+  repositoryId: string | null
+  pullRequestId: string | null
   createdAt: Date
   repository: { name: string } | null
   pullRequest: { number: number } | null
+}
+
+type AuditExportRow = {
+  id: string
+  fileName: string
+  format: string
+  filters: unknown
+  eventCount: number
+  createdAt: Date
+  createdBy: { name: string; email: string } | null
 }
 
 type GitHubWebhookDeliveryRow = {
@@ -275,16 +288,22 @@ type PullRequestFilters = SearchFilters & {
 
 type ActivityFilters = SearchFilters & {
   repositoryId?: string
+  pullRequestId?: string
   agentSource?: string
   eventType?: string
   take?: number
 }
 
-type AuditEventFilters = SearchFilters & {
+export type AuditEventFilters = SearchFilters & {
   repositoryId?: string
   pullRequestId?: string
+  pullRequestNumber?: string
   eventType?: string
+  actor?: string
+  severity?: string
   since?: Date
+  from?: Date
+  to?: Date
   take?: number
 }
 
@@ -418,6 +437,7 @@ function applyActivityFilters(
         filters.query,
       ) &&
       matchesOptionalFilter(event.repositoryId, filters.repositoryId) &&
+      matchesOptionalFilter(event.pullRequestId, filters.pullRequestId) &&
       matchesOptionalFilter(event.agentSource, filters.agentSource) &&
       matchesOptionalFilter(event.eventType, filters.eventType),
   )
@@ -431,8 +451,14 @@ function applyAuditEventFilters(
   items: AuditEvent[],
   filters: AuditEventFilters = {},
 ) {
-  const filtered = items.filter(
-    (event) =>
+  const filtered = items.filter((event) => {
+    const metadataSeverity =
+      typeof event.metadata.severity === 'string'
+        ? event.metadata.severity
+        : undefined
+    const createdAt = new Date(event.createdAt)
+
+    return (
       includesQuery(
         [
           event.summary,
@@ -440,10 +466,24 @@ function applyAuditEventFilters(
           event.actor,
           event.repositoryName,
           event.pullRequestNumber,
+          metadataSeverity,
         ],
         filters.query,
-      ) && matchesOptionalFilter(event.eventType, filters.eventType),
-  )
+      ) &&
+      matchesOptionalFilter(event.eventType, filters.eventType) &&
+      matchesOptionalFilter(event.repositoryId, filters.repositoryId) &&
+      matchesOptionalFilter(event.pullRequestId, filters.pullRequestId) &&
+      matchesOptionalFilter(
+        event.pullRequestNumber?.toString(),
+        filters.pullRequestNumber,
+      ) &&
+      matchesOptionalFilter(event.actor, filters.actor) &&
+      matchesOptionalFilter(metadataSeverity, filters.severity) &&
+      (!filters.from || createdAt >= filters.from) &&
+      (!filters.to || createdAt <= filters.to) &&
+      (!filters.since || createdAt >= filters.since)
+    )
+  })
 
   return typeof filters.take === 'number'
     ? filtered.slice(0, filters.take)
@@ -783,11 +823,25 @@ export function mapAuditEvent(row: AuditEventRow): AuditEvent {
   return {
     id: row.id,
     eventType: row.eventType as AuditEvent['eventType'],
+    repositoryId: row.repositoryId ?? undefined,
+    pullRequestId: row.pullRequestId ?? undefined,
     actor: row.actor ?? undefined,
     repositoryName: row.repository?.name,
     pullRequestNumber: row.pullRequest?.number,
     summary: row.summary,
     metadata: recordFromJson(row.metadata),
+    createdAt: toIso(row.createdAt),
+  }
+}
+
+export function mapAuditExport(row: AuditExportRow): AuditExport {
+  return {
+    id: row.id,
+    fileName: row.fileName,
+    format: row.format,
+    filters: recordFromJson(row.filters),
+    eventCount: row.eventCount,
+    createdBy: row.createdBy?.name ?? row.createdBy?.email ?? 'Unknown user',
     createdAt: toIso(row.createdAt),
   }
 }
@@ -989,7 +1043,11 @@ export async function listActivityEvents(
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.agentActivity.findMany({
-        where: { organizationId },
+        where: {
+          organizationId,
+          repositoryId: filters.repositoryId,
+          pullRequestId: filters.pullRequestId,
+        },
         include: { repository: true, pullRequest: true },
         orderBy: { timestamp: 'desc' },
       })
@@ -1040,16 +1098,31 @@ export async function listAuditEvents(
 ) {
   return queryWithDemoFallback(
     async (client) => {
+      const lowerBound =
+        filters.from && filters.since
+          ? new Date(Math.max(filters.from.getTime(), filters.since.getTime()))
+          : (filters.from ?? filters.since)
       const rows = await client.auditEvent.findMany({
         where: {
           organizationId,
           repositoryId: filters.repositoryId,
           pullRequestId: filters.pullRequestId,
-          createdAt: filters.since ? { gte: filters.since } : undefined,
+          eventType: filters.eventType as AuditEvent['eventType'] | undefined,
+          actor: filters.actor,
+          createdAt:
+            lowerBound || filters.to
+              ? { gte: lowerBound, lte: filters.to }
+              : undefined,
         },
         include: { repository: true, pullRequest: true },
         orderBy: { createdAt: 'desc' },
-        take: filters.query || filters.eventType ? undefined : filters.take,
+        take:
+          filters.query ||
+          filters.pullRequestNumber ||
+          filters.severity ||
+          filters.eventType
+            ? undefined
+            : filters.take,
       })
       return applyAuditEventFilters(rows.map(mapAuditEvent), filters)
     },
@@ -1078,5 +1151,21 @@ export async function listAuditEvents(
         filters,
       ),
     'audit events',
+  )
+}
+
+export async function listAuditExports(organizationId: string, take = 8) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.auditExport.findMany({
+        where: { organizationId },
+        include: { createdBy: true },
+        orderBy: { createdAt: 'desc' },
+        take,
+      })
+      return rows.map(mapAuditExport)
+    },
+    () => [],
+    'audit exports',
   )
 }

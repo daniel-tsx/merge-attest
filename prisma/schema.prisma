@@ -164,6 +164,7 @@ model User {
   comments             PullRequestComment[]
   sentInvites          OrganizationInvite[] @relation("OrganizationInvitesSent")
   acceptedInvites      OrganizationInvite[] @relation("OrganizationInvitesAccepted")
+  auditExports         AuditExport[]
   apiKeys              ApiKey[]
   sessions             Session[]
   accounts             Account[]
@@ -240,6 +241,7 @@ model Organization {
   apiKeys           ApiKey[]
   webhookDeliveries GitHubWebhookDelivery[]
   invites           OrganizationInvite[]
+  auditExports      AuditExport[]
 }
 
 model OrganizationMember {
@@ -501,6 +503,22 @@ model AuditEvent {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository   Repository?  @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
   pullRequest  PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+}
+
+model AuditExport {
+  id             String   @id @default(cuid())
+  fileName       String
+  format         String   @default("csv")
+  filters        Json     @default("{}")
+  eventCount     Int      @default(0)
+  createdById    String?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
 }
 
 model Plan {

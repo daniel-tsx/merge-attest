@@ -30,6 +30,7 @@ import {
 } from '@/lib/data/app-data'
 import { githubConfigured } from '@/lib/github'
 import { getOnboardingStatus } from '@/lib/onboarding'
+import { buildReportingMetrics } from '@/lib/reporting'
 import { formatDate, formatNumber } from '@/lib/utils'
 
 const metricIcons = [
@@ -68,6 +69,7 @@ export default async function DashboardPage() {
           pullRequests.length,
       )
     : 0
+  const reportingMetrics = buildReportingMetrics(pullRequests)
   const metrics = {
     repositoriesConnected: repositories.length,
     aiPrsThisWeek: pullRequests.filter((item) => item.aiAssisted).length,
@@ -126,6 +128,58 @@ export default async function DashboardPage() {
           )
         })}
       </section>
+      <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Compliance Reporting</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            {[
+              ['Risky PR volume', reportingMetrics.riskyPullRequestVolume],
+              ['Test gap volume', reportingMetrics.testGapVolume],
+              ['AI-assisted PRs', reportingMetrics.aiAssistedVolume],
+              [
+                'Avg approval latency',
+                `${reportingMetrics.averageApprovalLatencyHours}h`,
+              ],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-md border border-slate-200 p-3"
+              >
+                <div className="text-xs uppercase text-slate-500">{label}</div>
+                <div className="mt-2 text-xl font-semibold text-slate-950">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Noisy Rules</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {reportingMetrics.noisyRules.length ? (
+              reportingMetrics.noisyRules.map((rule) => (
+                <div
+                  key={rule.ruleName}
+                  className="flex items-center justify-between rounded-md border border-slate-200 p-3 text-sm"
+                >
+                  <span className="font-medium text-slate-950">
+                    {rule.ruleName}
+                  </span>
+                  <span className="text-slate-500">{rule.count} triggers</span>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-600">
+                No rule trigger data yet.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -158,6 +212,39 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+      <Card>
+        <CardHeader>
+          <CardTitle>Repository Risk Profiles</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Repository</TableHead>
+                <TableHead>Average Risk</TableHead>
+                <TableHead>Risky PRs</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reportingMetrics.repositoryRiskProfiles.map((profile) => (
+                <TableRow key={profile.repositoryName}>
+                  <TableCell className="font-medium text-slate-950">
+                    {profile.repositoryName}
+                  </TableCell>
+                  <TableCell>{profile.averageRiskScore}</TableCell>
+                  <TableCell>{profile.riskyPullRequests}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {reportingMetrics.repositoryRiskProfiles.length === 0 ? (
+            <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+              Repository risk profiles will appear after pull requests are
+              synced.
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
       <section className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
         <Card>
           <CardHeader>

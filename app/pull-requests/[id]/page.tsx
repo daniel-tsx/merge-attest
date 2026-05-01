@@ -21,9 +21,12 @@ import {
 import {
   getCurrentOrganization,
   getPullRequest,
+  listActivityEvents,
   listTeamMembers,
   listAuditEvents,
 } from '@/lib/data/app-data'
+import { getPlanEntitlements } from '@/lib/entitlements'
+import { buildPullRequestTimeline } from '@/lib/reporting'
 import { canRecordApproval } from '@/lib/collaboration'
 import { formatDate, formatNumber } from '@/lib/utils'
 
@@ -47,8 +50,12 @@ export default async function PullRequestDetailPage({
   const organization = await getCurrentOrganization()
   const pr = await getPullRequest(organization.id, id)
   if (!pr) notFound()
-  const [auditEvents, teamMembers] = await Promise.all([
+  const [auditEvents, activityEvents, teamMembers] = await Promise.all([
     listAuditEvents(organization.id, {
+      pullRequestId: pr.id,
+      take: 8,
+    }),
+    listActivityEvents(organization.id, {
       pullRequestId: pr.id,
       take: 8,
     }),
@@ -56,6 +63,12 @@ export default async function PullRequestDetailPage({
   ])
   const reviewers = teamMembers.filter((member) => member.role !== 'viewer')
   const canRecord = canRecordApproval(organization.role)
+  const entitlements = getPlanEntitlements(organization.planKey)
+  const timeline = buildPullRequestTimeline({
+    pullRequest: pr,
+    auditEvents,
+    activityEvents,
+  })
 
   return (
     <div className="space-y-6">
@@ -63,9 +76,17 @@ export default async function PullRequestDetailPage({
         title={`#${pr.number} ${pr.title}`}
         description={`${pr.repositoryName} · ${pr.author} · ${pr.branch} → ${pr.baseBranch}`}
         actions={
-          <Button variant="secondary" disabled>
-            GitHub comments post from approval decisions
-          </Button>
+          entitlements.features.auditExport ? (
+            <Button asChild variant="secondary">
+              <a href={`/api/pull-requests/${pr.id}/review-packet`}>
+                Export review packet
+              </a>
+            </Button>
+          ) : (
+            <Button variant="secondary" disabled>
+              Growth plan review packet
+            </Button>
+          )
         }
       />
       {assignmentStatus || commentStatus ? (
@@ -368,14 +389,20 @@ export default async function PullRequestDetailPage({
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Audit Events</CardTitle>
+              <CardTitle>Review Timeline</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {auditEvents.map((event) => (
-                <div key={event.id} className="text-sm">
-                  <div className="font-medium">{event.summary}</div>
+              {timeline.map((item) => (
+                <div
+                  key={`${item.source}-${item.id}`}
+                  className="rounded-md border border-slate-200 p-3 text-sm"
+                >
+                  <div className="font-medium">{item.title}</div>
+                  {item.detail ? (
+                    <div className="mt-1 text-slate-600">{item.detail}</div>
+                  ) : null}
                   <div className="text-xs text-slate-500">
-                    {formatDate(event.createdAt)}
+                    {item.source} · {formatDate(item.timestamp)}
                   </div>
                 </div>
               ))}

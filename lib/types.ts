@@ -200,11 +200,23 @@ export type AuditEvent = {
     | 'github_comment_posted'
     | 'github_check_run_published'
     | 'settings_changed'
+  repositoryId?: string
+  pullRequestId?: string
   actor?: string
   repositoryName?: string
   pullRequestNumber?: number
   summary: string
   metadata: Record<string, string | number | boolean | undefined>
+  createdAt: string
+}
+
+export type AuditExport = {
+  id: string
+  fileName: string
+  format: string
+  filters: Record<string, string | number | boolean | undefined>
+  eventCount: number
+  createdBy?: string
   createdAt: string
 }
 
