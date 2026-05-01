@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link'
 import {
   Activity,
   BadgeCheck,
@@ -9,19 +9,19 @@ import {
   ListChecks,
   Settings,
   ShieldCheck,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import type { PlanKey } from "@/lib/types";
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import type { PlanKey } from '@/lib/types'
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: Gauge },
-  { href: "/repositories", label: "Repositories", icon: Boxes },
-  { href: "/pull-requests", label: "Pull Requests", icon: GitPullRequest },
-  { href: "/activity", label: "Activity", icon: Activity },
-  { href: "/approvals", label: "Approvals", icon: BadgeCheck },
-  { href: "/audit-log", label: "Audit Log", icon: ListChecks },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+  { href: '/dashboard', label: 'Dashboard', icon: Gauge },
+  { href: '/repositories', label: 'Repositories', icon: Boxes },
+  { href: '/pull-requests', label: 'Pull Requests', icon: GitPullRequest },
+  { href: '/activity', label: 'Activity', icon: Activity },
+  { href: '/approvals', label: 'Approvals', icon: BadgeCheck },
+  { href: '/audit-log', label: 'Audit Log', icon: ListChecks },
+  { href: '/settings', label: 'Settings', icon: Settings },
+]
 
 export function AppShell({
   children,
@@ -29,10 +29,10 @@ export function AppShell({
   planKey,
   dataMode,
 }: {
-  children: React.ReactNode;
-  organizationName: string;
-  planKey: PlanKey;
-  dataMode: "live" | "demo";
+  children: React.ReactNode
+  organizationName: string
+  planKey: PlanKey
+  dataMode: 'live' | 'demo'
 }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -61,9 +61,14 @@ export function AppShell({
         <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 p-4">
           <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
             <span>Mode</span>
-            <Badge tone={dataMode === "live" ? "green" : "blue"}>{dataMode === "live" ? "live data" : "demo data"}</Badge>
+            <Badge tone={dataMode === 'live' ? 'green' : 'blue'}>
+              {dataMode === 'live' ? 'live data' : 'demo data'}
+            </Badge>
           </div>
-          <Link href="/settings/github" className="flex items-center gap-2 text-xs font-medium text-slate-700">
+          <Link
+            href="/settings/github"
+            className="flex items-center gap-2 text-xs font-medium text-slate-700"
+          >
             <KeyRound className="size-3.5" />
             Configure GitHub App
           </Link>
@@ -80,5 +85,5 @@ export function AppShell({
         <main className="mx-auto w-full max-w-7xl p-4 md:p-6">{children}</main>
       </div>
     </div>
-  );
+  )
 }

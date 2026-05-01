@@ -1,19 +1,42 @@
-import { notFound } from "next/navigation";
-import { ApprovalActions } from "@/components/app/approval-actions";
-import { PageHeader } from "@/components/app/page-header";
-import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getCurrentOrganization, getPullRequest, listAuditEvents } from "@/lib/data/app-data";
-import { formatDate, formatNumber } from "@/lib/utils";
+import { notFound } from 'next/navigation'
+import { ApprovalActions } from '@/components/app/approval-actions'
+import { PageHeader } from '@/components/app/page-header'
+import {
+  ApprovalBadge,
+  CiBadge,
+  RiskBadge,
+  TestGapBadge,
+} from '@/components/app/status-badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  getCurrentOrganization,
+  getPullRequest,
+  listAuditEvents,
+} from '@/lib/data/app-data'
+import { formatDate, formatNumber } from '@/lib/utils'
 
-export default async function PullRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const organization = await getCurrentOrganization();
-  const pr = await getPullRequest(organization.id, id);
-  if (!pr) notFound();
-  const auditEvents = await listAuditEvents(organization.id, { pullRequestId: pr.id, take: 8 });
+export default async function PullRequestDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const organization = await getCurrentOrganization()
+  const pr = await getPullRequest(organization.id, id)
+  if (!pr) notFound()
+  const auditEvents = await listAuditEvents(organization.id, {
+    pullRequestId: pr.id,
+    take: 8,
+  })
 
   return (
     <div className="space-y-6">
@@ -77,12 +100,21 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
             </CardHeader>
             <CardContent className="space-y-3">
               {pr.riskSignals.map((signal) => (
-                <div key={signal.key} className="rounded-md border border-slate-200 p-3">
+                <div
+                  key={signal.key}
+                  className="rounded-md border border-slate-200 p-3"
+                >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="font-medium text-slate-950">{signal.label}</div>
+                    <div className="font-medium text-slate-950">
+                      {signal.label}
+                    </div>
                     <div className="text-sm font-semibold">+{signal.score}</div>
                   </div>
-                  {signal.filePaths.length ? <div className="mt-1 text-xs text-slate-500">{signal.filePaths.join(", ")}</div> : null}
+                  {signal.filePaths.length ? (
+                    <div className="mt-1 text-xs text-slate-500">
+                      {signal.filePaths.join(', ')}
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </CardContent>
@@ -104,7 +136,9 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
                 <TableBody>
                   {pr.files.map((file) => (
                     <TableRow key={file.path}>
-                      <TableCell className="font-mono text-xs">{file.path}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {file.path}
+                      </TableCell>
                       <TableCell>{file.changeType}</TableCell>
                       <TableCell>{file.additions}</TableCell>
                       <TableCell>{file.deletions}</TableCell>
@@ -156,10 +190,17 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
             </CardHeader>
             <CardContent className="space-y-3">
               {pr.ruleViolations.map((violation) => (
-                <div key={violation.id} className="rounded-md border border-slate-200 p-3">
+                <div
+                  key={violation.id}
+                  className="rounded-md border border-slate-200 p-3"
+                >
                   <RiskBadge level={violation.severity} />
-                  <div className="mt-2 text-sm font-medium">{violation.ruleName}</div>
-                  <div className="text-xs text-slate-500">{violation.actionType.replaceAll("_", " ")}</div>
+                  <div className="mt-2 text-sm font-medium">
+                    {violation.ruleName}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {violation.actionType.replaceAll('_', ' ')}
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -171,14 +212,23 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
             <CardContent className="space-y-3">
               {pr.approvals.length ? (
                 pr.approvals.map((approval) => (
-                <div key={approval.id} className="rounded-md border border-slate-200 p-3 text-sm">
-                  <div className="font-medium">{approval.reviewer}</div>
-                  <div className="text-slate-600">{approval.decision.replaceAll("_", " ")}</div>
-                  <div className="text-xs text-slate-500">{approval.note}</div>
-                </div>
+                  <div
+                    key={approval.id}
+                    className="rounded-md border border-slate-200 p-3 text-sm"
+                  >
+                    <div className="font-medium">{approval.reviewer}</div>
+                    <div className="text-slate-600">
+                      {approval.decision.replaceAll('_', ' ')}
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      {approval.note}
+                    </div>
+                  </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500">No approval decisions recorded yet.</p>
+                <p className="text-sm text-slate-500">
+                  No approval decisions recorded yet.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -190,7 +240,9 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
               {auditEvents.map((event) => (
                 <div key={event.id} className="text-sm">
                   <div className="font-medium">{event.summary}</div>
-                  <div className="text-xs text-slate-500">{formatDate(event.createdAt)}</div>
+                  <div className="text-xs text-slate-500">
+                    {formatDate(event.createdAt)}
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -198,5 +250,5 @@ export default async function PullRequestDetailPage({ params }: { params: Promis
         </div>
       </section>
     </div>
-  );
+  )
 }

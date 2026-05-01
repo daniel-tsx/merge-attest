@@ -1,28 +1,47 @@
-import { notFound } from "next/navigation";
-import { RefreshCw } from "lucide-react";
-import { PageHeader } from "@/components/app/page-header";
-import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { notFound } from 'next/navigation'
+import { RefreshCw } from 'lucide-react'
+import { PageHeader } from '@/components/app/page-header'
+import {
+  ApprovalBadge,
+  CiBadge,
+  RiskBadge,
+  TestGapBadge,
+} from '@/components/app/status-badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import {
   getCurrentOrganization,
   getRepository,
   getRepositoryPullRequests,
   getRepositoryRules,
   listAuditEvents,
-} from "@/lib/data/app-data";
-import { formatDate, formatNumber } from "@/lib/utils";
+} from '@/lib/data/app-data'
+import { formatDate, formatNumber } from '@/lib/utils'
 
-export default async function RepositoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const organization = await getCurrentOrganization();
-  const repository = await getRepository(organization.id, id);
-  if (!repository) notFound();
+export default async function RepositoryDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const organization = await getCurrentOrganization()
+  const repository = await getRepository(organization.id, id)
+  if (!repository) notFound()
 
-  const prs = await getRepositoryPullRequests(organization.id, id);
-  const rules = await getRepositoryRules(organization.id, id);
-  const auditEvents = await listAuditEvents(organization.id, { repositoryId: id, take: 8 });
+  const prs = await getRepositoryPullRequests(organization.id, id)
+  const rules = await getRepositoryRules(organization.id, id)
+  const auditEvents = await listAuditEvents(organization.id, {
+    repositoryId: id,
+    take: 8,
+  })
 
   return (
     <div className="space-y-6">
@@ -31,8 +50,15 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
         description={`${repository.owner}/${repository.name} · ${repository.visibility} · default branch ${repository.defaultBranch}`}
         actions={
           <>
-            <form action={`/api/github/sync/repositories/${repository.id}`} method="post">
-              <input type="hidden" name="redirectTo" value={`/repositories/${repository.id}`} />
+            <form
+              action={`/api/github/sync/repositories/${repository.id}`}
+              method="post"
+            >
+              <input
+                type="hidden"
+                name="redirectTo"
+                value={`/repositories/${repository.id}`}
+              />
               <Button variant="secondary" type="submit">
                 <RefreshCw />
                 Sync repository
@@ -48,7 +74,9 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
         <Card>
           <CardContent>
             <div className="text-xs uppercase text-slate-500">Connection</div>
-            <div className="mt-2 text-lg font-semibold">{repository.connectedStatus}</div>
+            <div className="mt-2 text-lg font-semibold">
+              {repository.connectedStatus}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -59,8 +87,12 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
         </Card>
         <Card>
           <CardContent>
-            <div className="text-xs uppercase text-slate-500">Monthly usage</div>
-            <div className="mt-2 text-lg font-semibold">{formatNumber(repository.monthlyPrCheckUsage)} checks</div>
+            <div className="text-xs uppercase text-slate-500">
+              Monthly usage
+            </div>
+            <div className="mt-2 text-lg font-semibold">
+              {formatNumber(repository.monthlyPrCheckUsage)} checks
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -92,10 +124,15 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
                 {prs.map((pr) => (
                   <TableRow key={pr.id}>
                     <TableCell className="min-w-72">
-                      <a href={`/pull-requests/${pr.id}`} className="font-medium text-slate-950 hover:underline">
+                      <a
+                        href={`/pull-requests/${pr.id}`}
+                        className="font-medium text-slate-950 hover:underline"
+                      >
                         #{pr.number} {pr.title}
                       </a>
-                      <div className="text-xs text-slate-500">{formatDate(pr.updatedAt)}</div>
+                      <div className="text-xs text-slate-500">
+                        {formatDate(pr.updatedAt)}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <RiskBadge level={pr.riskLevel} />
@@ -121,11 +158,16 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
           </CardHeader>
           <CardContent className="space-y-3">
             {auditEvents.map((event) => (
-                <div key={event.id} className="rounded-md border border-slate-200 p-3">
-                  <div className="text-sm font-medium">{event.summary}</div>
-                  <div className="mt-1 text-xs text-slate-500">{formatDate(event.createdAt)}</div>
+              <div
+                key={event.id}
+                className="rounded-md border border-slate-200 p-3"
+              >
+                <div className="text-sm font-medium">{event.summary}</div>
+                <div className="mt-1 text-xs text-slate-500">
+                  {formatDate(event.createdAt)}
                 </div>
-              ))}
+              </div>
+            ))}
           </CardContent>
         </Card>
       </section>
@@ -140,14 +182,18 @@ export default async function RepositoryDetailPage({ params }: { params: Promise
           </div>
           <div>
             <div className="text-slate-500">Created</div>
-            <div className="font-medium">{formatDate(repository.createdAt)}</div>
+            <div className="font-medium">
+              {formatDate(repository.createdAt)}
+            </div>
           </div>
           <div>
             <div className="text-slate-500">Updated</div>
-            <div className="font-medium">{formatDate(repository.updatedAt)}</div>
+            <div className="font-medium">
+              {formatDate(repository.updatedAt)}
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

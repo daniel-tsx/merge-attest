@@ -1,4 +1,4 @@
-import { organization as demoOrganization } from "@/lib/demo-data";
+import { organization as demoOrganization } from '@/lib/demo-data'
 import {
   activityEvents as demoActivityEvents,
   auditEvents as demoAuditEvents,
@@ -10,11 +10,11 @@ import {
   pullRequests as demoPullRequests,
   repositories as demoRepositories,
   users as demoUsers,
-} from "@/lib/demo-data";
-import { isProduction } from "@/lib/env";
-import { ensureCurrentUserOrganization } from "@/lib/auth/session";
-import { getPrismaClient } from "@/lib/prisma";
-import type { PrismaClient } from "@/lib/generated/prisma/client";
+} from '@/lib/demo-data'
+import { isProduction } from '@/lib/env'
+import { ensureCurrentUserOrganization } from '@/lib/auth/session'
+import { getPrismaClient } from '@/lib/prisma'
+import type { PrismaClient } from '@/lib/generated/prisma/client'
 import type {
   ActivityEvent,
   AuditEvent,
@@ -24,225 +24,271 @@ import type {
   Repository,
   RepoRule,
   RiskSignal,
-} from "@/lib/types";
+} from '@/lib/types'
 
 export type OrganizationContext = {
-  id: string;
-  name: string;
-  slug: string;
-  planKey: PlanKey;
-  githubInstallationId: string | null;
-  dataMode: "live" | "demo";
-};
+  id: string
+  name: string
+  slug: string
+  planKey: PlanKey
+  githubInstallationId: string | null
+  dataMode: 'live' | 'demo'
+}
 
 type RepositoryRow = {
-  id: string;
-  name: string;
-  provider: string;
-  owner: string;
-  defaultBranch: string;
-  visibility: string;
-  connectedStatus: string;
-  lastSyncedAt: Date | null;
-  activeRulesCount: number;
-  monthlyPrCheckUsage: number;
-  riskProfile: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+  id: string
+  name: string
+  provider: string
+  owner: string
+  defaultBranch: string
+  visibility: string
+  connectedStatus: string
+  lastSyncedAt: Date | null
+  activeRulesCount: number
+  monthlyPrCheckUsage: number
+  riskProfile: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 type RuleRow = {
-  id: string;
-  repositoryId: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  triggerType: string;
-  actionType: string;
-  severity: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
+  id: string
+  repositoryId: string
+  name: string
+  description: string
+  enabled: boolean
+  triggerType: string
+  actionType: string
+  severity: string
+  createdAt: Date
+  updatedAt: Date
+}
 
 export type TeamMember = {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  role: "owner" | "admin" | "member" | "viewer";
-  createdAt: string;
-};
+  id: string
+  userId: string
+  name: string
+  email: string
+  role: 'owner' | 'admin' | 'member' | 'viewer'
+  createdAt: string
+}
 
 type TeamMemberRow = {
-  id: string;
-  role: string;
-  createdAt: Date;
-  userId: string;
+  id: string
+  role: string
+  createdAt: Date
+  userId: string
   user: {
-    name: string;
-    email: string;
-  };
-};
+    name: string
+    email: string
+  }
+}
 
 type PullRequestRow = {
-  id: string;
-  repositoryId: string;
-  repository: { name: string };
-  number: number;
-  title: string;
-  author: string;
-  branch: string;
-  baseBranch: string;
-  status: string;
-  aiAssisted: boolean | null;
-  agentSource: string;
-  riskScore: number;
-  riskLevel: string;
-  testGapStatus: string;
-  ciStatus: string;
-  approvalStatus: string;
-  filesChangedCount: number;
-  linesAdded: number;
-  linesDeleted: number;
-  createdAt: Date;
-  updatedAt: Date;
-  files: Array<{ path: string; additions: number; deletions: number; changeType: string }>;
-  riskSignals: Array<{ key: string; label: string; score: number; level: string; filePaths: unknown }>;
+  id: string
+  repositoryId: string
+  repository: { name: string }
+  number: number
+  title: string
+  author: string
+  branch: string
+  baseBranch: string
+  status: string
+  aiAssisted: boolean | null
+  agentSource: string
+  riskScore: number
+  riskLevel: string
+  testGapStatus: string
+  ciStatus: string
+  approvalStatus: string
+  filesChangedCount: number
+  linesAdded: number
+  linesDeleted: number
+  createdAt: Date
+  updatedAt: Date
+  files: Array<{
+    path: string
+    additions: number
+    deletions: number
+    changeType: string
+  }>
+  riskSignals: Array<{
+    key: string
+    label: string
+    score: number
+    level: string
+    filePaths: unknown
+  }>
   testGapAnalysis: {
-    status: string;
-    summary: string;
-    affectedFiles: unknown;
-    confidence: string;
-    suggestions: Array<{ testFile: string; testCase: string }>;
-  } | null;
+    status: string
+    summary: string
+    affectedFiles: unknown
+    confidence: string
+    suggestions: Array<{ testFile: string; testCase: string }>
+  } | null
   ruleViolations: Array<{
-    id: string;
-    summary: string;
-    resolved: boolean;
-    createdAt: Date;
-    rule: { name: string; severity: string; actionType: string };
-  }>;
+    id: string
+    summary: string
+    resolved: boolean
+    createdAt: Date
+    rule: { name: string; severity: string; actionType: string }
+  }>
   approvals: Array<{
-    id: string;
-    decision: string;
-    note: string | null;
-    createdAt: Date;
-    reviewer: { name: string; email: string } | null;
-  }>;
-};
+    id: string
+    decision: string
+    note: string | null
+    createdAt: Date
+    reviewer: { name: string; email: string } | null
+  }>
+}
 
 type ActivityEventRow = {
-  id: string;
-  timestamp: Date;
-  actor: string;
-  agentSource: string;
-  eventType: string;
-  summary: string;
-  riskLevel: string;
-  metadata: unknown;
-  repositoryId: string;
-  pullRequestId: string | null;
-  repository: { name: string };
-  pullRequest: { number: number } | null;
-};
+  id: string
+  timestamp: Date
+  actor: string
+  agentSource: string
+  eventType: string
+  summary: string
+  riskLevel: string
+  metadata: unknown
+  repositoryId: string
+  pullRequestId: string | null
+  repository: { name: string }
+  pullRequest: { number: number } | null
+}
 
 type AuditEventRow = {
-  id: string;
-  eventType: string;
-  actor: string | null;
-  summary: string;
-  metadata: unknown;
-  createdAt: Date;
-  repository: { name: string } | null;
-  pullRequest: { number: number } | null;
-};
+  id: string
+  eventType: string
+  actor: string | null
+  summary: string
+  metadata: unknown
+  createdAt: Date
+  repository: { name: string } | null
+  pullRequest: { number: number } | null
+}
 
 export type DashboardTrendPoint = {
-  date: string;
-  risk: number;
-  testGaps: number;
-};
+  date: string
+  risk: number
+  testGaps: number
+}
 
 type SearchFilters = {
-  query?: string;
-};
+  query?: string
+}
 
 type RepositoryFilters = SearchFilters & {
-  riskProfile?: string;
-  visibility?: string;
-};
+  riskProfile?: string
+  visibility?: string
+}
 
 type PullRequestFilters = SearchFilters & {
-  repositoryId?: string;
-  riskLevel?: string;
-  agentSource?: string;
-  approvalStatus?: string;
-};
+  repositoryId?: string
+  riskLevel?: string
+  agentSource?: string
+  approvalStatus?: string
+}
 
 type ActivityFilters = SearchFilters & {
-  repositoryId?: string;
-  agentSource?: string;
-  eventType?: string;
-  take?: number;
-};
+  repositoryId?: string
+  agentSource?: string
+  eventType?: string
+  take?: number
+}
 
 type AuditEventFilters = SearchFilters & {
-  repositoryId?: string;
-  pullRequestId?: string;
-  eventType?: string;
-  since?: Date;
-  take?: number;
-};
+  repositoryId?: string
+  pullRequestId?: string
+  eventType?: string
+  since?: Date
+  take?: number
+}
 
 function toIso(date: Date | string | null | undefined) {
-  if (!date) return new Date(0).toISOString();
-  return typeof date === "string" ? date : date.toISOString();
+  if (!date) return new Date(0).toISOString()
+  return typeof date === 'string' ? date : date.toISOString()
 }
 
 function stringArrayFromJson(value: unknown) {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : []
 }
 
-function recordFromJson(value: unknown): Record<string, string | number | boolean | undefined> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+function recordFromJson(
+  value: unknown,
+): Record<string, string | number | boolean | undefined> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
 
   return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, string | number | boolean | undefined] => {
-      const item = entry[1];
-      return item === undefined || typeof item === "string" || typeof item === "number" || typeof item === "boolean";
-    }),
-  );
+    Object.entries(value).filter(
+      (entry): entry is [string, string | number | boolean | undefined] => {
+        const item = entry[1]
+        return (
+          item === undefined ||
+          typeof item === 'string' ||
+          typeof item === 'number' ||
+          typeof item === 'boolean'
+        )
+      },
+    ),
+  )
 }
 
 function normalizeFilter(value: string | undefined) {
-  const trimmed = value?.trim().toLowerCase();
-  return trimmed || undefined;
+  const trimmed = value?.trim().toLowerCase()
+  return trimmed || undefined
 }
 
-function includesQuery(values: Array<string | number | boolean | null | undefined>, query?: string) {
-  const normalizedQuery = normalizeFilter(query);
-  if (!normalizedQuery) return true;
+function includesQuery(
+  values: Array<string | number | boolean | null | undefined>,
+  query?: string,
+) {
+  const normalizedQuery = normalizeFilter(query)
+  if (!normalizedQuery) return true
 
-  return values.some((value) => String(value ?? "").toLowerCase().includes(normalizedQuery));
+  return values.some((value) =>
+    String(value ?? '')
+      .toLowerCase()
+      .includes(normalizedQuery),
+  )
 }
 
-function matchesOptionalFilter(value: string | null | undefined, filter?: string) {
-  const normalizedFilter = normalizeFilter(filter);
-  if (!normalizedFilter || normalizedFilter === "all") return true;
+function matchesOptionalFilter(
+  value: string | null | undefined,
+  filter?: string,
+) {
+  const normalizedFilter = normalizeFilter(filter)
+  if (!normalizedFilter || normalizedFilter === 'all') return true
 
-  return value?.toLowerCase() === normalizedFilter;
+  return value?.toLowerCase() === normalizedFilter
 }
 
-function applyRepositoryFilters(items: Repository[], filters: RepositoryFilters = {}) {
+function applyRepositoryFilters(
+  items: Repository[],
+  filters: RepositoryFilters = {},
+) {
   return items.filter(
     (repository) =>
-      includesQuery([repository.name, repository.owner, repository.defaultBranch, repository.visibility], filters.query) &&
+      includesQuery(
+        [
+          repository.name,
+          repository.owner,
+          repository.defaultBranch,
+          repository.visibility,
+        ],
+        filters.query,
+      ) &&
       matchesOptionalFilter(repository.riskProfile, filters.riskProfile) &&
       matchesOptionalFilter(repository.visibility, filters.visibility),
-  );
+  )
 }
 
-function applyPullRequestFilters(items: PullRequest[], filters: PullRequestFilters = {}) {
+function applyPullRequestFilters(
+  items: PullRequest[],
+  filters: PullRequestFilters = {},
+) {
   return items.filter(
     (pullRequest) =>
       includesQuery(
@@ -260,91 +306,151 @@ function applyPullRequestFilters(items: PullRequest[], filters: PullRequestFilte
       matchesOptionalFilter(pullRequest.riskLevel, filters.riskLevel) &&
       matchesOptionalFilter(pullRequest.agentSource, filters.agentSource) &&
       matchesOptionalFilter(pullRequest.approvalStatus, filters.approvalStatus),
-  );
+  )
 }
 
-function applyActivityFilters(items: ActivityEvent[], filters: ActivityFilters = {}) {
+function applyActivityFilters(
+  items: ActivityEvent[],
+  filters: ActivityFilters = {},
+) {
   const filtered = items.filter(
     (event) =>
       includesQuery(
-        [event.summary, event.repositoryName, event.pullRequestNumber, event.actor, event.agentSource, event.eventType],
+        [
+          event.summary,
+          event.repositoryName,
+          event.pullRequestNumber,
+          event.actor,
+          event.agentSource,
+          event.eventType,
+        ],
         filters.query,
       ) &&
       matchesOptionalFilter(event.repositoryId, filters.repositoryId) &&
       matchesOptionalFilter(event.agentSource, filters.agentSource) &&
       matchesOptionalFilter(event.eventType, filters.eventType),
-  );
+  )
 
-  return typeof filters.take === "number" ? filtered.slice(0, filters.take) : filtered;
+  return typeof filters.take === 'number'
+    ? filtered.slice(0, filters.take)
+    : filtered
 }
 
-function applyAuditEventFilters(items: AuditEvent[], filters: AuditEventFilters = {}) {
+function applyAuditEventFilters(
+  items: AuditEvent[],
+  filters: AuditEventFilters = {},
+) {
   const filtered = items.filter(
     (event) =>
       includesQuery(
-        [event.summary, event.eventType, event.actor, event.repositoryName, event.pullRequestNumber],
+        [
+          event.summary,
+          event.eventType,
+          event.actor,
+          event.repositoryName,
+          event.pullRequestNumber,
+        ],
         filters.query,
-      ) &&
-      matchesOptionalFilter(event.eventType, filters.eventType),
-  );
+      ) && matchesOptionalFilter(event.eventType, filters.eventType),
+  )
 
-  return typeof filters.take === "number" ? filtered.slice(0, filters.take) : filtered;
+  return typeof filters.take === 'number'
+    ? filtered.slice(0, filters.take)
+    : filtered
 }
 
 function formatTrendDate(date: Date) {
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", timeZone: "UTC" }).format(date);
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
 }
 
-function buildTrendData(pullRequests: PullRequest[], days = 7): DashboardTrendPoint[] {
+function buildTrendData(
+  pullRequests: PullRequest[],
+  days = 7,
+): DashboardTrendPoint[] {
   const latestTimestamp = pullRequests.reduce((latest, pullRequest) => {
-    const timestamp = new Date(pullRequest.updatedAt).getTime();
-    return Number.isFinite(timestamp) ? Math.max(latest, timestamp) : latest;
-  }, 0);
-  const end = latestTimestamp ? new Date(latestTimestamp) : new Date();
-  const start = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() - (days - 1)));
-  const buckets = new Map<string, { riskTotal: number; pullRequestCount: number; testGaps: number }>();
+    const timestamp = new Date(pullRequest.updatedAt).getTime()
+    return Number.isFinite(timestamp) ? Math.max(latest, timestamp) : latest
+  }, 0)
+  const end = latestTimestamp ? new Date(latestTimestamp) : new Date()
+  const start = new Date(
+    Date.UTC(
+      end.getUTCFullYear(),
+      end.getUTCMonth(),
+      end.getUTCDate() - (days - 1),
+    ),
+  )
+  const buckets = new Map<
+    string,
+    { riskTotal: number; pullRequestCount: number; testGaps: number }
+  >()
 
   for (let index = 0; index < days; index += 1) {
-    const day = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate() + index));
-    buckets.set(day.toISOString().slice(0, 10), { riskTotal: 0, pullRequestCount: 0, testGaps: 0 });
+    const day = new Date(
+      Date.UTC(
+        start.getUTCFullYear(),
+        start.getUTCMonth(),
+        start.getUTCDate() + index,
+      ),
+    )
+    buckets.set(day.toISOString().slice(0, 10), {
+      riskTotal: 0,
+      pullRequestCount: 0,
+      testGaps: 0,
+    })
   }
 
   for (const pullRequest of pullRequests) {
-    const key = new Date(pullRequest.updatedAt).toISOString().slice(0, 10);
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
+    const key = new Date(pullRequest.updatedAt).toISOString().slice(0, 10)
+    const bucket = buckets.get(key)
+    if (!bucket) continue
 
-    bucket.riskTotal += pullRequest.riskScore;
-    bucket.pullRequestCount += 1;
-    if (pullRequest.testGapStatus !== "none") bucket.testGaps += 1;
+    bucket.riskTotal += pullRequest.riskScore
+    bucket.pullRequestCount += 1
+    if (pullRequest.testGapStatus !== 'none') bucket.testGaps += 1
   }
 
   return Array.from(buckets.entries()).map(([key, bucket]) => ({
     date: formatTrendDate(new Date(`${key}T00:00:00.000Z`)),
-    risk: bucket.pullRequestCount ? Math.round(bucket.riskTotal / bucket.pullRequestCount) : 0,
+    risk: bucket.pullRequestCount
+      ? Math.round(bucket.riskTotal / bucket.pullRequestCount)
+      : 0,
     testGaps: bucket.testGaps,
-  }));
+  }))
 }
 
 function productionFallbackError(error: unknown): never {
-  throw error instanceof Error ? error : new Error("Database query failed.");
+  throw error instanceof Error ? error : new Error('Database query failed.')
 }
 
-async function queryWithDemoFallback<T>(query: (client: PrismaClient) => Promise<T>, fallback: () => T, label: string) {
-  const client = getPrismaClient();
-  if (!client) return fallback();
+async function queryWithDemoFallback<T>(
+  query: (client: PrismaClient) => Promise<T>,
+  fallback: () => T,
+  label: string,
+) {
+  const client = getPrismaClient()
+  if (!client) return fallback()
 
   try {
-    return await query(client);
+    return await query(client)
   } catch (error) {
-    if (isProduction()) productionFallbackError(error);
-    console.warn(`Falling back to demo data for ${label}.`, error);
-    return fallback();
+    if (isProduction()) productionFallbackError(error)
+    console.warn(`Falling back to demo data for ${label}.`, error)
+    return fallback()
   }
 }
 
 function mapOrganization(
-  row: { id: string; name: string; slug: string; planKey: string; githubInstallationId: string | null } | null,
+  row: {
+    id: string
+    name: string
+    slug: string
+    planKey: string
+    githubInstallationId: string | null
+  } | null,
 ): OrganizationContext {
   if (!row) {
     return {
@@ -352,9 +458,9 @@ function mapOrganization(
       name: demoOrganization.name,
       slug: demoOrganization.slug,
       planKey: demoOrganization.planKey,
-      githubInstallationId: "demo-installation",
-      dataMode: "demo",
-    };
+      githubInstallationId: 'demo-installation',
+      dataMode: 'demo',
+    }
   }
 
   return {
@@ -363,12 +469,12 @@ function mapOrganization(
     slug: row.slug,
     planKey: row.planKey as PlanKey,
     githubInstallationId: row.githubInstallationId,
-    dataMode: "live",
-  };
+    dataMode: 'live',
+  }
 }
 
 export async function getCurrentOrganization(): Promise<OrganizationContext> {
-  const sessionOrganization = await ensureCurrentUserOrganization();
+  const sessionOrganization = await ensureCurrentUserOrganization()
   if (sessionOrganization) {
     return {
       id: sessionOrganization.id,
@@ -376,36 +482,38 @@ export async function getCurrentOrganization(): Promise<OrganizationContext> {
       slug: sessionOrganization.slug,
       planKey: sessionOrganization.planKey,
       githubInstallationId: sessionOrganization.githubInstallationId,
-      dataMode: "live",
-    };
+      dataMode: 'live',
+    }
   }
 
   return queryWithDemoFallback(
     async (client) => {
-      const organization = await client.organization.findFirst({ orderBy: { createdAt: "asc" } });
-      return mapOrganization(organization);
+      const organization = await client.organization.findFirst({
+        orderBy: { createdAt: 'asc' },
+      })
+      return mapOrganization(organization)
     },
     () => mapOrganization(null),
-    "current organization",
-  );
+    'current organization',
+  )
 }
 
 export function mapRepository(row: RepositoryRow): Repository {
   return {
     id: row.id,
     name: row.name,
-    provider: "GitHub",
+    provider: 'GitHub',
     owner: row.owner,
     defaultBranch: row.defaultBranch,
-    visibility: row.visibility as Repository["visibility"],
-    connectedStatus: row.connectedStatus as Repository["connectedStatus"],
+    visibility: row.visibility as Repository['visibility'],
+    connectedStatus: row.connectedStatus as Repository['connectedStatus'],
     lastSyncedAt: toIso(row.lastSyncedAt ?? row.updatedAt),
     activeRulesCount: row.activeRulesCount,
     monthlyPrCheckUsage: row.monthlyPrCheckUsage,
-    riskProfile: row.riskProfile as Repository["riskProfile"],
+    riskProfile: row.riskProfile as Repository['riskProfile'],
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
-  };
+  }
 }
 
 export function mapRepoRule(row: RuleRow): RepoRule {
@@ -415,12 +523,12 @@ export function mapRepoRule(row: RuleRow): RepoRule {
     name: row.name,
     description: row.description,
     enabled: row.enabled,
-    triggerType: row.triggerType as RepoRule["triggerType"],
-    actionType: row.actionType as RepoRule["actionType"],
-    severity: row.severity as RepoRule["severity"],
+    triggerType: row.triggerType as RepoRule['triggerType'],
+    actionType: row.actionType as RepoRule['actionType'],
+    severity: row.severity as RepoRule['severity'],
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
-  };
+  }
 }
 
 export function mapTeamMember(row: TeamMemberRow): TeamMember {
@@ -429,9 +537,9 @@ export function mapTeamMember(row: TeamMemberRow): TeamMember {
     userId: row.userId,
     name: row.user.name,
     email: row.user.email,
-    role: row.role as TeamMember["role"],
+    role: row.role as TeamMember['role'],
     createdAt: toIso(row.createdAt),
-  };
+  }
 }
 
 export function mapPullRequest(row: PullRequestRow): PullRequest {
@@ -444,57 +552,73 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
     author: row.author,
     branch: row.branch,
     baseBranch: row.baseBranch,
-    status: row.status as PullRequest["status"],
+    status: row.status as PullRequest['status'],
     aiAssisted: row.aiAssisted,
-    agentSource: row.agentSource as PullRequest["agentSource"],
+    agentSource: row.agentSource as PullRequest['agentSource'],
     riskScore: row.riskScore,
-    riskLevel: row.riskLevel as PullRequest["riskLevel"],
-    testGapStatus: row.testGapStatus as PullRequest["testGapStatus"],
-    ciStatus: row.ciStatus as PullRequest["ciStatus"],
-    approvalStatus: row.approvalStatus as PullRequest["approvalStatus"],
+    riskLevel: row.riskLevel as PullRequest['riskLevel'],
+    testGapStatus: row.testGapStatus as PullRequest['testGapStatus'],
+    ciStatus: row.ciStatus as PullRequest['ciStatus'],
+    approvalStatus: row.approvalStatus as PullRequest['approvalStatus'],
     filesChangedCount: row.filesChangedCount,
     linesAdded: row.linesAdded,
     linesDeleted: row.linesDeleted,
     createdAt: toIso(row.createdAt),
     updatedAt: toIso(row.updatedAt),
-    files: row.files.map((file): PullRequestFileInput => ({
-      path: file.path,
-      additions: file.additions,
-      deletions: file.deletions,
-      changeType: file.changeType as PullRequestFileInput["changeType"],
-    })),
-    riskSignals: row.riskSignals.map((signal): RiskSignal => ({
-      key: signal.key,
-      label: signal.label,
-      score: signal.score,
-      level: signal.level as RiskSignal["level"],
-      filePaths: stringArrayFromJson(signal.filePaths),
-    })),
+    files: row.files.map(
+      (file): PullRequestFileInput => ({
+        path: file.path,
+        additions: file.additions,
+        deletions: file.deletions,
+        changeType: file.changeType as PullRequestFileInput['changeType'],
+      }),
+    ),
+    riskSignals: row.riskSignals.map(
+      (signal): RiskSignal => ({
+        key: signal.key,
+        label: signal.label,
+        score: signal.score,
+        level: signal.level as RiskSignal['level'],
+        filePaths: stringArrayFromJson(signal.filePaths),
+      }),
+    ),
     testGapAnalysis: {
-      status: (row.testGapAnalysis?.status ?? "none") as PullRequest["testGapAnalysis"]["status"],
-      summary: row.testGapAnalysis?.summary ?? "No test gap analysis has been recorded.",
+      status: (row.testGapAnalysis?.status ??
+        'none') as PullRequest['testGapAnalysis']['status'],
+      summary:
+        row.testGapAnalysis?.summary ??
+        'No test gap analysis has been recorded.',
       affectedFiles: stringArrayFromJson(row.testGapAnalysis?.affectedFiles),
-      suggestedTestFiles: row.testGapAnalysis?.suggestions.map((item) => item.testFile) ?? [],
-      suggestedTestCases: row.testGapAnalysis?.suggestions.map((item) => item.testCase) ?? [],
-      confidence: (row.testGapAnalysis?.confidence ?? "low") as PullRequest["testGapAnalysis"]["confidence"],
+      suggestedTestFiles:
+        row.testGapAnalysis?.suggestions.map((item) => item.testFile) ?? [],
+      suggestedTestCases:
+        row.testGapAnalysis?.suggestions.map((item) => item.testCase) ?? [],
+      confidence: (row.testGapAnalysis?.confidence ??
+        'low') as PullRequest['testGapAnalysis']['confidence'],
     },
     ruleViolations: row.ruleViolations.map((violation) => ({
       id: violation.id,
       ruleName: violation.rule.name,
       summary: violation.summary,
-      severity: violation.rule.severity as PullRequest["ruleViolations"][number]["severity"],
-      actionType: violation.rule.actionType as PullRequest["ruleViolations"][number]["actionType"],
+      severity: violation.rule
+        .severity as PullRequest['ruleViolations'][number]['severity'],
+      actionType: violation.rule
+        .actionType as PullRequest['ruleViolations'][number]['actionType'],
       resolved: violation.resolved,
       createdAt: toIso(violation.createdAt),
     })),
     approvals: row.approvals.map((approval) => ({
       id: approval.id,
-      reviewer: approval.reviewer?.name ?? approval.reviewer?.email ?? "Unknown reviewer",
-      decision: approval.decision as PullRequest["approvals"][number]["decision"],
-      note: approval.note ?? "",
+      reviewer:
+        approval.reviewer?.name ??
+        approval.reviewer?.email ??
+        'Unknown reviewer',
+      decision:
+        approval.decision as PullRequest['approvals'][number]['decision'],
+      note: approval.note ?? '',
       createdAt: toIso(approval.createdAt),
     })),
-  };
+  }
 }
 
 export function mapActivityEvent(row: ActivityEventRow): ActivityEvent {
@@ -506,25 +630,25 @@ export function mapActivityEvent(row: ActivityEventRow): ActivityEvent {
     pullRequestId: row.pullRequestId ?? undefined,
     pullRequestNumber: row.pullRequest?.number,
     actor: row.actor,
-    agentSource: row.agentSource as ActivityEvent["agentSource"],
-    eventType: row.eventType as ActivityEvent["eventType"],
+    agentSource: row.agentSource as ActivityEvent['agentSource'],
+    eventType: row.eventType as ActivityEvent['eventType'],
     summary: row.summary,
-    riskLevel: row.riskLevel as ActivityEvent["riskLevel"],
+    riskLevel: row.riskLevel as ActivityEvent['riskLevel'],
     metadata: recordFromJson(row.metadata),
-  };
+  }
 }
 
 export function mapAuditEvent(row: AuditEventRow): AuditEvent {
   return {
     id: row.id,
-    eventType: row.eventType as AuditEvent["eventType"],
+    eventType: row.eventType as AuditEvent['eventType'],
     actor: row.actor ?? undefined,
     repositoryName: row.repository?.name,
     pullRequestNumber: row.pullRequest?.number,
     summary: row.summary,
     metadata: recordFromJson(row.metadata),
     createdAt: toIso(row.createdAt),
-  };
+  }
 }
 
 const pullRequestInclude = {
@@ -534,45 +658,53 @@ const pullRequestInclude = {
   testGapAnalysis: { include: { suggestions: true } },
   ruleViolations: { include: { rule: true } },
   approvals: { include: { reviewer: true } },
-};
+}
 
-export async function listRepositories(organizationId: string, filters: RepositoryFilters = {}) {
+export async function listRepositories(
+  organizationId: string,
+  filters: RepositoryFilters = {},
+) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.repository.findMany({
         where: { organizationId },
-        orderBy: [{ riskProfile: "desc" }, { name: "asc" }],
-      });
-      return applyRepositoryFilters(rows.map(mapRepository), filters);
+        orderBy: [{ riskProfile: 'desc' }, { name: 'asc' }],
+      })
+      return applyRepositoryFilters(rows.map(mapRepository), filters)
     },
     () => applyRepositoryFilters(demoRepositories, filters),
-    "repositories",
-  );
+    'repositories',
+  )
 }
 
 export async function getRepository(organizationId: string, id: string) {
   return queryWithDemoFallback(
     async (client) => {
-      const row = await client.repository.findFirst({ where: { id, organizationId } });
-      return row ? mapRepository(row) : null;
+      const row = await client.repository.findFirst({
+        where: { id, organizationId },
+      })
+      return row ? mapRepository(row) : null
     },
     () => getDemoRepository(id) ?? null,
-    "repository detail",
-  );
+    'repository detail',
+  )
 }
 
-export async function getRepositoryRules(organizationId: string, repositoryId: string) {
+export async function getRepositoryRules(
+  organizationId: string,
+  repositoryId: string,
+) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.repoRule.findMany({
         where: { organizationId, repositoryId },
-        orderBy: { updatedAt: "desc" },
-      });
-      return rows.map(mapRepoRule);
+        orderBy: { updatedAt: 'desc' },
+      })
+      return rows.map(mapRepoRule)
     },
     () => getDemoRepositoryRules(repositoryId),
-    "repository rules",
-  );
+    'repository rules',
+  )
 }
 
 export async function listTeamMembers(organizationId: string) {
@@ -581,9 +713,9 @@ export async function listTeamMembers(organizationId: string) {
       const rows = await client.organizationMember.findMany({
         where: { organizationId },
         include: { user: true },
-        orderBy: [{ role: "asc" }, { createdAt: "asc" }],
-      });
-      return rows.map(mapTeamMember);
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+      })
+      return rows.map(mapTeamMember)
     },
     () =>
       demoUsers.map(
@@ -592,50 +724,56 @@ export async function listTeamMembers(organizationId: string) {
           userId: user.id,
           name: user.name,
           email: user.email,
-          role: user.role as TeamMember["role"],
+          role: user.role as TeamMember['role'],
           createdAt: new Date(0).toISOString(),
         }),
       ),
-    "team members",
-  );
+    'team members',
+  )
 }
 
 export async function getApiKeyCount(organizationId: string) {
   return queryWithDemoFallback(
     async (client) => client.apiKey.count({ where: { organizationId } }),
     () => 1,
-    "api key count",
-  );
+    'api key count',
+  )
 }
 
-export async function listPullRequests(organizationId: string, filters: PullRequestFilters = {}) {
+export async function listPullRequests(
+  organizationId: string,
+  filters: PullRequestFilters = {},
+) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId },
         include: pullRequestInclude,
-        orderBy: { updatedAt: "desc" },
-      });
-      return applyPullRequestFilters(rows.map(mapPullRequest), filters);
+        orderBy: { updatedAt: 'desc' },
+      })
+      return applyPullRequestFilters(rows.map(mapPullRequest), filters)
     },
     () => applyPullRequestFilters(demoPullRequests, filters),
-    "pull requests",
-  );
+    'pull requests',
+  )
 }
 
-export async function getRepositoryPullRequests(organizationId: string, repositoryId: string) {
+export async function getRepositoryPullRequests(
+  organizationId: string,
+  repositoryId: string,
+) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId, repositoryId },
         include: pullRequestInclude,
-        orderBy: { updatedAt: "desc" },
-      });
-      return rows.map(mapPullRequest);
+        orderBy: { updatedAt: 'desc' },
+      })
+      return rows.map(mapPullRequest)
     },
     () => getDemoRepositoryPullRequests(repositoryId),
-    "repository pull requests",
-  );
+    'repository pull requests',
+  )
 }
 
 export async function getPullRequest(organizationId: string, id: string) {
@@ -644,27 +782,30 @@ export async function getPullRequest(organizationId: string, id: string) {
       const row = await client.pullRequest.findFirst({
         where: { id, organizationId },
         include: pullRequestInclude,
-      });
-      return row ? mapPullRequest(row) : null;
+      })
+      return row ? mapPullRequest(row) : null
     },
     () => getDemoPullRequest(id) ?? null,
-    "pull request detail",
-  );
+    'pull request detail',
+  )
 }
 
-export async function listActivityEvents(organizationId: string, filters: ActivityFilters = {}) {
+export async function listActivityEvents(
+  organizationId: string,
+  filters: ActivityFilters = {},
+) {
   return queryWithDemoFallback(
     async (client) => {
       const rows = await client.agentActivity.findMany({
         where: { organizationId },
         include: { repository: true, pullRequest: true },
-        orderBy: { timestamp: "desc" },
-      });
-      return applyActivityFilters(rows.map(mapActivityEvent), filters);
+        orderBy: { timestamp: 'desc' },
+      })
+      return applyActivityFilters(rows.map(mapActivityEvent), filters)
     },
     () => applyActivityFilters(demoActivityEvents, filters),
-    "activity events",
-  );
+    'activity events',
+  )
 }
 
 export async function getDashboardTrendData(organizationId: string) {
@@ -673,14 +814,14 @@ export async function getDashboardTrendData(organizationId: string) {
       const rows = await client.pullRequest.findMany({
         where: { organizationId },
         include: pullRequestInclude,
-        orderBy: { updatedAt: "desc" },
-      });
-      const pullRequests = rows.map(mapPullRequest);
-      return pullRequests.length ? buildTrendData(pullRequests) : [];
+        orderBy: { updatedAt: 'desc' },
+      })
+      const pullRequests = rows.map(mapPullRequest)
+      return pullRequests.length ? buildTrendData(pullRequests) : []
     },
     () => demoTrendData,
-    "dashboard trend data",
-  );
+    'dashboard trend data',
+  )
 }
 
 export async function listAuditEvents(
@@ -697,32 +838,35 @@ export async function listAuditEvents(
           createdAt: filters.since ? { gte: filters.since } : undefined,
         },
         include: { repository: true, pullRequest: true },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: filters.query || filters.eventType ? undefined : filters.take,
-      });
-      return applyAuditEventFilters(rows.map(mapAuditEvent), filters);
+      })
+      return applyAuditEventFilters(rows.map(mapAuditEvent), filters)
     },
     () =>
       applyAuditEventFilters(
         demoAuditEvents.filter((event) => {
           if (filters.repositoryId) {
-            const repository = getDemoRepository(filters.repositoryId);
-            if (repository && event.repositoryName !== repository.name) return false;
+            const repository = getDemoRepository(filters.repositoryId)
+            if (repository && event.repositoryName !== repository.name)
+              return false
           }
           if (filters.pullRequestId) {
-            const pullRequest = getDemoPullRequest(filters.pullRequestId);
+            const pullRequest = getDemoPullRequest(filters.pullRequestId)
             if (
               pullRequest &&
-              (event.pullRequestNumber !== pullRequest.number || event.repositoryName !== pullRequest.repositoryName)
+              (event.pullRequestNumber !== pullRequest.number ||
+                event.repositoryName !== pullRequest.repositoryName)
             ) {
-              return false;
+              return false
             }
           }
-          if (filters.since && new Date(event.createdAt) < filters.since) return false;
-          return true;
+          if (filters.since && new Date(event.createdAt) < filters.since)
+            return false
+          return true
         }),
         filters,
       ),
-    "audit events",
-  );
+    'audit events',
+  )
 }

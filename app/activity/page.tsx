@@ -1,44 +1,59 @@
-import { PageHeader } from "@/components/app/page-header";
-import { RiskBadge } from "@/components/app/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { getCurrentOrganization, listActivityEvents, listRepositories } from "@/lib/data/app-data";
-import { formatDate } from "@/lib/utils";
+import { PageHeader } from '@/components/app/page-header'
+import { RiskBadge } from '@/components/app/status-badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  getCurrentOrganization,
+  listActivityEvents,
+  listRepositories,
+} from '@/lib/data/app-data'
+import { formatDate } from '@/lib/utils'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
-function readParam(params: Record<string, string | string[] | undefined>, key: string) {
-  const value = params[key];
-  return Array.isArray(value) ? value[0] : value;
+function readParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+) {
+  const value = params[key]
+  return Array.isArray(value) ? value[0] : value
 }
 
 export default async function ActivityPage({ searchParams }: PageProps) {
-  const params = await searchParams;
+  const params = await searchParams
   const filters = {
-    query: readParam(params, "query"),
-    repositoryId: readParam(params, "repositoryId"),
-    agentSource: readParam(params, "agentSource"),
-    eventType: readParam(params, "eventType"),
-  };
-  const organization = await getCurrentOrganization();
+    query: readParam(params, 'query'),
+    repositoryId: readParam(params, 'repositoryId'),
+    agentSource: readParam(params, 'agentSource'),
+    eventType: readParam(params, 'eventType'),
+  }
+  const organization = await getCurrentOrganization()
   const [repositories, activityEvents] = await Promise.all([
     listRepositories(organization.id),
     listActivityEvents(organization.id, filters),
-  ]);
+  ])
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Agent Activity" description="Compact timeline of agent-originated and review-relevant repository events." />
+      <PageHeader
+        title="Agent Activity"
+        description="Compact timeline of agent-originated and review-relevant repository events."
+      />
       <Card>
         <CardContent className="space-y-4">
           <form className="grid gap-3 md:grid-cols-[1fr_170px_170px_170px_auto]">
-            <Input name="query" defaultValue={filters.query} placeholder="Filter activity" aria-label="Filter activity" />
+            <Input
+              name="query"
+              defaultValue={filters.query}
+              placeholder="Filter activity"
+              aria-label="Filter activity"
+            />
             <select
               name="repositoryId"
-              defaultValue={filters.repositoryId ?? "all"}
+              defaultValue={filters.repositoryId ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All repositories</option>
@@ -50,7 +65,7 @@ export default async function ActivityPage({ searchParams }: PageProps) {
             </select>
             <select
               name="agentSource"
-              defaultValue={filters.agentSource ?? "all"}
+              defaultValue={filters.agentSource ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All agents</option>
@@ -63,7 +78,7 @@ export default async function ActivityPage({ searchParams }: PageProps) {
             </select>
             <select
               name="eventType"
-              defaultValue={filters.eventType ?? "all"}
+              defaultValue={filters.eventType ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All event types</option>
@@ -82,26 +97,40 @@ export default async function ActivityPage({ searchParams }: PageProps) {
           </form>
           <div className="divide-y divide-slate-100">
             {activityEvents.map((event) => (
-              <div key={event.id} className="grid gap-3 py-3 md:grid-cols-[180px_1fr_140px_120px] md:items-center">
-                <div className="text-xs text-slate-500">{formatDate(event.timestamp)}</div>
+              <div
+                key={event.id}
+                className="grid gap-3 py-3 md:grid-cols-[180px_1fr_140px_120px] md:items-center"
+              >
+                <div className="text-xs text-slate-500">
+                  {formatDate(event.timestamp)}
+                </div>
                 <div>
-                  <div className="text-sm font-medium text-slate-950">{event.summary}</div>
+                  <div className="text-sm font-medium text-slate-950">
+                    {event.summary}
+                  </div>
                   <div className="text-xs text-slate-500">
-                    {event.repositoryName} · {event.pullRequestNumber ? `PR #${event.pullRequestNumber}` : "No PR"} · {event.actor}
+                    {event.repositoryName} ·{' '}
+                    {event.pullRequestNumber
+                      ? `PR #${event.pullRequestNumber}`
+                      : 'No PR'}{' '}
+                    · {event.actor}
                   </div>
                 </div>
-                <div className="text-sm text-slate-700">{event.agentSource.replace("_", " ")}</div>
+                <div className="text-sm text-slate-700">
+                  {event.agentSource.replace('_', ' ')}
+                </div>
                 <RiskBadge level={event.riskLevel} />
               </div>
             ))}
             {activityEvents.length === 0 ? (
               <div className="py-6 text-sm text-slate-600">
-                No activity matches these filters. Sync repositories or clear the filters to see more events.
+                No activity matches these filters. Sync repositories or clear
+                the filters to see more events.
               </div>
             ) : null}
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

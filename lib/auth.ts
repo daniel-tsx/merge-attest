@@ -1,16 +1,16 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "@better-auth/prisma-adapter";
-import { getBetterAuthSecret, getBetterAuthUrl } from "@/lib/env";
-import { getPrismaClient } from "@/lib/prisma";
+import { betterAuth } from 'better-auth'
+import { prismaAdapter } from '@better-auth/prisma-adapter'
+import { getBetterAuthSecret, getBetterAuthUrl } from '@/lib/env'
+import { getPrismaClient } from '@/lib/prisma'
 
-const betterAuthUrl = getBetterAuthUrl();
-const prisma = getPrismaClient();
+const betterAuthUrl = getBetterAuthUrl()
+const prisma = getPrismaClient()
 
 export const auth = betterAuth({
   ...(prisma
     ? {
         database: prismaAdapter(prisma, {
-          provider: "postgresql",
+          provider: 'postgresql',
         }),
       }
     : {}),
@@ -20,4 +20,4 @@ export const auth = betterAuth({
     enabled: true,
   },
   trustedOrigins: [betterAuthUrl],
-});
+})

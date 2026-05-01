@@ -1,31 +1,46 @@
-import { PageHeader } from "@/components/app/page-header";
-import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getCurrentOrganization, listPullRequests } from "@/lib/data/app-data";
-import { formatDate, formatNumber } from "@/lib/utils";
+import { PageHeader } from '@/components/app/page-header'
+import {
+  ApprovalBadge,
+  CiBadge,
+  RiskBadge,
+  TestGapBadge,
+} from '@/components/app/status-badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { getCurrentOrganization, listPullRequests } from '@/lib/data/app-data'
+import { formatDate, formatNumber } from '@/lib/utils'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
-function readParam(params: Record<string, string | string[] | undefined>, key: string) {
-  const value = params[key];
-  return Array.isArray(value) ? value[0] : value;
+function readParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+) {
+  const value = params[key]
+  return Array.isArray(value) ? value[0] : value
 }
 
 export default async function PullRequestsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
+  const params = await searchParams
   const filters = {
-    query: readParam(params, "query"),
-    riskLevel: readParam(params, "riskLevel"),
-    agentSource: readParam(params, "agentSource"),
-    approvalStatus: readParam(params, "approvalStatus"),
-  };
-  const organization = await getCurrentOrganization();
-  const pullRequests = await listPullRequests(organization.id, filters);
+    query: readParam(params, 'query'),
+    riskLevel: readParam(params, 'riskLevel'),
+    agentSource: readParam(params, 'agentSource'),
+    approvalStatus: readParam(params, 'approvalStatus'),
+  }
+  const organization = await getCurrentOrganization()
+  const pullRequests = await listPullRequests(organization.id, filters)
 
   return (
     <div className="space-y-6">
@@ -44,7 +59,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
             />
             <select
               name="riskLevel"
-              defaultValue={filters.riskLevel ?? "all"}
+              defaultValue={filters.riskLevel ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All risk</option>
@@ -55,7 +70,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
             </select>
             <select
               name="agentSource"
-              defaultValue={filters.agentSource ?? "all"}
+              defaultValue={filters.agentSource ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All agents</option>
@@ -68,7 +83,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
             </select>
             <select
               name="approvalStatus"
-              defaultValue={filters.approvalStatus ?? "all"}
+              defaultValue={filters.approvalStatus ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">Approval status</option>
@@ -101,7 +116,10 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                 {pullRequests.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="min-w-80">
-                      <a className="font-medium text-slate-950 hover:underline" href={`/pull-requests/${item.id}`}>
+                      <a
+                        className="font-medium text-slate-950 hover:underline"
+                        href={`/pull-requests/${item.id}`}
+                      >
                         #{item.number} {item.title}
                       </a>
                       <div className="text-xs text-slate-500">
@@ -109,11 +127,17 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                       </div>
                     </TableCell>
                     <TableCell>{item.repositoryName}</TableCell>
-                    <TableCell>{item.aiAssisted === null ? "unknown" : item.agentSource.replace("_", " ")}</TableCell>
+                    <TableCell>
+                      {item.aiAssisted === null
+                        ? 'unknown'
+                        : item.agentSource.replace('_', ' ')}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <RiskBadge level={item.riskLevel} />
-                        <span className="text-xs text-slate-500">{item.riskScore}</span>
+                        <span className="text-xs text-slate-500">
+                          {item.riskScore}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -126,7 +150,8 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                       <ApprovalBadge status={item.approvalStatus} />
                     </TableCell>
                     <TableCell>
-                      +{formatNumber(item.linesAdded)} / -{formatNumber(item.linesDeleted)}
+                      +{formatNumber(item.linesAdded)} / -
+                      {formatNumber(item.linesDeleted)}
                     </TableCell>
                     <TableCell>{formatDate(item.updatedAt)}</TableCell>
                   </TableRow>
@@ -135,12 +160,13 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
             </Table>
             {pullRequests.length === 0 ? (
               <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
-                No pull requests match these filters. Sync repositories or clear the filters to see more results.
+                No pull requests match these filters. Sync repositories or clear
+                the filters to see more results.
               </div>
             ) : null}
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

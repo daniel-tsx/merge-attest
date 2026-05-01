@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { usePathname } from "next/navigation";
-import { AppShell } from "@/components/app/app-shell";
-import type { PlanKey } from "@/lib/types";
+import { usePathname } from 'next/navigation'
+import { AppShell } from '@/components/app/app-shell'
+import type { PlanKey } from '@/lib/types'
 
-const publicRoutes = new Set(["/sign-in", "/sign-up"]);
+const publicRoutes = new Set(['/sign-in', '/sign-up'])
 
 export function RootShell({
   children,
@@ -12,20 +12,26 @@ export function RootShell({
   planKey,
   dataMode,
 }: {
-  children: React.ReactNode;
-  organizationName: string;
-  planKey: PlanKey;
-  dataMode: "live" | "demo";
+  children: React.ReactNode
+  organizationName: string
+  planKey: PlanKey
+  dataMode: 'live' | 'demo'
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname()
 
   if (publicRoutes.has(pathname)) {
-    return <div className="min-h-screen bg-slate-50 text-slate-950">{children}</div>;
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-950">{children}</div>
+    )
   }
 
   return (
-    <AppShell organizationName={organizationName} planKey={planKey} dataMode={dataMode}>
+    <AppShell
+      organizationName={organizationName}
+      planKey={planKey}
+      dataMode={dataMode}
+    >
       {children}
     </AppShell>
-  );
+  )
 }

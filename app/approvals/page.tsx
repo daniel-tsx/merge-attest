@@ -1,48 +1,72 @@
-import { PageHeader } from "@/components/app/page-header";
-import { ApprovalActions } from "@/components/app/approval-actions";
-import { ApprovalBadge, CiBadge, RiskBadge, TestGapBadge } from "@/components/app/status-badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { getCurrentOrganization, listPullRequests, listRepositories } from "@/lib/data/app-data";
-import { formatDate } from "@/lib/utils";
+import { PageHeader } from '@/components/app/page-header'
+import { ApprovalActions } from '@/components/app/approval-actions'
+import {
+  ApprovalBadge,
+  CiBadge,
+  RiskBadge,
+  TestGapBadge,
+} from '@/components/app/status-badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import {
+  getCurrentOrganization,
+  listPullRequests,
+  listRepositories,
+} from '@/lib/data/app-data'
+import { formatDate } from '@/lib/utils'
 
 type PageProps = {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
-function readParam(params: Record<string, string | string[] | undefined>, key: string) {
-  const value = params[key];
-  return Array.isArray(value) ? value[0] : value;
+function readParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+) {
+  const value = params[key]
+  return Array.isArray(value) ? value[0] : value
 }
 
 export default async function ApprovalsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const approvalStatus = readParam(params, "approvalStatus");
+  const params = await searchParams
+  const approvalStatus = readParam(params, 'approvalStatus')
   const filters = {
-    query: readParam(params, "query"),
-    repositoryId: readParam(params, "repositoryId"),
+    query: readParam(params, 'query'),
+    repositoryId: readParam(params, 'repositoryId'),
     approvalStatus,
-  };
-  const organization = await getCurrentOrganization();
+  }
+  const organization = await getCurrentOrganization()
   const [repositories, pullRequests] = await Promise.all([
     listRepositories(organization.id),
     listPullRequests(organization.id, filters),
-  ]);
-  const pending = approvalStatus && approvalStatus !== "all"
-    ? pullRequests
-    : pullRequests.filter((pr) => pr.approvalStatus === "pending" || pr.testGapStatus === "high");
+  ])
+  const pending =
+    approvalStatus && approvalStatus !== 'all'
+      ? pullRequests
+      : pullRequests.filter(
+          (pr) =>
+            pr.approvalStatus === 'pending' || pr.testGapStatus === 'high',
+        )
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Approvals" description="Human review queue for risky, AI-assisted, or test-gap pull requests." />
+      <PageHeader
+        title="Approvals"
+        description="Human review queue for risky, AI-assisted, or test-gap pull requests."
+      />
       <Card>
         <CardContent>
           <form className="grid gap-3 md:grid-cols-[1fr_200px_180px_auto]">
-            <Input name="query" defaultValue={filters.query} placeholder="Filter approvals" aria-label="Filter approvals" />
+            <Input
+              name="query"
+              defaultValue={filters.query}
+              placeholder="Filter approvals"
+              aria-label="Filter approvals"
+            />
             <select
               name="repositoryId"
-              defaultValue={filters.repositoryId ?? "all"}
+              defaultValue={filters.repositoryId ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">All repositories</option>
@@ -54,7 +78,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
             </select>
             <select
               name="approvalStatus"
-              defaultValue={filters.approvalStatus ?? "all"}
+              defaultValue={filters.approvalStatus ?? 'all'}
               className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
             >
               <option value="all">Needs review</option>
@@ -100,10 +124,11 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
       {pending.length === 0 ? (
         <Card>
           <CardContent className="p-6 text-sm text-slate-600">
-            No approval items match these filters. New high-risk, AI-assisted, or test-gap pull requests will appear here.
+            No approval items match these filters. New high-risk, AI-assisted,
+            or test-gap pull requests will appear here.
           </CardContent>
         </Card>
       ) : null}
     </div>
-  );
+  )
 }

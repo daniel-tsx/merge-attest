@@ -1,0 +1,8 @@
+.next
+node_modules
+out
+build
+dist
+coverage
+lib/generated/prisma
+pnpm-lock.yaml
