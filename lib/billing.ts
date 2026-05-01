@@ -1,6 +1,7 @@
 import { Environment, Paddle } from '@paddle/paddle-node-sdk'
+import { isProduction } from '@/lib/env'
 import { plans } from '@/lib/plans'
-import type { PlanKey } from '@/lib/types'
+import type { BillingStatus, PlanKey } from '@/lib/types'
 
 const paidPlanPriceEnv: Partial<Record<PlanKey, string>> = {
   starter: 'PADDLE_STARTER_PRICE_ID',
@@ -20,7 +21,8 @@ export function getPaddleClient() {
 }
 
 export function getBillingMode() {
-  return getPaddleClient() ? 'live' : 'mock'
+  if (getPaddleClient()) return 'live'
+  return isProduction() ? 'unconfigured' : 'mock'
 }
 
 export function getPaddleWebhookSecret() {
@@ -34,6 +36,54 @@ export function isPaidPlan(planKey: PlanKey) {
 export function getPaddlePriceId(planKey: PlanKey) {
   const envKey = paidPlanPriceEnv[planKey]
   return envKey ? process.env[envKey]?.trim() || null : null
+}
+
+export function getPaddleCustomerPortalUrl(customerId?: string | null) {
+  const baseUrl = process.env.PADDLE_CUSTOMER_PORTAL_URL?.trim()
+  if (!baseUrl || !customerId) return null
+
+  const url = new URL(baseUrl)
+  url.searchParams.set('customer_id', customerId)
+  return url.toString()
+}
+
+export function getBillingStatusLabel(status: BillingStatus) {
+  const labels: Record<BillingStatus, string> = {
+    trialing: 'Trialing',
+    active: 'Active',
+    past_due: 'Past due',
+    paused: 'Paused',
+    canceled: 'Canceled',
+  }
+  return labels[status]
+}
+
+export function getBillingCallout(input: {
+  status: BillingStatus
+  trialEndsAt?: string
+  cancellationEffectiveAt?: string
+  failedPaymentAt?: string
+}) {
+  if (input.status === 'trialing') {
+    return input.trialEndsAt
+      ? `Trial ends ${new Date(input.trialEndsAt).toLocaleDateString()}`
+      : 'Trial is active'
+  }
+
+  if (input.status === 'past_due') {
+    return input.failedPaymentAt
+      ? `Payment failed ${new Date(input.failedPaymentAt).toLocaleDateString()}`
+      : 'Payment needs attention'
+  }
+
+  if (input.status === 'canceled') {
+    return input.cancellationEffectiveAt
+      ? `Cancels ${new Date(input.cancellationEffectiveAt).toLocaleDateString()}`
+      : 'Subscription canceled'
+  }
+
+  if (input.status === 'paused') return 'Subscription paused'
+  return 'Subscription active'
 }
 
 export function getPlanKeyForPaddlePriceId(

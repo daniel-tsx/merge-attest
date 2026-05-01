@@ -28,6 +28,7 @@ import {
 import { getPlanEntitlements } from '@/lib/entitlements'
 import { buildPullRequestTimeline } from '@/lib/reporting'
 import { canRecordApproval } from '@/lib/collaboration'
+import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate, formatNumber } from '@/lib/utils'
 
 export default async function PullRequestDetailPage({
@@ -62,7 +63,11 @@ export default async function PullRequestDetailPage({
     listTeamMembers(organization.id),
   ])
   const reviewers = teamMembers.filter((member) => member.role !== 'viewer')
-  const canRecord = canRecordApproval(organization.role)
+  const approvalsAvailable = isFeatureAvailable(
+    organization.planKey,
+    'approvals',
+  )
+  const canRecord = approvalsAvailable && canRecordApproval(organization.role)
   const entitlements = getPlanEntitlements(organization.planKey)
   const timeline = buildPullRequestTimeline({
     pullRequest: pr,
@@ -241,6 +246,12 @@ export default async function PullRequestDetailPage({
               <CardTitle>Approval Workflow</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {!approvalsAvailable ? (
+                <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                  Approval decisions require the Team plan or higher. Upgrade in
+                  billing to enable this workflow.
+                </div>
+              ) : null}
               <div className="rounded-md border border-slate-200 p-3">
                 <div className="text-sm font-medium text-slate-950">
                   Reviewer assignment

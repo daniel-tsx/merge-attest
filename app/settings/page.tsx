@@ -55,7 +55,7 @@ export default async function SettingsPage() {
       href: '/settings/billing',
       label: 'Billing plan',
       icon: Receipt,
-      value: organization.planKey,
+      value: `${organization.planKey} · ${organization.billingStatus.replaceAll('_', ' ')}`,
     },
     {
       href: '/settings/usage',

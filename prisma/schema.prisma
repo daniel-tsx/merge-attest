@@ -21,6 +21,14 @@ enum OrganizationInviteStatus {
   revoked
 }
 
+enum BillingStatus {
+  trialing
+  active
+  past_due
+  paused
+  canceled
+}
+
 enum RepositoryProvider {
   github
 }
@@ -217,9 +225,9 @@ model Verification {
 }
 
 model Organization {
-  id                       String   @id @default(cuid())
+  id                       String        @id @default(cuid())
   name                     String
-  slug                     String   @unique
+  slug                     String        @unique
   githubInstallationId     String?
   githubAccountId          String?
   githubAccountLogin       String?
@@ -227,9 +235,14 @@ model Organization {
   paddleSubscriptionId     String?
   paddleSubscriptionStatus String?
   paddlePriceId            String?
-  planKey                  String   @default("free")
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  planKey                  String        @default("free")
+  billingStatus            BillingStatus @default(active)
+  trialEndsAt              DateTime?
+  cancellationEffectiveAt  DateTime?
+  failedPaymentAt          DateTime?
+  lastUpgradeAt            DateTime?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
 
   members           OrganizationMember[]
   repositories      Repository[]

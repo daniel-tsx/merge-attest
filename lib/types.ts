@@ -221,3 +221,9 @@ export type AuditExport = {
 }
 
 export type PlanKey = 'free' | 'starter' | 'team' | 'growth' | 'enterprise'
+export type BillingStatus =
+  | 'trialing'
+  | 'active'
+  | 'past_due'
+  | 'paused'
+  | 'canceled'

@@ -26,4 +26,22 @@ describe('Paddle subscription helpers', () => {
     expect(getPaddlePriceId('starter')).toBeNull()
     expect(getPaddlePriceId('free')).toBeNull()
   })
+
+  it('maps Paddle subscription states to billing lifecycle states', async () => {
+    const { getBillingStatusForPaddleEvent } =
+      await import('../lib/paddle-webhooks')
+
+    expect(
+      getBillingStatusForPaddleEvent('subscription.trialing', 'trialing'),
+    ).toBe('trialing')
+    expect(getBillingStatusForPaddleEvent('subscription.past_due')).toBe(
+      'past_due',
+    )
+    expect(getBillingStatusForPaddleEvent('subscription.canceled')).toBe(
+      'canceled',
+    )
+    expect(
+      getBillingStatusForPaddleEvent('subscription.updated', 'active'),
+    ).toBe('active')
+  })
 })

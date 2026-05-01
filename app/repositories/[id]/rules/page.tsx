@@ -14,6 +14,7 @@ import {
 } from '@/lib/data/app-data'
 import { ruleTemplates } from '@/lib/rule-templates'
 import { evaluateRepoRules } from '@/lib/rules'
+import { isFeatureAvailable } from '@/lib/plans'
 import type { RepoRule } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 
@@ -74,6 +75,7 @@ const statusMessages: Record<string, string> = {
   forbidden: 'Only organization owners and admins can manage rules.',
   auth_required: 'Sign in is required to manage rules.',
   not_found: 'Rule or repository not found.',
+  upgrade_required: 'Custom repository rules require the Team plan or higher.',
 }
 
 function formatLabel(value: string) {
@@ -237,6 +239,10 @@ export default async function RepositoryRulesPage({
     getRepositoryRules(organization.id, id),
     getRepositoryPullRequests(organization.id, id),
   ])
+  const customRulesAvailable = isFeatureAvailable(
+    organization.planKey,
+    'customRules',
+  )
   const previewPullRequests = pullRequests.slice(0, 3).map((pullRequest) => ({
     pullRequest,
     violations: evaluateRepoRules(rules, {
@@ -267,6 +273,25 @@ export default async function RepositoryRulesPage({
         </Card>
       ) : null}
 
+      {!customRulesAvailable ? (
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="font-medium text-slate-950">
+                Custom rules require the Team plan
+              </div>
+              <div className="text-sm text-slate-600">
+                Upgrade to create templates, scoped policies, and rule actions
+                for this repository.
+              </div>
+            </div>
+            <Button asChild>
+              <a href="/settings/billing">View upgrade options</a>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-2">
         {ruleTemplates.map((template) => (
           <Card key={template.key}>
@@ -290,7 +315,11 @@ export default async function RepositoryRulesPage({
               <form action={`/api/repositories/${id}/rules`} method="post">
                 <input type="hidden" name="_action" value="apply_template" />
                 <input type="hidden" name="templateKey" value={template.key} />
-                <Button type="submit" variant="secondary">
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={!customRulesAvailable}
+                >
                   Apply template
                 </Button>
               </form>
@@ -316,7 +345,9 @@ export default async function RepositoryRulesPage({
           >
             <input type="hidden" name="_action" value="create" />
             <RuleFields />
-            <Button type="submit">Create rule</Button>
+            <Button type="submit" disabled={!customRulesAvailable}>
+              Create rule
+            </Button>
           </form>
         </CardContent>
       </Card>
@@ -390,7 +421,12 @@ export default async function RepositoryRulesPage({
                         name="enabled"
                         value={rule.enabled ? 'false' : 'true'}
                       />
-                      <Button type="submit" size="sm" variant="secondary">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="secondary"
+                        disabled={!customRulesAvailable}
+                      >
                         {rule.enabled ? 'Disable' : 'Enable'}
                       </Button>
                     </form>
@@ -399,7 +435,12 @@ export default async function RepositoryRulesPage({
                       method="post"
                     >
                       <input type="hidden" name="_action" value="duplicate" />
-                      <Button type="submit" size="sm" variant="secondary">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="secondary"
+                        disabled={!customRulesAvailable}
+                      >
                         Duplicate
                       </Button>
                     </form>
@@ -408,7 +449,12 @@ export default async function RepositoryRulesPage({
                       method="post"
                     >
                       <input type="hidden" name="_action" value="delete" />
-                      <Button type="submit" size="sm" variant="danger">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        variant="danger"
+                        disabled={!customRulesAvailable}
+                      >
                         Delete
                       </Button>
                     </form>
@@ -425,7 +471,11 @@ export default async function RepositoryRulesPage({
                   >
                     <input type="hidden" name="_action" value="update" />
                     <RuleFields rule={rule} />
-                    <Button type="submit" size="sm">
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={!customRulesAvailable}
+                    >
                       Save changes
                     </Button>
                   </form>

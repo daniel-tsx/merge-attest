@@ -12,6 +12,8 @@ import {
 describe('collaboration role checks', () => {
   it('keeps viewers read-only for billing and approvals', () => {
     expect(canManageBilling('viewer')).toBe(false)
+    expect(canManageBilling('admin')).toBe(false)
+    expect(canManageBilling('owner')).toBe(true)
     expect(canRecordApproval('viewer')).toBe(false)
   })
 

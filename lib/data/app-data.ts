@@ -24,6 +24,7 @@ import type {
   ActivityEvent,
   AuditExport,
   AuditEvent,
+  BillingStatus,
   PlanKey,
   PullRequest,
   PullRequestFileInput,
@@ -51,6 +52,14 @@ export type OrganizationContext = {
   slug: string
   planKey: PlanKey
   githubInstallationId: string | null
+  billingStatus: BillingStatus
+  paddleCustomerId: string | null
+  paddleSubscriptionId: string | null
+  paddleSubscriptionStatus: string | null
+  trialEndsAt?: string
+  cancellationEffectiveAt?: string
+  failedPaymentAt?: string
+  lastUpgradeAt?: string
   role: TeamMember['role']
   dataMode: 'live' | 'demo'
 }
@@ -581,6 +590,14 @@ function mapOrganization(
     slug: string
     planKey: string
     githubInstallationId: string | null
+    billingStatus?: string
+    paddleCustomerId?: string | null
+    paddleSubscriptionId?: string | null
+    paddleSubscriptionStatus?: string | null
+    trialEndsAt?: Date | null
+    cancellationEffectiveAt?: Date | null
+    failedPaymentAt?: Date | null
+    lastUpgradeAt?: Date | null
   } | null,
 ): OrganizationContext {
   if (!row) {
@@ -590,6 +607,10 @@ function mapOrganization(
       slug: demoOrganization.slug,
       planKey: demoOrganization.planKey,
       githubInstallationId: 'demo-installation',
+      billingStatus: 'active',
+      paddleCustomerId: null,
+      paddleSubscriptionId: null,
+      paddleSubscriptionStatus: null,
       role: 'owner',
       dataMode: 'demo',
     }
@@ -601,6 +622,18 @@ function mapOrganization(
     slug: row.slug,
     planKey: row.planKey as PlanKey,
     githubInstallationId: row.githubInstallationId,
+    billingStatus: (row.billingStatus ?? 'active') as BillingStatus,
+    paddleCustomerId: row.paddleCustomerId ?? null,
+    paddleSubscriptionId: row.paddleSubscriptionId ?? null,
+    paddleSubscriptionStatus: row.paddleSubscriptionStatus ?? null,
+    trialEndsAt: row.trialEndsAt ? toIso(row.trialEndsAt) : undefined,
+    cancellationEffectiveAt: row.cancellationEffectiveAt
+      ? toIso(row.cancellationEffectiveAt)
+      : undefined,
+    failedPaymentAt: row.failedPaymentAt
+      ? toIso(row.failedPaymentAt)
+      : undefined,
+    lastUpgradeAt: row.lastUpgradeAt ? toIso(row.lastUpgradeAt) : undefined,
     role: 'owner',
     dataMode: 'live',
   }
@@ -615,6 +648,22 @@ export async function getCurrentOrganization(): Promise<OrganizationContext> {
       slug: sessionOrganization.slug,
       planKey: sessionOrganization.planKey,
       githubInstallationId: sessionOrganization.githubInstallationId,
+      billingStatus: sessionOrganization.billingStatus,
+      paddleCustomerId: sessionOrganization.paddleCustomerId,
+      paddleSubscriptionId: sessionOrganization.paddleSubscriptionId,
+      paddleSubscriptionStatus: sessionOrganization.paddleSubscriptionStatus,
+      trialEndsAt: sessionOrganization.trialEndsAt
+        ? toIso(sessionOrganization.trialEndsAt)
+        : undefined,
+      cancellationEffectiveAt: sessionOrganization.cancellationEffectiveAt
+        ? toIso(sessionOrganization.cancellationEffectiveAt)
+        : undefined,
+      failedPaymentAt: sessionOrganization.failedPaymentAt
+        ? toIso(sessionOrganization.failedPaymentAt)
+        : undefined,
+      lastUpgradeAt: sessionOrganization.lastUpgradeAt
+        ? toIso(sessionOrganization.lastUpgradeAt)
+        : undefined,
       role: sessionOrganization.role,
       dataMode: 'live',
     }

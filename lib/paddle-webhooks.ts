@@ -4,13 +4,18 @@ import {
   getPlanKeyForPaddlePriceId,
 } from '@/lib/billing'
 import { getPrismaClient } from '@/lib/prisma'
-import type { PlanKey } from '@/lib/types'
+import type { BillingStatus, PlanKey } from '@/lib/types'
 
 type PaddleSubscriptionData = {
   id?: string
   status?: string
   customerId?: string
   customData?: Record<string, unknown> | null
+  currentBillingPeriod?: { endsAt?: string | null } | null
+  scheduledChange?: {
+    action?: string | null
+    effectiveAt?: string | null
+  } | null
   items?: Array<{ price?: { id?: string } | null }>
 }
 
@@ -85,6 +90,30 @@ function getOrganizationLookup(data: PaddleSubscriptionData) {
   return null
 }
 
+function dateFromPaddle(value: string | null | undefined) {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+export function getBillingStatusForPaddleEvent(
+  eventType: string,
+  status?: string,
+): BillingStatus {
+  if (eventType === 'subscription.trialing' || status === 'trialing') {
+    return 'trialing'
+  }
+  if (eventType === 'subscription.past_due' || status === 'past_due') {
+    return 'past_due'
+  }
+  if (eventType === 'subscription.paused' || status === 'paused')
+    return 'paused'
+  if (eventType === 'subscription.canceled' || status === 'canceled') {
+    return 'canceled'
+  }
+  return 'active'
+}
+
 export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
   const prisma = getPrismaClient()
   if (!prisma || !subscriptionEvents.has(event.eventType)) {
@@ -102,6 +131,10 @@ export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
 
   const planKey = getPlanKeyFromSubscriptionData(event.data)
   const isCanceled = event.eventType === 'subscription.canceled'
+  const billingStatus = getBillingStatusForPaddleEvent(
+    event.eventType,
+    event.data.status,
+  )
   const organization = await prisma.organization.findFirst({
     where: organizationLookup,
   })
@@ -113,16 +146,32 @@ export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
     }
   }
 
+  const nextPlanKey = isCanceled ? 'free' : (planKey ?? organization.planKey)
+  const isUpgrade =
+    nextPlanKey !== organization.planKey && nextPlanKey !== 'free'
+
   await prisma.organization.update({
     where: { id: organization.id },
     data: {
-      planKey: isCanceled ? 'free' : (planKey ?? organization.planKey),
+      planKey: nextPlanKey,
+      billingStatus,
       paddleCustomerId: event.data.customerId ?? organization.paddleCustomerId,
       paddleSubscriptionId: event.data.id ?? organization.paddleSubscriptionId,
       paddleSubscriptionStatus: event.data.status ?? event.eventType,
       paddlePriceId:
         event.data.items?.find((item) => item.price?.id)?.price?.id ??
         organization.paddlePriceId,
+      trialEndsAt:
+        billingStatus === 'trialing'
+          ? dateFromPaddle(event.data.currentBillingPeriod?.endsAt)
+          : organization.trialEndsAt,
+      cancellationEffectiveAt:
+        isCanceled || event.data.scheduledChange?.action === 'cancel'
+          ? (dateFromPaddle(event.data.scheduledChange?.effectiveAt) ??
+            new Date())
+          : null,
+      failedPaymentAt: billingStatus === 'past_due' ? new Date() : null,
+      lastUpgradeAt: isUpgrade ? new Date() : organization.lastUpgradeAt,
     },
   })
 
@@ -135,7 +184,16 @@ export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
         eventId: event.eventId,
         subscriptionId: event.data.id,
         customerId: event.data.customerId,
-        planKey: isCanceled ? 'free' : planKey,
+        planKey: nextPlanKey,
+        previousPlan: organization.planKey,
+        billingStatus,
+        activationEvent: isUpgrade
+          ? 'upgrade_completed'
+          : isCanceled
+            ? 'subscription_canceled'
+            : billingStatus === 'past_due'
+              ? 'payment_failed'
+              : undefined,
       },
       organizationId: organization.id,
     },

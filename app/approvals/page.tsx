@@ -16,6 +16,7 @@ import {
   listRepositories,
 } from '@/lib/data/app-data'
 import { canRecordApproval } from '@/lib/collaboration'
+import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate } from '@/lib/utils'
 
 type PageProps = {
@@ -47,7 +48,11 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
     listTeamMembers(organization.id),
     listPullRequests(organization.id, filters),
   ])
-  const canRecord = canRecordApproval(organization.role)
+  const approvalsAvailable = isFeatureAvailable(
+    organization.planKey,
+    'approvals',
+  )
+  const canRecord = approvalsAvailable && canRecordApproval(organization.role)
   const pending =
     approvalStatus && approvalStatus !== 'all'
       ? pullRequests
@@ -62,6 +67,24 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
         title="Approvals"
         description="Human review queue for risky, AI-assisted, or test-gap pull requests."
       />
+      {!approvalsAvailable ? (
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="font-medium text-slate-950">
+                Approval workflow requires the Team plan
+              </div>
+              <div className="text-sm text-slate-600">
+                Upgrade to record approval decisions, reviewer assignments, and
+                risk acceptance.
+              </div>
+            </div>
+            <Button asChild>
+              <a href="/settings/billing">View upgrade options</a>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
       <Card>
         <CardContent>
           <form className="grid gap-3 md:grid-cols-[1fr_180px_150px_160px_150px_140px_auto]">

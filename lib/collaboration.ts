@@ -16,7 +16,7 @@ export function canManageSettings(role: OrganizationRole) {
 }
 
 export function canManageBilling(role: OrganizationRole) {
-  return role === 'owner' || role === 'admin'
+  return role === 'owner'
 }
 
 export function canSyncGitHub(role: OrganizationRole) {

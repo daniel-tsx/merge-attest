@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { isProduction } from '@/lib/env'
 import { getPrismaClient } from '@/lib/prisma'
-import type { PlanKey } from '@/lib/types'
+import type { BillingStatus, PlanKey } from '@/lib/types'
 
 export type SessionOrganization = {
   userId: string
@@ -14,6 +14,14 @@ export type SessionOrganization = {
   planKey: PlanKey
   githubInstallationId: string | null
   role: 'owner' | 'admin' | 'member' | 'viewer'
+  billingStatus: BillingStatus
+  paddleCustomerId: string | null
+  paddleSubscriptionId: string | null
+  paddleSubscriptionStatus: string | null
+  trialEndsAt: Date | null
+  cancellationEffectiveAt: Date | null
+  failedPaymentAt: Date | null
+  lastUpgradeAt: Date | null
 }
 
 function slugify(value: string) {
@@ -64,6 +72,18 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
       githubInstallationId:
         existingMembership.organization.githubInstallationId,
       role: existingMembership.role,
+      billingStatus: existingMembership.organization
+        .billingStatus as BillingStatus,
+      paddleCustomerId: existingMembership.organization.paddleCustomerId,
+      paddleSubscriptionId:
+        existingMembership.organization.paddleSubscriptionId,
+      paddleSubscriptionStatus:
+        existingMembership.organization.paddleSubscriptionStatus,
+      trialEndsAt: existingMembership.organization.trialEndsAt,
+      cancellationEffectiveAt:
+        existingMembership.organization.cancellationEffectiveAt,
+      failedPaymentAt: existingMembership.organization.failedPaymentAt,
+      lastUpgradeAt: existingMembership.organization.lastUpgradeAt,
     }
   }
 
@@ -93,5 +113,13 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
     planKey: organization.planKey as PlanKey,
     githubInstallationId: organization.githubInstallationId,
     role: 'owner',
+    billingStatus: organization.billingStatus as BillingStatus,
+    paddleCustomerId: organization.paddleCustomerId,
+    paddleSubscriptionId: organization.paddleSubscriptionId,
+    paddleSubscriptionStatus: organization.paddleSubscriptionStatus,
+    trialEndsAt: organization.trialEndsAt,
+    cancellationEffectiveAt: organization.cancellationEffectiveAt,
+    failedPaymentAt: organization.failedPaymentAt,
+    lastUpgradeAt: organization.lastUpgradeAt,
   }
 }

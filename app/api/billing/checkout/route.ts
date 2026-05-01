@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createCheckoutTransaction, isPaidPlan } from '@/lib/billing'
+import {
+  createCheckoutTransaction,
+  getBillingMode,
+  isPaidPlan,
+} from '@/lib/billing'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageBilling } from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
@@ -22,8 +26,15 @@ export async function POST(request: Request) {
 
   if (!canManageBilling(organization.role)) {
     return NextResponse.json(
-      { error: 'Only owners and admins can manage billing.' },
+      { error: 'Only workspace owners can manage billing.' },
       { status: 403 },
+    )
+  }
+
+  if (getBillingMode() === 'unconfigured') {
+    return NextResponse.json(
+      { error: 'Paddle must be configured before production checkout.' },
+      { status: 503 },
     )
   }
 
@@ -54,6 +65,20 @@ export async function POST(request: Request) {
     url.searchParams.set('billing', 'checkout_unavailable')
     return NextResponse.redirect(url, { status: 303 })
   }
+
+  await prisma.auditEvent.create({
+    data: {
+      eventType: 'settings_changed',
+      actor: organization.userName || organization.userEmail,
+      summary: `Checkout started for ${planKey} plan`,
+      metadata: {
+        activationEvent: 'upgrade_checkout_started',
+        fromPlan: organization.planKey,
+        toPlan: planKey,
+      },
+      organizationId: organization.id,
+    },
+  })
 
   return NextResponse.redirect(transaction.checkout.url, { status: 303 })
 }

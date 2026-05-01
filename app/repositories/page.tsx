@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
+import { getPlanEntitlements, remainingLimit } from '@/lib/entitlements'
 import { formatDate, formatNumber } from '@/lib/utils'
 
 type PageProps = {
@@ -39,6 +40,12 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
     listRepositories(organization.id),
     listRepositories(organization.id, filters),
   ])
+  const entitlements = getPlanEntitlements(organization.planKey)
+  const remainingRepositories = remainingLimit(
+    entitlements.repositoryLimit,
+    allRepositories.length,
+  )
+  const repositoryLimitReached = remainingRepositories === 0
 
   return (
     <div className="space-y-6">
@@ -55,6 +62,25 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
           </form>
         }
       />
+      {repositoryLimitReached ? (
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="font-medium text-slate-950">
+                Repository limit reached
+              </div>
+              <div className="text-sm text-slate-600">
+                Your {organization.planKey} plan includes{' '}
+                {entitlements.repositoryLimit} repositories. Upgrade before
+                syncing additional repositories.
+              </div>
+            </div>
+            <Button asChild>
+              <a href="/settings/billing">View upgrade options</a>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
       <Card>
         <CardContent className="space-y-4">
           {allRepositories.length === 0 ? (

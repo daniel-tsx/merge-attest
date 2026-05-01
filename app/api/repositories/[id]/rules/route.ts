@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageRules } from '@/lib/collaboration'
+import { isFeatureAvailable } from '@/lib/plans'
 import { getPrismaClient } from '@/lib/prisma'
 import { getRuleTemplate } from '@/lib/rule-templates'
 import type { AgentSource, RepoRule, RiskLevel } from '@/lib/types'
@@ -130,6 +131,10 @@ export async function POST(
 
   if (!canManageRules(organization.role)) {
     return redirectToRules(request, id, 'forbidden')
+  }
+
+  if (!isFeatureAvailable(organization.planKey, 'customRules')) {
+    return redirectToRules(request, id, 'upgrade_required')
   }
 
   const repository = await prisma.repository.findFirst({
