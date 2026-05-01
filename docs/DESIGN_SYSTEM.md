@@ -1,0 +1,62 @@
+# AgentGate Design System Notes
+
+Last reviewed: 2026-05-02
+
+## Purpose
+
+This document records the current UI foundation for AgentGate. The goal is a restrained, high-trust SaaS interface that feels precise, readable, and professional without adding decorative effects that do not support the workflow.
+
+## Token Source
+
+The source of truth for runtime UI tokens is `app/globals.css`.
+
+Token groups:
+
+- Surfaces: `background`, `surface`, `surface-muted`, `surface-subtle`, `surface-hover`, and `surface-pressed`.
+- Borders: `border` and `border-strong`.
+- Text: `foreground`, `muted-foreground`, and `subtle-foreground`.
+- Actions: `primary`, `primary-hover`, `primary-foreground`, `accent`, `accent-hover`, `accent-soft`, and `accent-foreground`.
+- Status: `success`, `warning`, `attention`, `danger`, and `info`, each with soft and border variants where needed.
+- Interaction: `focus` and `focus-ring`.
+- Shape/elevation: `radius-control`, `radius-card`, `shadow-card`, and `shadow-card-hover`.
+
+## Component Rules
+
+- Prefer semantic token utilities such as `bg-surface`, `text-foreground`, `border-border`, `ring-focus-ring`, and `shadow-card`.
+- Avoid new raw palette classes in shared UI primitives unless a token is missing and the token is added first.
+- Keep public primitive APIs stable. Phase 1 updates only changed internal styling for `Badge`, `Button`, `Card`, `Input`, and `Table`.
+- Use `rounded-control` for compact interactive elements and `rounded-card` for larger surfaces.
+- Use visible `focus-visible` rings on interactive controls.
+- Use disabled semantics and clear disabled styling for controls.
+- Keep motion subtle, token-aligned, and covered by the global reduced-motion rule.
+
+## Status Tones
+
+Current badge tone mapping:
+
+- `slate`: neutral metadata and inactive states.
+- `green`: success, passing, approved, or no issue.
+- `yellow`: warning or pending state.
+- `orange`: elevated attention, high risk, or needs review.
+- `red`: danger, critical risk, failure, or rejection.
+- `blue`: informational state, demo/live mode, or setup guidance.
+
+## Future Primitive Guidance
+
+When adding local wrappers for Select, Tabs, Dialog, Dropdown Menu, Toast, or Tooltip:
+
+- Build on the same token names from `app/globals.css`.
+- Preserve Radix accessibility semantics where Radix is used.
+- Use `focus-visible:ring-2 focus-visible:ring-focus-ring`.
+- Use `bg-surface`, `border-border`, `text-foreground`, and `text-muted-foreground` before direct palette classes.
+- Ensure icon-only triggers have accessible labels.
+
+## Verification Checklist
+
+Before merging UI changes:
+
+- Keyboard focus is visible.
+- Text and status colors remain readable.
+- Controls have clear hover, active, disabled, and pending states.
+- Components do not rely on hover-only interactions.
+- Changed surfaces still render correctly at mobile and desktop widths.
