@@ -1,4 +1,5 @@
 import { getBillingMode } from '@/lib/billing'
+import { getEmailDeliveryMode } from '@/lib/email'
 import { isDatabaseConfigured } from '@/lib/env'
 import { githubConfigured } from '@/lib/github'
 import { getPrismaClient } from '@/lib/prisma'
@@ -83,6 +84,16 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
   })
 
   checks.push(getJobRunnerDiagnostic())
+
+  const emailDeliveryMode = getEmailDeliveryMode()
+  checks.push({
+    name: 'email',
+    status: emailDeliveryMode === 'live' ? 'ok' : 'warning',
+    message:
+      emailDeliveryMode === 'live'
+        ? 'Transactional email is configured.'
+        : `Transactional email mode is ${emailDeliveryMode}.`,
+  })
 
   if (prisma) {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)

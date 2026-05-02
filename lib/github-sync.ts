@@ -176,6 +176,10 @@ export function getPrCheckSourceKey(input: {
   return `${input.repositoryId}:${input.pullNumber}:${input.headSha}`
 }
 
+export function shouldPublishGitHubCheckRun(planKey: PlanKey) {
+  return getPlanEntitlements(planKey).features.githubComments
+}
+
 export function getNextApprovalState(input: {
   existing?: {
     headSha: string | null
@@ -473,6 +477,15 @@ async function syncGitHubPullRequestRecord(input: {
       where: { id: input.repositoryId },
       data: { monthlyPrCheckUsage: { increment: 1 } },
     })
+  }
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: input.organizationId },
+    select: { planKey: true },
+  })
+
+  if (!organization || !shouldPublishGitHubCheckRun(organization.planKey as PlanKey)) {
+    return true
   }
 
   try {

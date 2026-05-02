@@ -19,6 +19,11 @@ AgentGate exposes a small set of operational and integration endpoints.
 - `POST /api/billing/checkout`: owner-only checkout entry point for paid plans.
 - `POST /api/billing/portal`: owner-only Paddle customer portal redirect.
 
+## Account Recovery
+
+- `POST /api/auth/request-password-reset`: Better Auth endpoint used by `/forgot-password`; sends a reset email when transactional email is configured.
+- `POST /api/auth/reset-password`: Better Auth endpoint used by `/reset-password`; accepts a single-use reset token and new password.
+
 ## Exports
 
 - `GET /api/audit-log/export`: owner/admin CSV export, plan gated.

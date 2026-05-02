@@ -41,6 +41,7 @@ Expected success response for `/api/jobs/retention`:
 - `/api/health` is public liveness only and should return `{ "status": "ok" }`.
 - `/api/diagnostics` is owner/admin-only and should be used for dependency readiness, webhook job state, and retention warnings.
 - GitHub settings should show the result of manual sync, stale backfill, retry, and installation callback errors.
+- Password reset and sign-up verification should send through the configured transactional email provider.
 
 ## Alerting Targets
 
@@ -52,6 +53,7 @@ Set alerts for:
 - `/api/diagnostics` job check warnings that persist beyond one retry window.
 - Paddle webhook route returning 401/5xx.
 - GitHub webhook route returning 401/5xx.
+- Transactional email failures for verification or password reset.
 
 ## Incident Triage
 
@@ -60,7 +62,8 @@ Set alerts for:
 3. Trigger "Retry failed webhooks" from GitHub settings or call `/api/jobs/github-webhooks`.
 4. Confirm recent deploy version via logs using `APP_VERSION` or `VERCEL_GIT_COMMIT_SHA`.
 5. If billing state is stale, check Paddle webhook delivery status and replay from Paddle if needed.
-6. If retention warnings persist, call `/api/jobs/retention` and inspect job logs.
+6. If account recovery fails, verify `EMAIL_FROM`, `RESEND_API_KEY`, and provider delivery logs.
+7. If retention warnings persist, call `/api/jobs/retention` and inspect job logs.
 
 ## Data Retention
 

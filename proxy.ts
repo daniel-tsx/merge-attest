@@ -13,7 +13,7 @@ import {
   isTrustedMutationOrigin,
 } from '@/lib/security'
 
-const publicPaths = ['/sign-in', '/sign-up']
+const publicPaths = ['/sign-in', '/sign-up', '/forgot-password', '/reset-password']
 
 function requestIp(request: NextRequest) {
   return (

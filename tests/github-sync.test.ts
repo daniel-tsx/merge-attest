@@ -5,6 +5,7 @@ import {
   inferAgentSource,
   inferAiAssisted,
   mapGitHubPullRequestFile,
+  shouldPublishGitHubCheckRun,
 } from '../lib/github-sync'
 
 describe('GitHub sync helpers', () => {
@@ -88,6 +89,12 @@ describe('GitHub sync helpers', () => {
         headSha: 'abc123',
       }),
     ).toBe('repo_1:42:abc123')
+  })
+
+  it('gates GitHub check publishing by paid output entitlement', () => {
+    expect(shouldPublishGitHubCheckRun('free')).toBe(false)
+    expect(shouldPublishGitHubCheckRun('starter')).toBe(true)
+    expect(shouldPublishGitHubCheckRun('team')).toBe(true)
   })
 
   it('preserves explicit approval decisions across same-SHA resyncs', () => {

@@ -20,9 +20,9 @@ Usage records, billing identifiers, and audit export records should be retained 
 
 ## Support Contact
 
-Default support contact: `support@agentgate.local`
+Default support contact is the monitored mailbox configured by `SUPPORT_EMAIL`.
 
-Before production launch, replace this with the real monitored support mailbox and include response targets for billing, security, and operational incidents.
+Production launch requires response targets for billing, security, and operational incidents, plus a documented escalation owner for urgent webhook, billing, or data export failures.
 
 ## Privacy Notes
 

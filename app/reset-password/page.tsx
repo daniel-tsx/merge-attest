@@ -7,17 +7,8 @@ import { ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { signIn } from '@/lib/auth-client'
-import { safeRelativeRedirect } from '@/lib/redirects'
 
-async function ensureOrganization() {
-  const response = await fetch('/api/onboarding/organization', {
-    method: 'POST',
-  })
-  if (!response.ok) throw new Error('Could not prepare your workspace.')
-}
-
-export default function SignInPage() {
+export default function ResetPasswordPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -25,33 +16,37 @@ export default function SignInPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
-    setSubmitting(true)
 
     const formData = new FormData(event.currentTarget)
-    const result = await signIn.email({
-      email: String(formData.get('email') ?? ''),
-      password: String(formData.get('password') ?? ''),
-    })
+    const searchParams = new URLSearchParams(window.location.search)
+    const token = searchParams.get('token')
+    const newPassword = String(formData.get('password') ?? '')
+    const confirmPassword = String(formData.get('confirmPassword') ?? '')
 
-    if (result.error) {
-      setSubmitting(false)
-      setError(result.error.message || 'Unable to sign in.')
+    if (!token) {
+      setError('This password reset link is invalid or expired.')
       return
     }
 
-    try {
-      await ensureOrganization()
-      const searchParams = new URLSearchParams(window.location.search)
-      router.push(safeRelativeRedirect(searchParams.get('callbackUrl')))
-      router.refresh()
-    } catch (err) {
-      setSubmitting(false)
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to prepare your workspace.',
-      )
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
     }
+
+    setSubmitting(true)
+    const response = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    })
+    setSubmitting(false)
+
+    if (!response.ok) {
+      setError('Unable to reset your password with this link.')
+      return
+    }
+
+    router.push('/sign-in')
   }
 
   return (
@@ -61,9 +56,9 @@ export default function SignInPage() {
           <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
             <ShieldCheck className="size-5" />
           </div>
-          <CardTitle className="text-xl">Sign in to AgentGate</CardTitle>
+          <CardTitle className="text-xl">Choose a new password</CardTitle>
           <p className="text-sm text-slate-600">
-            Continue to your AI pull request control center.
+            Password reset links are single-use and expire automatically.
           </p>
         </CardHeader>
         <CardContent>
@@ -71,30 +66,32 @@ export default function SignInPage() {
             <div className="space-y-1.5">
               <label
                 className="text-sm font-medium text-slate-700"
-                htmlFor="email"
+                htmlFor="password"
               >
-                Email
+                New password
               </label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
                 required
               />
             </div>
             <div className="space-y-1.5">
               <label
                 className="text-sm font-medium text-slate-700"
-                htmlFor="password"
+                htmlFor="confirmPassword"
               >
-                Password
+                Confirm password
               </label>
               <Input
-                id="password"
-                name="password"
+                id="confirmPassword"
+                name="confirmPassword"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
+                minLength={8}
                 required
               />
             </div>
@@ -104,24 +101,16 @@ export default function SignInPage() {
               </p>
             ) : null}
             <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign in'}
+              {submitting ? 'Resetting password...' : 'Reset password'}
             </Button>
           </form>
-          <p className="mt-3 text-center text-sm">
+          <p className="mt-4 text-center text-sm text-slate-600">
+            Need another link?{' '}
             <Link
               className="font-medium text-slate-950 hover:underline"
               href="/forgot-password"
             >
-              Forgot your password?
-            </Link>
-          </p>
-          <p className="mt-4 text-center text-sm text-slate-600">
-            New to AgentGate?{' '}
-            <Link
-              className="font-medium text-slate-950 hover:underline"
-              href="/sign-up"
-            >
-              Create an account
+              Request password reset
             </Link>
           </p>
         </CardContent>

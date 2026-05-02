@@ -24,21 +24,21 @@ pnpm db:generate
 pnpm dev
 ```
 
-The app runs with seeded demo data in the UI when GitHub, Paddle, and PostgreSQL credentials are missing. Production deployments should use real PostgreSQL, Better Auth, GitHub webhook, and Paddle credentials.
+The app runs with seeded demo data in the UI when GitHub, Paddle, and PostgreSQL credentials are missing. Production deployments should use real PostgreSQL, Better Auth, GitHub App, Paddle, transactional email, and support credentials.
 
 ## Production Safety
 
-Production deployments must provide `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `GITHUB_WEBHOOK_SECRET`. Local development still supports demo mode, but production fails closed for missing auth and webhook secrets.
+Production deployments must provide database, Better Auth, GitHub App, Paddle, job runner, transactional email, and support environment variables. Local development still supports demo mode, but production fails closed for missing launch-critical configuration.
 
-Authenticated app access is available through `/sign-up` and `/sign-in`. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
+Authenticated app access is available through `/sign-up` and `/sign-in`. Password reset is available through `/forgot-password` and `/reset-password`, and production sign-up requires transactional email for verification. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
 
 GitHub App setup uses `GITHUB_APP_SLUG` to link to the installation screen. Configure the app's setup callback URL to `/api/github/installation`; the callback stores `installation_id` on the current organization. Repository sync can then be triggered from `/settings/github`, `/repositories`, or a repository detail page.
 
 The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, records delivery ids for idempotency, resolves the organization from `installation.id`, and processes pull request plus installation repository events through the sync pipeline.
 
-Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post a GitHub comment when live installation credentials and plan entitlements are available.
+Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post GitHub comments/check runs when live installation credentials and plan entitlements are available.
 
-Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. GitHub sync records monthly `pr_checks` usage and stops processing new checks or repositories when the current plan limit is reached.
+Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. GitHub sync records monthly `pr_checks` usage, stops processing new checks or repositories when the current plan limit is reached, and only publishes GitHub check runs for plans with GitHub output enabled.
 
 Paddle checkout starts at `/api/billing/checkout` when `PADDLE_API_KEY` and the relevant `PADDLE_*_PRICE_ID` variables are configured. Paddle webhooks are accepted at `/api/paddle/webhook`, verified with `PADDLE_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
 
@@ -73,6 +73,8 @@ pnpm build
 ## Key Routes
 
 - `/dashboard`
+- `/forgot-password`
+- `/reset-password`
 - `/repositories`
 - `/repositories/[id]`
 - `/repositories/[id]/rules`
@@ -95,6 +97,7 @@ pnpm build
 - `lib/data/app-data.ts`: organization-scoped data access with local demo fallback.
 - `lib/demo-data.ts`: realistic MVP data used by the local UI fallback and seed script.
 - `lib/auth.ts` and `lib/auth/session.ts`: Better Auth configuration, session lookup, and organization provisioning.
+- `lib/email.ts`: Resend-backed transactional email boundary for verification and password reset.
 - `lib/github.ts`: GitHub App integration boundary. It uses Octokit when app credentials and installation data exist, otherwise returns demo-mode responses.
 - `lib/github-sync.ts`: GitHub repository and pull request import pipeline for installation-backed sync.
 - `lib/github-webhooks.ts`: GitHub webhook delivery parsing, dedupe, and event dispatch.

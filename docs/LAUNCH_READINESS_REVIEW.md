@@ -2,6 +2,8 @@
 
 Review date: 2026-05-02
 
+Implementation status: Phase 0 and Phase 1 fixes have been applied. Phase 2 has started with paid-launch configuration gates, transactional account recovery, aligned plan copy, and GitHub output entitlement enforcement.
+
 ## Executive Summary
 
 AgentGate has moved beyond a static MVP. The current codebase includes Better Auth sign-in/sign-up, Prisma-backed multi-tenant models, organization-scoped read paths, GitHub App sync/webhook boundaries, persisted approvals, audit exports, Paddle checkout/webhook boundaries, plan entitlements, usage metering, and production-oriented docs.
@@ -232,6 +234,8 @@ Fix plan:
 
 ### 11. No Email Verification Or Password Recovery Flow Is Documented
 
+Status: Fixed in Phase 2 for email/password accounts by configuring Better Auth verification and reset email callbacks, adding `/forgot-password` and `/reset-password`, and requiring transactional email configuration in production.
+
 Evidence:
 
 - Sign-up enables email/password auth and creates a workspace after sign-up.
@@ -323,6 +327,8 @@ Fix plan:
 
 ### 16. Billing And Plan Copy Are Inconsistent
 
+Status: Fixed in Phase 2 by aligning Starter copy with entitlements, documenting billing portal configuration, and requiring paid-launch billing environment variables in production.
+
 Evidence:
 
 - `lib/plans.ts` says Starter includes "Basic custom rules".
@@ -340,6 +346,8 @@ Fix plan:
 - Add tests for plan-gated routes and visible plan features.
 
 ### 17. GitHub Check Runs Are Published During Sync Without Plan Gating
+
+Status: Fixed in Phase 2 by gating sync-time check-run publishing behind the GitHub output entitlement.
 
 Evidence:
 
@@ -393,6 +401,8 @@ Fix plan:
 - Add a support-facing diagnostics checklist.
 
 ### 20. Support And Legal Readiness Are Placeholders
+
+Status: Partially fixed in Phase 2 by replacing the placeholder support mailbox with required `SUPPORT_EMAIL` configuration and documenting response-target expectations. Terms, Privacy Policy, DPA posture, subprocessors, backup/restore policy, and deletion process still need final business/legal review.
 
 Evidence:
 
@@ -492,15 +502,15 @@ Required before private pilot:
 - [ ] Invite flow verified against wrong-user, replay, and expired-token scenarios.
 - [ ] Webhook processing retries visible in diagnostics.
 - [ ] Error tracking and alerting configured.
-- [ ] Support mailbox replaced and monitored.
+- [x] Support mailbox configuration required; monitor and escalation ownership still need operational confirmation.
 
 Required before public paid launch:
 
 - [ ] P1 product readiness blockers complete.
 - [ ] Paddle checkout, portal, and webhook lifecycle tested in sandbox and live mode.
-- [ ] Plan entitlements match UI/docs/pricing.
+- [x] Plan entitlements match UI/docs/pricing.
 - [ ] Audit retention cleanup implemented and documented.
-- [ ] Email verification and password recovery enabled.
+- [x] Email verification and password recovery enabled.
 - [ ] Dependency audit passes or has approved documented exceptions.
 - [ ] E2E activation path passes in CI.
 - [ ] Terms, privacy, security contact, data deletion/export, and subprocessors documented.

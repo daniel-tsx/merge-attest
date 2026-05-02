@@ -14,17 +14,21 @@ async function ensureOrganization() {
   const response = await fetch('/api/onboarding/organization', {
     method: 'POST',
   })
+  if (response.status === 401) return false
   if (!response.ok) throw new Error('Could not create your workspace.')
+  return true
 }
 
 export default function SignUpPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setMessage(null)
     setSubmitting(true)
 
     const formData = new FormData(event.currentTarget)
@@ -41,7 +45,14 @@ export default function SignUpPage() {
     }
 
     try {
-      await ensureOrganization()
+      const workspaceReady = await ensureOrganization()
+      if (!workspaceReady) {
+        setSubmitting(false)
+        setMessage(
+          'Check your email to verify your account before signing in.',
+        )
+        return
+      }
       const searchParams = new URLSearchParams(window.location.search)
       router.push(safeRelativeRedirect(searchParams.get('callbackUrl')))
       router.refresh()
@@ -112,6 +123,11 @@ export default function SignUpPage() {
             {error ? (
               <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
                 {error}
+              </p>
+            ) : null}
+            {message ? (
+              <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+                {message}
               </p>
             ) : null}
             <Button className="w-full" type="submit" disabled={submitting}>

@@ -28,7 +28,7 @@ export const plans: Plan[] = [
     repositoryLimit: '3 repositories',
     prCheckLimit: '300 PR checks/month',
     auditRetention: '30-day audit history',
-    features: ['GitHub PR comments', 'Basic custom rules'],
+    features: ['GitHub PR comments and check runs', 'Higher monthly usage'],
   },
   {
     key: 'team',
@@ -37,7 +37,7 @@ export const plans: Plan[] = [
     repositoryLimit: '10 repositories',
     prCheckLimit: '2,000 PR checks/month',
     auditRetention: '180-day audit history',
-    features: ['Test gap detector', 'Approval workflow', 'Custom repo rules'],
+    features: ['Approval workflow', 'Custom repo rules', 'Team governance'],
   },
   {
     key: 'growth',

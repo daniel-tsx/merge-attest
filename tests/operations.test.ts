@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getJobRunnerDiagnostic, summarizeDiagnostics } from '../lib/diagnostics'
+import { getEmailDeliveryMode, isEmailDeliveryConfigured } from '../lib/email'
 import { authorizeJobRequest } from '../lib/job-auth'
 import {
   checkRateLimit,
@@ -119,6 +120,19 @@ describe('retention helpers', () => {
 })
 
 describe('diagnostics', () => {
+  it('reports transactional email readiness', () => {
+    expect(
+      isEmailDeliveryConfigured({
+        EMAIL_FROM: 'AgentGate <noreply@example.com>',
+        RESEND_API_KEY: 'resend',
+      }),
+    ).toBe(true)
+    expect(getEmailDeliveryMode({ NODE_ENV: 'production' })).toBe(
+      'unconfigured',
+    )
+    expect(getEmailDeliveryMode({ NODE_ENV: 'development' })).toBe('mock')
+  })
+
   it('reports job runner secret readiness', () => {
     expect(
       getJobRunnerDiagnostic({ JOB_RUNNER_SECRET: 'job-secret' }).status,
