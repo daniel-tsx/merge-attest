@@ -24,8 +24,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  buildTrendData,
   getCurrentOrganization,
-  getDashboardTrendData,
   listActivityEvents,
   listPullRequests,
   listRepositories,
@@ -48,13 +48,12 @@ const metricIcons = [
 
 export default async function DashboardPage() {
   const organization = await getCurrentOrganization()
-  const [repositories, pullRequests, activityEvents, trendData] =
-    await Promise.all([
-      listRepositories(organization.id),
-      listPullRequests(organization.id),
-      listActivityEvents(organization.id, { take: 8 }),
-      getDashboardTrendData(organization.id),
-    ])
+  const [repositories, pullRequests, activityEvents] = await Promise.all([
+    listRepositories(organization.id),
+    listPullRequests(organization.id),
+    listActivityEvents(organization.id, { take: 8 }),
+  ])
+  const trendData = pullRequests.length ? buildTrendData(pullRequests) : []
   const onboardingStatus = getOnboardingStatus({
     dataMode: organization.dataMode,
     githubConfigured: githubConfigured(),

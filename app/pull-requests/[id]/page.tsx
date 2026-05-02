@@ -68,9 +68,12 @@ export default async function PullRequestDetailPage({
     typeof resolvedSearchParams?.comment === 'string'
       ? resolvedSearchParams.comment
       : undefined
-  const pr = await getPullRequest(organization.id, id)
+  const [pr, teamMembers] = await Promise.all([
+    getPullRequest(organization.id, id),
+    listTeamMembers(organization.id),
+  ])
   if (!pr) notFound()
-  const [auditEvents, activityEvents, teamMembers] = await Promise.all([
+  const [auditEvents, activityEvents] = await Promise.all([
     listAuditEvents(organization.id, {
       pullRequestId: pr.id,
       take: 8,
@@ -79,7 +82,6 @@ export default async function PullRequestDetailPage({
       pullRequestId: pr.id,
       take: 8,
     }),
-    listTeamMembers(organization.id),
   ])
   const reviewers = teamMembers.filter((member) => member.role !== 'viewer')
   const approvalsAvailable = isFeatureAvailable(

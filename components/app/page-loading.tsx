@@ -13,8 +13,10 @@ function SkeletonBlock({ className }: { className?: string }) {
 }
 
 export function PageLoading({
+  metricCardCount = 4,
   title = 'Loading workspace',
 }: {
+  metricCardCount?: number
   title?: string
 }) {
   return (
@@ -24,7 +26,7 @@ export function PageLoading({
         <SkeletonBlock className="h-4 w-full max-w-2xl" />
       </div>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
+        {Array.from({ length: metricCardCount }).map((_, index) => (
           <Card key={index}>
             <CardContent className="space-y-3 p-4">
               <SkeletonBlock className="h-3 w-24" />

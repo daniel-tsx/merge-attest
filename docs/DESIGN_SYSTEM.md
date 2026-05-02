@@ -97,6 +97,17 @@ Phase 5 keeps the app Server Component first while using React 19 hooks in small
 - Prefer route `loading.tsx` files for high-traffic pages that benefit from an instant skeleton while page data streams.
 - Parallelize independent `params`, `searchParams`, organization lookup, and data reads with `Promise.all` when there is no authorization or data dependency between them.
 
+## Performance Patterns
+
+Phase 6 adds a few code-level performance rules:
+
+- Request-scoped organization context should come through the cached `getCurrentOrganization()` helper so layout/page reads do not repeat session and membership work in the same render.
+- Avoid duplicate full-list data reads when filters are applied in memory. Fetch once, then derive filtered views locally until DB-level filtering or pagination is introduced.
+- Dashboard trend data should be derived from the already-loaded pull request list instead of issuing a second equivalent pull request query.
+- Loading skeletons should reserve roughly the same structure as the final page; dashboard loading uses eight metric placeholders to match the dashboard grid.
+- Keep Recharts isolated behind the dynamic chart client island unless a future profiling pass proves a different chart strategy is needed.
+- `@tanstack/react-query` remains unused; remove it only after confirming no near-term client data-fetching provider is planned.
+
 ## Verification Checklist
 
 Before merging UI changes:

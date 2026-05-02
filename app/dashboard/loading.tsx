@@ -1,5 +1,5 @@
 import { PageLoading } from '@/components/app/page-loading'
 
 export default function Loading() {
-  return <PageLoading title="Loading dashboard" />
+  return <PageLoading title="Loading dashboard" metricCardCount={8} />
 }

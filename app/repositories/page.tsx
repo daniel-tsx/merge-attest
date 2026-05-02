@@ -15,7 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
+import {
+  applyRepositoryFilters,
+  getCurrentOrganization,
+  listRepositories,
+} from '@/lib/data/app-data'
 import { getPlanEntitlements, remainingLimit } from '@/lib/entitlements'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { repositorySearchParamsCache } from './search-params'
@@ -29,10 +33,8 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
     repositorySearchParamsCache.parse(searchParams),
     getCurrentOrganization(),
   ])
-  const [allRepositories, repositories] = await Promise.all([
-    listRepositories(organization.id),
-    listRepositories(organization.id, filters),
-  ])
+  const allRepositories = await listRepositories(organization.id)
+  const repositories = applyRepositoryFilters(allRepositories, filters)
   const entitlements = getPlanEntitlements(organization.planKey)
   const remainingRepositories = remainingLimit(
     entitlements.repositoryLimit,

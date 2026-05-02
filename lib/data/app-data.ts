@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { organization as demoOrganization } from '@/lib/demo-data'
 import {
   activityEvents as demoActivityEvents,
@@ -376,7 +377,7 @@ function matchesOptionalFilter(
   return value?.toLowerCase() === normalizedFilter
 }
 
-function applyRepositoryFilters(
+export function applyRepositoryFilters(
   items: Repository[],
   filters: RepositoryFilters = {},
 ) {
@@ -507,7 +508,7 @@ function formatTrendDate(date: Date) {
   }).format(date)
 }
 
-function buildTrendData(
+export function buildTrendData(
   pullRequests: PullRequest[],
   days = 7,
 ): DashboardTrendPoint[] {
@@ -639,47 +640,49 @@ function mapOrganization(
   }
 }
 
-export async function getCurrentOrganization(): Promise<OrganizationContext> {
-  const sessionOrganization = await ensureCurrentUserOrganization()
-  if (sessionOrganization) {
-    return {
-      id: sessionOrganization.id,
-      name: sessionOrganization.name,
-      slug: sessionOrganization.slug,
-      planKey: sessionOrganization.planKey,
-      githubInstallationId: sessionOrganization.githubInstallationId,
-      billingStatus: sessionOrganization.billingStatus,
-      paddleCustomerId: sessionOrganization.paddleCustomerId,
-      paddleSubscriptionId: sessionOrganization.paddleSubscriptionId,
-      paddleSubscriptionStatus: sessionOrganization.paddleSubscriptionStatus,
-      trialEndsAt: sessionOrganization.trialEndsAt
-        ? toIso(sessionOrganization.trialEndsAt)
-        : undefined,
-      cancellationEffectiveAt: sessionOrganization.cancellationEffectiveAt
-        ? toIso(sessionOrganization.cancellationEffectiveAt)
-        : undefined,
-      failedPaymentAt: sessionOrganization.failedPaymentAt
-        ? toIso(sessionOrganization.failedPaymentAt)
-        : undefined,
-      lastUpgradeAt: sessionOrganization.lastUpgradeAt
-        ? toIso(sessionOrganization.lastUpgradeAt)
-        : undefined,
-      role: sessionOrganization.role,
-      dataMode: 'live',
+export const getCurrentOrganization = cache(
+  async function getCurrentOrganization(): Promise<OrganizationContext> {
+    const sessionOrganization = await ensureCurrentUserOrganization()
+    if (sessionOrganization) {
+      return {
+        id: sessionOrganization.id,
+        name: sessionOrganization.name,
+        slug: sessionOrganization.slug,
+        planKey: sessionOrganization.planKey,
+        githubInstallationId: sessionOrganization.githubInstallationId,
+        billingStatus: sessionOrganization.billingStatus,
+        paddleCustomerId: sessionOrganization.paddleCustomerId,
+        paddleSubscriptionId: sessionOrganization.paddleSubscriptionId,
+        paddleSubscriptionStatus: sessionOrganization.paddleSubscriptionStatus,
+        trialEndsAt: sessionOrganization.trialEndsAt
+          ? toIso(sessionOrganization.trialEndsAt)
+          : undefined,
+        cancellationEffectiveAt: sessionOrganization.cancellationEffectiveAt
+          ? toIso(sessionOrganization.cancellationEffectiveAt)
+          : undefined,
+        failedPaymentAt: sessionOrganization.failedPaymentAt
+          ? toIso(sessionOrganization.failedPaymentAt)
+          : undefined,
+        lastUpgradeAt: sessionOrganization.lastUpgradeAt
+          ? toIso(sessionOrganization.lastUpgradeAt)
+          : undefined,
+        role: sessionOrganization.role,
+        dataMode: 'live',
+      }
     }
-  }
 
-  return queryWithDemoFallback(
-    async (client) => {
-      const organization = await client.organization.findFirst({
-        orderBy: { createdAt: 'asc' },
-      })
-      return mapOrganization(organization)
-    },
-    () => mapOrganization(null),
-    'current organization',
-  )
-}
+    return queryWithDemoFallback(
+      async (client) => {
+        const organization = await client.organization.findFirst({
+          orderBy: { createdAt: 'asc' },
+        })
+        return mapOrganization(organization)
+      },
+      () => mapOrganization(null),
+      'current organization',
+    )
+  },
+)
 
 export function mapRepository(row: RepositoryRow): Repository {
   return {
