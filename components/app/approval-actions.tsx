@@ -1,11 +1,80 @@
 'use client'
 
-import { useState } from 'react'
+import {
+  type ReactNode,
+  useActionState,
+  useOptimistic,
+  useState,
+  useTransition,
+} from 'react'
+import { useFormStatus } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Check, MessageSquare, ShieldAlert, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { Approval } from '@/lib/types'
+import type { Approval, ApprovalStatus } from '@/lib/types'
+
+type ApprovalDecision = Exclude<Approval['decision'], 'not_required'>
+
+type ApprovalActionState = {
+  decision: ApprovalDecision | null
+  message: string
+  status: 'error' | 'idle' | 'success'
+}
+
+const initialActionState: ApprovalActionState = {
+  decision: null,
+  message: 'No decision recorded yet.',
+  status: 'idle',
+}
+
+function isApprovalDecision(
+  value: FormDataEntryValue | null,
+): value is ApprovalDecision {
+  return (
+    value === 'approved' ||
+    value === 'requested_tests' ||
+    value === 'risk_accepted' ||
+    value === 'rejected'
+  )
+}
+
+function formatDecision(decision: ApprovalDecision) {
+  return decision.replaceAll('_', ' ')
+}
+
+function ApprovalDecisionButton({
+  decision,
+  disabled,
+  icon,
+  label,
+  pendingLabel,
+  variant = 'secondary',
+}: {
+  decision: ApprovalDecision
+  disabled: boolean
+  icon: ReactNode
+  label: string
+  pendingLabel: string
+  variant?: 'danger' | 'default' | 'secondary'
+}) {
+  const { data, pending } = useFormStatus()
+  const isCurrentSubmission = pending && data?.get('decision') === decision
+
+  return (
+    <Button
+      type="submit"
+      name="decision"
+      value={decision}
+      size="sm"
+      variant={variant}
+      disabled={disabled || pending}
+    >
+      {icon}
+      {isCurrentSubmission ? pendingLabel : label}
+    </Button>
+  )
+}
 
 export function ApprovalActions({
   prId,
@@ -16,43 +85,76 @@ export function ApprovalActions({
 }) {
   const router = useRouter()
   const [note, setNote] = useState('')
-  const [message, setMessage] = useState('No decision recorded yet.')
-  const [submitting, setSubmitting] = useState<Approval['decision'] | null>(
-    null,
+  const [isRefreshing, startTransition] = useTransition()
+  const [state, formAction, isPending] = useActionState(
+    recordDecision,
+    initialActionState,
   )
+  const [optimisticDecision, setOptimisticDecision] = useOptimistic<
+    ApprovalDecision | null,
+    ApprovalDecision
+  >(state.decision, (_current, nextDecision) => nextDecision)
 
   async function recordDecision(
-    decision: Exclude<Approval['decision'], 'not_required'>,
-  ) {
-    setSubmitting(decision)
-    setMessage('Recording decision...')
+    _previousState: ApprovalActionState,
+    formData: FormData,
+  ): Promise<ApprovalActionState> {
+    const decision = formData.get('decision')
+
+    if (!isApprovalDecision(decision)) {
+      return {
+        decision: null,
+        message: 'Choose an approval decision before submitting.',
+        status: 'error',
+      }
+    }
+
+    setOptimisticDecision(decision)
 
     const response = await fetch(`/api/pull-requests/${prId}/approval`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ decision, note }),
+      body: JSON.stringify({ decision, note: note.trim() }),
     })
     const result = (await response.json()) as {
       error?: string
-      approvalStatus?: string
+      approvalStatus?: ApprovalStatus
     }
 
-    setSubmitting(null)
-
     if (!response.ok) {
-      setMessage(result.error ?? 'Unable to record approval decision.')
-      return
+      return {
+        decision: null,
+        message: result.error ?? 'Unable to record approval decision.',
+        status: 'error',
+      }
     }
 
     setNote('')
-    setMessage(
-      `Recorded ${decision.replaceAll('_', ' ')}. Current status: ${result.approvalStatus}.`,
-    )
-    router.refresh()
+    startTransition(() => {
+      router.refresh()
+    })
+
+    return {
+      decision,
+      message: `Recorded ${formatDecision(decision)}. Current status: ${result.approvalStatus}.`,
+      status: 'success',
+    }
   }
 
+  const statusMessage =
+    optimisticDecision && isPending
+      ? `Recording ${formatDecision(optimisticDecision)}...`
+      : state.message
+  const messageClassName =
+    state.status === 'error'
+      ? 'text-danger'
+      : state.status === 'success'
+        ? 'text-success'
+        : 'text-muted-foreground'
+  const formDisabled = !canRecord || isPending || isRefreshing
+
   return (
-    <div className="space-y-3">
+    <form action={formAction} className="space-y-3">
       {!canRecord ? (
         <p className="rounded-control border border-info-border bg-info-soft p-3 text-sm text-info">
           You have read-only access to approval decisions.
@@ -63,48 +165,44 @@ export function ApprovalActions({
         onChange={(event) => setNote(event.target.value)}
         placeholder="Optional reviewer note"
         maxLength={1000}
-        disabled={!canRecord}
+        disabled={formDisabled}
+        name="note"
       />
       <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          onClick={() => recordDecision('approved')}
-          disabled={Boolean(submitting) || !canRecord}
-        >
-          <Check />
-          {submitting === 'approved' ? 'Approving...' : 'Approve'}
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => recordDecision('requested_tests')}
-          disabled={Boolean(submitting) || !canRecord}
-        >
-          <MessageSquare />
-          {submitting === 'requested_tests' ? 'Requesting...' : 'Request tests'}
-        </Button>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => recordDecision('risk_accepted')}
-          disabled={Boolean(submitting) || !canRecord}
-        >
-          <ShieldAlert />
-          {submitting === 'risk_accepted' ? 'Recording...' : 'Accept risk'}
-        </Button>
-        <Button
-          size="sm"
+        <ApprovalDecisionButton
+          decision="approved"
+          disabled={formDisabled}
+          icon={<Check />}
+          label="Approve"
+          pendingLabel="Approving..."
+          variant="default"
+        />
+        <ApprovalDecisionButton
+          decision="requested_tests"
+          disabled={formDisabled}
+          icon={<MessageSquare />}
+          label="Request tests"
+          pendingLabel="Requesting..."
+        />
+        <ApprovalDecisionButton
+          decision="risk_accepted"
+          disabled={formDisabled}
+          icon={<ShieldAlert />}
+          label="Accept risk"
+          pendingLabel="Recording..."
+        />
+        <ApprovalDecisionButton
+          decision="rejected"
+          disabled={formDisabled}
+          icon={<X />}
+          label="Reject"
+          pendingLabel="Rejecting..."
           variant="danger"
-          onClick={() => recordDecision('rejected')}
-          disabled={Boolean(submitting) || !canRecord}
-        >
-          <X />
-          {submitting === 'rejected' ? 'Rejecting...' : 'Reject'}
-        </Button>
+        />
       </div>
-      <p className="text-xs text-muted-foreground" aria-live="polite">
-        {message}
+      <p className={`text-xs ${messageClassName}`} aria-live="polite">
+        {statusMessage}
       </p>
-    </div>
+    </form>
   )
 }

@@ -30,8 +30,10 @@ type PageProps = {
 }
 
 export default async function ApprovalsPage({ searchParams }: PageProps) {
-  const filters = await approvalsSearchParamsCache.parse(searchParams)
-  const organization = await getCurrentOrganization()
+  const [filters, organization] = await Promise.all([
+    approvalsSearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
   const [repositories, teamMembers, pullRequests] = await Promise.all([
     listRepositories(organization.id),
     listTeamMembers(organization.id),

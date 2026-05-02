@@ -35,9 +35,11 @@ export default async function BillingSettingsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const params = await searchParams
+  const [params, organization] = await Promise.all([
+    searchParams ?? Promise.resolve(undefined),
+    getCurrentOrganization(),
+  ])
   const billingMessage = readParam(params, 'billing')
-  const organization = await getCurrentOrganization()
   const billingMode = getBillingMode()
   const canManage = canManageBilling(organization.role)
   const portalUrl = getPaddleCustomerPortalUrl(organization.paddleCustomerId)

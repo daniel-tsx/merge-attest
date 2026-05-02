@@ -18,14 +18,16 @@ type PageProps = {
 }
 
 export default async function UsageSettingsPage({ searchParams }: PageProps) {
-  const { period } = await usageSearchParamsCache.parse(searchParams)
-  const organization = await getCurrentOrganization()
-  const [repositories, usageHistory] = await Promise.all([
+  const [{ period }, organization] = await Promise.all([
+    usageSearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
+  const [repositories, usageHistory, persistedUsage] = await Promise.all([
     listRepositories(organization.id),
     getPrCheckUsageHistory(organization.id),
+    getPrCheckUsage(organization.id),
   ])
   const entitlements = getPlanEntitlements(organization.planKey)
-  const persistedUsage = await getPrCheckUsage(organization.id)
   const repositoryUsage = repositories.reduce(
     (sum, repository) => sum + repository.monthlyPrCheckUsage,
     0,

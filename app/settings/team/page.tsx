@@ -47,9 +47,11 @@ export default async function TeamSettingsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const params = await searchParams
+  const [params, organization] = await Promise.all([
+    searchParams ?? Promise.resolve(undefined),
+    getCurrentOrganization(),
+  ])
   const teamStatus = readParam(params, 'team')
-  const organization = await getCurrentOrganization()
   const [members, invites] = await Promise.all([
     listTeamMembers(organization.id),
     listTeamInvites(organization.id),

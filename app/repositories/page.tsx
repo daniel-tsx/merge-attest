@@ -25,8 +25,10 @@ type PageProps = {
 }
 
 export default async function RepositoriesPage({ searchParams }: PageProps) {
-  const filters = await repositorySearchParamsCache.parse(searchParams)
-  const organization = await getCurrentOrganization()
+  const [filters, organization] = await Promise.all([
+    repositorySearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
   const [allRepositories, repositories] = await Promise.all([
     listRepositories(organization.id),
     listRepositories(organization.id, filters),

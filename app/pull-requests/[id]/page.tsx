@@ -55,8 +55,11 @@ export default async function PullRequestDetailPage({
   params: Promise<{ id: string }>
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const { id } = await params
-  const resolvedSearchParams = await searchParams
+  const [{ id }, resolvedSearchParams, organization] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve(undefined),
+    getCurrentOrganization(),
+  ])
   const assignmentStatus =
     typeof resolvedSearchParams?.assignment === 'string'
       ? resolvedSearchParams.assignment
@@ -65,7 +68,6 @@ export default async function PullRequestDetailPage({
     typeof resolvedSearchParams?.comment === 'string'
       ? resolvedSearchParams.comment
       : undefined
-  const organization = await getCurrentOrganization()
   const pr = await getPullRequest(organization.id, id)
   if (!pr) notFound()
   const [auditEvents, activityEvents, teamMembers] = await Promise.all([

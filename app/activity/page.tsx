@@ -18,8 +18,10 @@ type PageProps = {
 }
 
 export default async function ActivityPage({ searchParams }: PageProps) {
-  const filters = await activitySearchParamsCache.parse(searchParams)
-  const organization = await getCurrentOrganization()
+  const [filters, organization] = await Promise.all([
+    activitySearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
   const [repositories, activityEvents] = await Promise.all([
     listRepositories(organization.id),
     listActivityEvents(organization.id, filters),

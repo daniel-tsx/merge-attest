@@ -33,17 +33,21 @@ export default async function RepositoryDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = await params
-  const organization = await getCurrentOrganization()
+  const [{ id }, organization] = await Promise.all([
+    params,
+    getCurrentOrganization(),
+  ])
   const repository = await getRepository(organization.id, id)
   if (!repository) notFound()
 
-  const prs = await getRepositoryPullRequests(organization.id, id)
-  const rules = await getRepositoryRules(organization.id, id)
-  const auditEvents = await listAuditEvents(organization.id, {
-    repositoryId: id,
-    take: 8,
-  })
+  const [prs, rules, auditEvents] = await Promise.all([
+    getRepositoryPullRequests(organization.id, id),
+    getRepositoryRules(organization.id, id),
+    listAuditEvents(organization.id, {
+      repositoryId: id,
+      take: 8,
+    }),
+  ])
 
   return (
     <div className="space-y-6">

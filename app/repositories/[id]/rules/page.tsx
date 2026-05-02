@@ -210,13 +210,15 @@ export default async function RepositoryRulesPage({
   params: Promise<{ id: string }>
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const { id } = await params
-  const resolvedSearchParams = await searchParams
+  const [{ id }, resolvedSearchParams, organization] = await Promise.all([
+    params,
+    searchParams ?? Promise.resolve(undefined),
+    getCurrentOrganization(),
+  ])
   const status =
     typeof resolvedSearchParams?.status === 'string'
       ? resolvedSearchParams.status
       : undefined
-  const organization = await getCurrentOrganization()
   const repository = await getRepository(organization.id, id)
   if (!repository) notFound()
   const [rules, pullRequests] = await Promise.all([

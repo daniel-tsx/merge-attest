@@ -86,6 +86,17 @@ Phase 4 standardizes page-level UX around a few shared patterns:
 - Detail pages should use semantic feedback colors for success, info, and danger states rather than generic cards.
 - PR references should link to pull request detail pages whenever the data already includes a local pull request ID.
 
+## React And Streaming Patterns
+
+Phase 5 keeps the app Server Component first while using React 19 hooks in small client islands:
+
+- Use `useActionState` for client mutation islands that need serializable success/error state.
+- Use `useOptimistic` only where rollback is clear and the server remains the source of truth after `router.refresh()`.
+- Use `useFormStatus` in nested submit controls when a form uses a React action.
+- Use `useTransition` for non-urgent refreshes after successful client mutations.
+- Prefer route `loading.tsx` files for high-traffic pages that benefit from an instant skeleton while page data streams.
+- Parallelize independent `params`, `searchParams`, organization lookup, and data reads with `Promise.all` when there is no authorization or data dependency between them.
+
 ## Verification Checklist
 
 Before merging UI changes:

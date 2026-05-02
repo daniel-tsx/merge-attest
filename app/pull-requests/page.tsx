@@ -27,8 +27,10 @@ type PageProps = {
 }
 
 export default async function PullRequestsPage({ searchParams }: PageProps) {
-  const filters = await pullRequestSearchParamsCache.parse(searchParams)
-  const organization = await getCurrentOrganization()
+  const [filters, organization] = await Promise.all([
+    pullRequestSearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
   const pullRequests = await listPullRequests(organization.id, filters)
 
   return (

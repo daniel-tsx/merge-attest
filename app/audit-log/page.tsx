@@ -38,13 +38,15 @@ function readDate(value: string) {
 }
 
 export default async function AuditLogPage({ searchParams }: PageProps) {
-  const params = await auditLogSearchParamsCache.parse(searchParams)
+  const [params, organization] = await Promise.all([
+    auditLogSearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
   const filters = {
     ...params,
     from: readDate(params.from),
     to: readDate(params.to),
   }
-  const organization = await getCurrentOrganization()
   const entitlements = getPlanEntitlements(organization.planKey)
   const [auditEvents, repositories, savedExports] = await Promise.all([
     listAuditEvents(organization.id, {
