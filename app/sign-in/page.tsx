@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { signIn } from '@/lib/auth-client'
+import { safeRelativeRedirect } from '@/lib/redirects'
 
 async function ensureOrganization() {
   const response = await fetch('/api/onboarding/organization', {
@@ -41,7 +42,7 @@ export default function SignInPage() {
     try {
       await ensureOrganization()
       const searchParams = new URLSearchParams(window.location.search)
-      router.push(searchParams.get('callbackUrl') || '/dashboard')
+      router.push(safeRelativeRedirect(searchParams.get('callbackUrl')))
       router.refresh()
     } catch (err) {
       setSubmitting(false)

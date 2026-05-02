@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { headers } from 'next/headers'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { RootShell } from '@/components/app/root-shell'
 import { getCurrentOrganization } from '@/lib/data/app-data'
@@ -25,7 +26,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const organization = await getCurrentOrganization()
+  const pathname = (await headers()).get('x-agentgate-pathname')
+  const isPublicRoute =
+    !pathname || pathname === '/sign-in' || pathname === '/sign-up'
+  const organization = isPublicRoute ? null : await getCurrentOrganization()
 
   return (
     <html
@@ -35,9 +39,9 @@ export default async function RootLayout({
       <body className="min-h-full">
         <NuqsAdapter>
           <RootShell
-            organizationName={organization.name}
-            planKey={organization.planKey}
-            dataMode={organization.dataMode}
+            organizationName={organization?.name ?? 'AgentGate'}
+            planKey={organization?.planKey ?? 'free'}
+            dataMode={organization?.dataMode ?? 'live'}
           >
             {children}
           </RootShell>

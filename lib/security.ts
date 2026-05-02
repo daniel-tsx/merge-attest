@@ -7,6 +7,8 @@ export const securityHeaders = {
   'Cross-Origin-Resource-Policy': 'same-origin',
 } as const
 
+const mutationMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
 export function applySecurityHeaders(headers: Headers) {
   for (const [key, value] of Object.entries(securityHeaders)) {
     headers.set(key, value)
@@ -20,4 +22,26 @@ export function applySecurityHeaders(headers: Headers) {
   }
 
   return headers
+}
+
+export function isMutationMethod(method: string) {
+  return mutationMethods.has(method.toUpperCase())
+}
+
+function sameOrigin(left: string, right: string) {
+  try {
+    return new URL(left).origin === new URL(right).origin
+  } catch {
+    return false
+  }
+}
+
+export function isTrustedMutationOrigin(request: Request) {
+  if (!isMutationMethod(request.method)) return true
+
+  const origin = request.headers.get('origin')
+  if (origin) return sameOrigin(origin, request.url)
+
+  const referer = request.headers.get('referer')
+  return Boolean(referer && sameOrigin(referer, request.url))
 }

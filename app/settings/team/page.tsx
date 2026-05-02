@@ -33,6 +33,8 @@ const teamMessages: Record<string, string> = {
   cannot_remove_member: 'That member cannot be removed.',
   member_exists: 'That email is already a workspace member.',
   invalid_email: 'Enter a valid teammate email address.',
+  invite_email_mismatch:
+    'This invite is for a different email address. Sign in with the invited email to accept it.',
 }
 
 function readParam(
@@ -53,6 +55,12 @@ export default async function TeamSettingsPage({
     getCurrentOrganization(),
   ])
   const teamStatus = readParam(params, 'team')
+  const inviteToken = readParam(params, 'inviteToken')
+  const inviteEmail = readParam(params, 'inviteEmail')
+  const oneTimeInviteUrl =
+    inviteToken && inviteEmail
+      ? `/api/team/invites/accept?token=${encodeURIComponent(inviteToken)}`
+      : null
   const [members, invites] = await Promise.all([
     listTeamMembers(organization.id),
     listTeamInvites(organization.id),
@@ -67,8 +75,22 @@ export default async function TeamSettingsPage({
       />
       {teamStatus && teamMessages[teamStatus] ? (
         <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            {teamMessages[teamStatus]}
+          <CardContent className="space-y-2 p-4 text-sm text-muted-foreground">
+            <p>{teamMessages[teamStatus]}</p>
+            {oneTimeInviteUrl ? (
+              <div className="rounded-control border border-border bg-surface-muted p-3">
+                <p className="font-medium text-foreground">
+                  One-time invite link for {inviteEmail}
+                </p>
+                <p className="mt-1 break-all font-mono text-xs">
+                  {oneTimeInviteUrl}
+                </p>
+                <p className="mt-2 text-xs">
+                  This link is shown only now. Refreshing the invite will rotate
+                  it.
+                </p>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
@@ -237,8 +259,10 @@ export default async function TeamSettingsPage({
                     </Badge>
                   </TableCell>
                   <TableCell>{formatDate(invite.expiresAt)}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {invite.status === 'pending' ? invite.inviteUrl : 'n/a'}
+                  <TableCell className="text-xs text-muted-foreground">
+                    {invite.status === 'pending'
+                      ? 'Refresh to issue a new one-time link'
+                      : 'n/a'}
                   </TableCell>
                   {canManage ? (
                     <TableCell>

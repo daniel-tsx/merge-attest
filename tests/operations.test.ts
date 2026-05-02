@@ -7,7 +7,8 @@ import {
   rateLimitKey,
   rateLimitRules,
 } from '../lib/rate-limit'
-import { applySecurityHeaders } from '../lib/security'
+import { safeRelativeRedirect } from '../lib/redirects'
+import { applySecurityHeaders, isTrustedMutationOrigin } from '../lib/security'
 
 describe('rate limits', () => {
   it('classifies auth, webhook, mutation, and public routes', () => {
@@ -48,6 +49,34 @@ describe('security headers', () => {
     expect(headers.get('Referrer-Policy')).toBe(
       'strict-origin-when-cross-origin',
     )
+  })
+})
+
+describe('request security helpers', () => {
+  it('accepts only safe same-app redirect paths', () => {
+    expect(safeRelativeRedirect('/dashboard?tab=1')).toBe('/dashboard?tab=1')
+    expect(safeRelativeRedirect('https://evil.example')).toBe('/dashboard')
+    expect(safeRelativeRedirect('//evil.example/path')).toBe('/dashboard')
+    expect(safeRelativeRedirect('/\\evil')).toBe('/dashboard')
+  })
+
+  it('requires same-origin browser mutations', () => {
+    expect(
+      isTrustedMutationOrigin(
+        new Request('https://app.example.test/api/team/invites', {
+          method: 'POST',
+          headers: { origin: 'https://app.example.test' },
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      isTrustedMutationOrigin(
+        new Request('https://app.example.test/api/team/invites', {
+          method: 'POST',
+          headers: { origin: 'https://evil.example' },
+        }),
+      ),
+    ).toBe(false)
   })
 })
 

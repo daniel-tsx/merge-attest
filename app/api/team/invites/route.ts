@@ -4,13 +4,22 @@ import {
   canInviteRole,
   canManageTeam,
   createInviteToken,
+  hashInviteToken,
   type OrganizationRole,
 } from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
 
-function redirectToTeam(request: NextRequest, status: string) {
+function redirectToTeam(
+  request: NextRequest,
+  status: string,
+  invite?: { token: string; email: string },
+) {
   const url = new URL('/settings/team', request.url)
   url.searchParams.set('team', status)
+  if (invite) {
+    url.searchParams.set('inviteToken', invite.token)
+    url.searchParams.set('inviteEmail', invite.email)
+  }
   return NextResponse.redirect(url, { status: 303 })
 }
 
@@ -59,13 +68,15 @@ export async function POST(request: NextRequest) {
       status: 'pending',
     },
   })
+  const inviteToken = createInviteToken()
+  const tokenHash = hashInviteToken(inviteToken)
 
   const invite = existingInvite
     ? await prisma.organizationInvite.update({
         where: { id: existingInvite.id },
         data: {
           role,
-          token: createInviteToken(),
+          token: tokenHash,
           expiresAt,
           invitedById: organization.userId,
         },
@@ -74,7 +85,7 @@ export async function POST(request: NextRequest) {
         data: {
           email,
           role,
-          token: createInviteToken(),
+          token: tokenHash,
           expiresAt,
           invitedById: organization.userId,
           organizationId: organization.id,
@@ -94,5 +105,6 @@ export async function POST(request: NextRequest) {
   return redirectToTeam(
     request,
     existingInvite ? 'invite_refreshed' : 'invited',
+    { token: inviteToken, email },
   )
 }

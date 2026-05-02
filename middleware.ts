@@ -6,7 +6,12 @@ import {
   getRateLimitRule,
   rateLimitKey,
 } from '@/lib/rate-limit'
-import { applySecurityHeaders } from '@/lib/security'
+import { safeRelativeRedirect } from '@/lib/redirects'
+import {
+  applySecurityHeaders,
+  isMutationMethod,
+  isTrustedMutationOrigin,
+} from '@/lib/security'
 
 const publicPaths = ['/sign-in', '/sign-up']
 
@@ -44,11 +49,33 @@ function responseWithSecurity(response: NextResponse, request: NextRequest) {
   return nextResponse
 }
 
+function nextWithPathname(request: NextRequest) {
+  const headers = new Headers(request.headers)
+  headers.set('x-agentgate-pathname', request.nextUrl.pathname)
+  return NextResponse.next({ request: { headers } })
+}
+
+function requiresOriginCheck(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  if (!pathname.startsWith('/api/')) return false
+  if (!isMutationMethod(request.method)) return false
+  if (pathname.startsWith('/api/auth')) return false
+  if (pathname.includes('/webhook')) return false
+  return true
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  if (requiresOriginCheck(request) && !isTrustedMutationOrigin(request)) {
+    return responseWithSecurity(
+      NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 }),
+      request,
+    )
+  }
+
   if (pathname.startsWith('/api/')) {
-    return responseWithSecurity(NextResponse.next(), request)
+    return responseWithSecurity(nextWithPathname(request), request)
   }
 
   if (
@@ -56,21 +83,21 @@ export function middleware(request: NextRequest) {
       (path) => pathname === path || pathname.startsWith(`${path}/`),
     )
   ) {
-    return responseWithSecurity(NextResponse.next(), request)
+    return responseWithSecurity(nextWithPathname(request), request)
   }
 
   if (!isProduction() && !isDatabaseConfigured()) {
-    return responseWithSecurity(NextResponse.next(), request)
+    return responseWithSecurity(nextWithPathname(request), request)
   }
 
   const sessionCookie = getSessionCookie(request.headers)
-  if (sessionCookie) return responseWithSecurity(NextResponse.next(), request)
+  if (sessionCookie) return responseWithSecurity(nextWithPathname(request), request)
 
   const signInUrl = request.nextUrl.clone()
   signInUrl.pathname = '/sign-in'
   signInUrl.searchParams.set(
     'callbackUrl',
-    `${pathname}${request.nextUrl.search}`,
+    safeRelativeRedirect(`${pathname}${request.nextUrl.search}`),
   )
 
   return responseWithSecurity(NextResponse.redirect(signInUrl), request)

@@ -1,6 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@/lib/generated/prisma/client'
-import { getDatabaseUrl } from '@/lib/env'
+import { getDatabaseUrl, validateProductionEnv } from '@/lib/env'
 
 const globalForPrisma = globalThis as typeof globalThis & {
   agentGatePrisma?: PrismaClient
@@ -8,6 +8,8 @@ const globalForPrisma = globalThis as typeof globalThis & {
 }
 
 export function getPrismaClient() {
+  validateProductionEnv()
+
   const databaseUrl = getDatabaseUrl()
   if (!databaseUrl) return null
 

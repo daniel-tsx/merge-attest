@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import type { PullRequest, RuleViolation } from '@/lib/types'
 
 export type OrganizationRole = 'owner' | 'admin' | 'member' | 'viewer'
@@ -84,6 +84,10 @@ export function normalizeInviteStatus(
 
 export function createInviteToken() {
   return randomUUID().replaceAll('-', '')
+}
+
+export function hashInviteToken(token: string) {
+  return createHash('sha256').update(token).digest('hex')
 }
 
 export function getReviewSlaStatus(

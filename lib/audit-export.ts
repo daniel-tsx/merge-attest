@@ -13,7 +13,10 @@ const auditCsvHeaders = [
 
 function csvCell(value: string | number | boolean | null | undefined) {
   const stringValue = value === null || value === undefined ? '' : String(value)
-  return `"${stringValue.replaceAll('"', '""')}"`
+  const safeValue = /^[=+\-@\t\r]/.test(stringValue)
+    ? `'${stringValue}`
+    : stringValue
+  return `"${safeValue.replaceAll('"', '""')}"`
 }
 
 export function getAuditRetentionStart(planKey: PlanKey, now = new Date()) {

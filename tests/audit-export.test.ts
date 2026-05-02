@@ -27,6 +27,22 @@ describe('audit export', () => {
     expect(csv).toContain('"{""planKey"":""growth""}"')
   })
 
+  it('escapes spreadsheet formula prefixes in exported values', () => {
+    const csv = serializeAuditEventsToCsv([
+      {
+        id: 'audit-1',
+        eventType: 'settings_changed',
+        actor: '=cmd',
+        summary: '+SUM(1,1)',
+        metadata: {},
+        createdAt: '2026-05-01T00:00:00.000Z',
+      },
+    ])
+
+    expect(csv).toContain('"\'=cmd"')
+    expect(csv).toContain('"\'+SUM(1,1)"')
+  })
+
   it('uses plan retention for export windows', () => {
     const now = new Date('2026-05-01T00:00:00.000Z')
 

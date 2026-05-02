@@ -12,7 +12,7 @@ import {
   repositories as demoRepositories,
   users as demoUsers,
 } from '@/lib/demo-data'
-import { isProduction } from '@/lib/env'
+import { isDatabaseConfigured, isProduction } from '@/lib/env'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import {
   getReviewSlaStatus,
@@ -39,8 +39,7 @@ export type TeamInvite = {
   email: string
   role: TeamMember['role']
   status: 'pending' | 'accepted' | 'expired' | 'revoked'
-  token: string
-  inviteUrl: string
+  inviteUrl?: string
   invitedBy?: string
   expiresAt: string
   acceptedAt?: string
@@ -573,7 +572,12 @@ async function queryWithDemoFallback<T>(
   label: string,
 ) {
   const client = getPrismaClient()
-  if (!client) return fallback()
+  if (!client) {
+    if (isProduction()) {
+      throw new Error('Database access is required in production.')
+    }
+    return fallback()
+  }
 
   try {
     return await query(client)
@@ -671,6 +675,10 @@ export const getCurrentOrganization = cache(
       }
     }
 
+    if (isProduction() || isDatabaseConfigured()) {
+      throw new Error('Authentication is required to access organization data.')
+    }
+
     return queryWithDemoFallback(
       async (client) => {
         const organization = await client.organization.findFirst({
@@ -746,8 +754,6 @@ export function mapTeamInvite(row: TeamInviteRow): TeamInvite {
     email: row.email,
     role: row.role as TeamInvite['role'],
     status,
-    token: row.token,
-    inviteUrl: `/api/team/invites/accept?token=${row.token}`,
     invitedBy: row.invitedBy?.name ?? row.invitedBy?.email ?? 'Workspace admin',
     expiresAt: toIso(row.expiresAt),
     acceptedAt: row.acceptedAt ? toIso(row.acceptedAt) : undefined,
@@ -1019,8 +1025,7 @@ export async function listTeamInvites(organizationId: string) {
         email: 'sam@northstar.dev',
         role: 'viewer',
         status: 'pending',
-        token: 'demo-invite-token',
-        inviteUrl: '/api/team/invites/accept?token=demo-invite-token',
+        inviteUrl: undefined,
         invitedBy: 'Maya Chen',
         expiresAt: '2026-05-07T08:00:00.000Z',
         createdAt: '2026-04-30T08:00:00.000Z',

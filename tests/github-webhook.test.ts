@@ -7,6 +7,10 @@ import {
   parseGitHubWebhookPayload,
   shouldSyncPullRequestAction,
 } from '../lib/github-webhooks'
+import {
+  createGitHubInstallationState,
+  verifyGitHubInstallationState,
+} from '../lib/github-installation-state'
 
 function signatureFor(body: string, secret: string) {
   return `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`
@@ -84,5 +88,39 @@ describe('GitHub webhook dispatch helpers', () => {
     expect(() => parseGitHubWebhookPayload('[]')).toThrow(
       'payload must be an object',
     )
+  })
+})
+
+describe('GitHub installation state', () => {
+  it('verifies signed state for the expected organization', () => {
+    const now = new Date('2026-05-02T00:00:00.000Z')
+    const state = createGitHubInstallationState('org_123', now)
+
+    expect(
+      verifyGitHubInstallationState(
+        state,
+        'org_123',
+        new Date('2026-05-02T00:05:00.000Z'),
+      ),
+    ).toEqual({ ok: true, organizationId: 'org_123' })
+  })
+
+  it('rejects missing, mismatched, and expired state', () => {
+    const now = new Date('2026-05-02T00:00:00.000Z')
+    const state = createGitHubInstallationState('org_123', now)
+
+    expect(verifyGitHubInstallationState(null, 'org_123').reason).toBe(
+      'missing_state',
+    )
+    expect(verifyGitHubInstallationState(state, 'org_other', now).reason).toBe(
+      'organization_mismatch',
+    )
+    expect(
+      verifyGitHubInstallationState(
+        state,
+        'org_123',
+        new Date('2026-05-02T00:16:00.000Z'),
+      ).reason,
+    ).toBe('expired_state')
   })
 })

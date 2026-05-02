@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/session'
-import { normalizeInviteStatus } from '@/lib/collaboration'
+import { hashInviteToken, normalizeInviteStatus } from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
+import { safeRelativeRedirect } from '@/lib/redirects'
 
 function redirectToTeam(request: NextRequest, status: string) {
   const url = new URL('/settings/team', request.url)
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const signInUrl = new URL('/sign-in', request.url)
     signInUrl.searchParams.set(
       'callbackUrl',
-      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      safeRelativeRedirect(`${request.nextUrl.pathname}${request.nextUrl.search}`),
     )
     return NextResponse.redirect(signInUrl)
   }
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   if (!token) return redirectToTeam(request, 'invite_not_found')
 
   const invite = await prisma.organizationInvite.findUnique({
-    where: { token },
+    where: { token: hashInviteToken(token) },
     include: { organization: true },
   })
 
@@ -34,6 +35,69 @@ export async function GET(request: NextRequest) {
 
   const status = normalizeInviteStatus(invite.status, invite.expiresAt)
   if (status !== 'pending') return redirectToTeam(request, `invite_${status}`)
+
+  if (session.user.email.toLowerCase() !== invite.email.toLowerCase()) {
+    return redirectToTeam(request, 'invite_email_mismatch')
+  }
+
+  return new Response(
+    `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accept AgentGate Invite</title>
+  </head>
+  <body style="font-family: system-ui, sans-serif; max-width: 32rem; margin: 4rem auto; padding: 0 1rem;">
+    <h1>Accept invite to ${escapeHtml(invite.organization.name)}</h1>
+    <p>You are signed in as ${escapeHtml(session.user.email)}.</p>
+    <form method="post" action="/api/team/invites/accept">
+      <input type="hidden" name="token" value="${escapeHtml(token)}" />
+      <button type="submit">Accept invite</button>
+    </form>
+  </body>
+</html>`,
+    { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
+  )
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+export async function POST(request: NextRequest) {
+  const formData = await request.formData()
+  const tokenValue = formData.get('token')
+  const token = typeof tokenValue === 'string' ? tokenValue : null
+  const session = await getServerSession()
+  const prisma = getPrismaClient()
+
+  if (!session || !prisma) {
+    const signInUrl = new URL('/sign-in', request.url)
+    signInUrl.searchParams.set('callbackUrl', '/settings/team')
+    return NextResponse.redirect(signInUrl)
+  }
+
+  if (!token) return redirectToTeam(request, 'invite_not_found')
+
+  const invite = await prisma.organizationInvite.findUnique({
+    where: { token: hashInviteToken(token) },
+    include: { organization: true },
+  })
+
+  if (!invite) return redirectToTeam(request, 'invite_not_found')
+
+  const status = normalizeInviteStatus(invite.status, invite.expiresAt)
+  if (status !== 'pending') return redirectToTeam(request, `invite_${status}`)
+
+  if (session.user.email.toLowerCase() !== invite.email.toLowerCase()) {
+    return redirectToTeam(request, 'invite_email_mismatch')
+  }
 
   await prisma.organizationMember.upsert({
     where: {

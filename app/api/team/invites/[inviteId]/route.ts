@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
-import { canManageTeam, createInviteToken } from '@/lib/collaboration'
+import {
+  canManageTeam,
+  createInviteToken,
+  hashInviteToken,
+} from '@/lib/collaboration'
 import { getPrismaClient } from '@/lib/prisma'
 
-function redirectToTeam(request: NextRequest, status: string) {
+function redirectToTeam(
+  request: NextRequest,
+  status: string,
+  invite?: { token: string; email: string },
+) {
   const url = new URL('/settings/team', request.url)
   url.searchParams.set('team', status)
+  if (invite) {
+    url.searchParams.set('inviteToken', invite.token)
+    url.searchParams.set('inviteEmail', invite.email)
+  }
   return NextResponse.redirect(url, { status: 303 })
 }
 
@@ -32,6 +44,8 @@ export async function POST(
   const actionValue = formData.get('_action')
   const action = typeof actionValue === 'string' ? actionValue : 'refresh'
 
+  let refreshedToken: string | null = null
+
   if (action === 'revoke') {
     await prisma.organizationInvite.update({
       where: { id: invite.id },
@@ -40,12 +54,13 @@ export async function POST(
   } else {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7)
+    refreshedToken = createInviteToken()
 
     await prisma.organizationInvite.update({
       where: { id: invite.id },
       data: {
         status: 'pending',
-        token: createInviteToken(),
+        token: hashInviteToken(refreshedToken),
         expiresAt,
         revokedAt: null,
         invitedById: organization.userId,
@@ -69,5 +84,6 @@ export async function POST(
   return redirectToTeam(
     request,
     action === 'revoke' ? 'invite_revoked' : 'invite_refreshed',
+    refreshedToken ? { token: refreshedToken, email: invite.email } : undefined,
   )
 }

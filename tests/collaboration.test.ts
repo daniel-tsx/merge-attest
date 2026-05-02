@@ -6,6 +6,7 @@ import {
   canRecordApproval,
   canRemoveMember,
   getReviewSlaStatus,
+  hashInviteToken,
   normalizeInviteStatus,
 } from '../lib/collaboration'
 
@@ -45,6 +46,15 @@ describe('collaboration lifecycle helpers', () => {
         new Date('2026-05-02T00:00:00.000Z'),
       ),
     ).toBe('expired')
+  })
+
+  it('hashes invite bearer tokens before storage', () => {
+    const token = 'invite-token'
+    const hash = hashInviteToken(token)
+
+    expect(hash).not.toBe(token)
+    expect(hash).toHaveLength(64)
+    expect(hashInviteToken(token)).toBe(hash)
   })
 
   it('classifies review due dates by SLA window', () => {

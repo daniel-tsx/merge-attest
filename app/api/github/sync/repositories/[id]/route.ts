@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canSyncGitHub } from '@/lib/collaboration'
 import { syncGitHubRepository } from '@/lib/github-sync'
+import { safeRedirectUrl } from '@/lib/redirects'
 
 export async function POST(
   request: NextRequest,
@@ -35,10 +36,7 @@ export async function POST(
 
   const formData = await request.formData()
   const redirectTo = String(formData.get('redirectTo') ?? `/repositories/${id}`)
-  const url = new URL(
-    redirectTo.startsWith('/') ? redirectTo : `/repositories/${id}`,
-    request.url,
-  )
+  const url = safeRedirectUrl(request.url, redirectTo, `/repositories/${id}`)
   url.searchParams.set('sync', result.mode)
 
   return NextResponse.redirect(url, { status: 303 })

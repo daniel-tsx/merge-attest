@@ -20,6 +20,18 @@ export function isGitHubDemoMode() {
   return !githubConfigured()
 }
 
+function getAppOctokit() {
+  if (!githubConfigured()) return null
+
+  return new Octokit({
+    authStrategy: createAppAuth,
+    auth: {
+      appId: process.env.GITHUB_APP_ID!,
+      privateKey: process.env.GITHUB_APP_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+    },
+  })
+}
+
 export function getInstallationOctokit(installationId?: string) {
   if (!githubConfigured() || !installationId) return null
 
@@ -33,10 +45,32 @@ export function getInstallationOctokit(installationId?: string) {
   })
 }
 
-export function getGitHubAppInstallUrl() {
-  return process.env.GITHUB_APP_SLUG
-    ? `https://github.com/apps/${process.env.GITHUB_APP_SLUG}/installations/new`
-    : null
+export function getGitHubAppInstallUrl(state?: string) {
+  if (!process.env.GITHUB_APP_SLUG) return null
+
+  const url = new URL(
+    `https://github.com/apps/${process.env.GITHUB_APP_SLUG}/installations/new`,
+  )
+  if (state) url.searchParams.set('state', state)
+  return url.toString()
+}
+
+export async function getGitHubInstallationMetadata(installationId: string) {
+  const octokit = getAppOctokit()
+  if (!octokit) return null
+
+  const response = await octokit.request(
+    'GET /app/installations/{installation_id}',
+    {
+      installation_id: Number(installationId),
+    },
+  )
+  const account = response.data.account
+
+  return {
+    accountId: account?.id ? String(account.id) : null,
+    accountLogin: account && 'login' in account ? account.login : null,
+  }
 }
 
 export async function listInstallationRepositories(installationId: string) {

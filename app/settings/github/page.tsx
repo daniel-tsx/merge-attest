@@ -8,6 +8,7 @@ import {
   listGitHubWebhookDiagnostics,
   listRepositories,
 } from '@/lib/data/app-data'
+import { createGitHubInstallationState } from '@/lib/github-installation-state'
 import { getGitHubAppInstallUrl } from '@/lib/github'
 import { formatDate } from '@/lib/utils'
 
@@ -27,7 +28,9 @@ export default async function GitHubSettingsPage() {
     listGitHubWebhookDiagnostics(organization.id),
   ])
   const configured = envVars.every((key) => Boolean(process.env[key]))
-  const installUrl = getGitHubAppInstallUrl()
+  const installUrl = getGitHubAppInstallUrl(
+    createGitHubInstallationState(organization.id),
+  )
   const failedDeliveries = webhookDiagnostics.filter(
     (delivery) => delivery.status === 'failed',
   ).length
