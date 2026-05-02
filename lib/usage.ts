@@ -78,18 +78,35 @@ export async function recordPrChecks(
   organizationId: string,
   quantity: number,
   now = new Date(),
+  sourceKey?: string,
 ) {
   const prisma = getPrismaClient()
-  if (!prisma || quantity <= 0) return
+  if (!prisma || quantity <= 0) return false
 
   const { periodStart, periodEnd } = getCurrentUsagePeriod(now)
+  if (sourceKey) {
+    const existing = await prisma.usageRecord.findUnique({
+      where: {
+        organizationId_metric_periodStart_sourceKey: {
+          organizationId,
+          metric: PR_CHECKS_METRIC,
+          periodStart,
+          sourceKey,
+        },
+      },
+    })
+    if (existing) return false
+  }
+
   await prisma.usageRecord.create({
     data: {
       organizationId,
       metric: PR_CHECKS_METRIC,
       quantity,
+      sourceKey,
       periodStart,
       periodEnd,
     },
   })
+  return true
 }

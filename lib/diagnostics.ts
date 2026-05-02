@@ -25,6 +25,17 @@ function statusFromBoolean(
   }
 }
 
+export function getJobRunnerDiagnostic(
+  env: Record<string, string | undefined> = process.env,
+): DiagnosticCheck {
+  return statusFromBoolean(
+    'job_runner',
+    Boolean(env.JOB_RUNNER_SECRET?.trim()),
+    'Job runner bearer secret is configured.',
+    'JOB_RUNNER_SECRET is missing; scheduled jobs cannot run safely.',
+  )
+}
+
 export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
   const prisma = getPrismaClient()
   const checks: DiagnosticCheck[] = []
@@ -71,13 +82,26 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
         : `Paddle billing mode is ${billingMode}.`,
   })
 
+  checks.push(getJobRunnerDiagnostic())
+
   if (prisma) {
-    const [queued, failed] = await Promise.all([
-      prisma.gitHubWebhookDelivery.count({
-        where: { status: { in: ['queued', 'processing'] } },
-      }),
-      prisma.gitHubWebhookDelivery.count({ where: { status: 'failed' } }),
-    ])
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const [queued, failed, staleProcessedDeliveries, staleAuditExports] =
+      await Promise.all([
+        prisma.gitHubWebhookDelivery.count({
+          where: { status: { in: ['queued', 'processing'] } },
+        }),
+        prisma.gitHubWebhookDelivery.count({ where: { status: 'failed' } }),
+        prisma.gitHubWebhookDelivery.count({
+          where: {
+            status: { in: ['processed', 'ignored'] },
+            createdAt: { lt: thirtyDaysAgo },
+          },
+        }),
+        prisma.auditExport.count({
+          where: { createdAt: { lt: thirtyDaysAgo } },
+        }),
+      ])
     checks.push({
       name: 'jobs',
       status: failed > 0 ? 'warning' : 'ok',
@@ -86,6 +110,21 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
           ? `${failed} webhook jobs need attention.`
           : 'Webhook job queue is healthy.',
       metadata: { queued, failed },
+    })
+    checks.push({
+      name: 'retention',
+      status:
+        staleProcessedDeliveries > 0 || staleAuditExports > 0
+          ? 'warning'
+          : 'ok',
+      message:
+        staleProcessedDeliveries > 0 || staleAuditExports > 0
+          ? 'Operational retention cleanup has stale records to remove.'
+          : 'Operational retention cleanup is current.',
+      metadata: {
+        staleProcessedDeliveries,
+        staleAuditExports,
+      },
     })
   }
 

@@ -114,14 +114,62 @@ export function getBillingStatusForPaddleEvent(
   return 'active'
 }
 
+export function isProcessedPaddleWebhookStatus(status?: string | null) {
+  return status === 'processed'
+}
+
 export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
   const prisma = getPrismaClient()
   if (!prisma || !subscriptionEvents.has(event.eventType)) {
     return { processed: false, message: 'Paddle event ignored.' }
   }
 
+  const existingEvent = event.eventId
+    ? await prisma.paddleWebhookEvent.findUnique({
+        where: { eventId: event.eventId },
+      })
+    : null
+  if (isProcessedPaddleWebhookStatus(existingEvent?.status)) {
+    return {
+      processed: false,
+      duplicate: true,
+      message: `Paddle ${event.eventType} already processed.`,
+    }
+  }
+
+  const delivery = event.eventId
+    ? existingEvent
+      ? await prisma.paddleWebhookEvent.update({
+          where: { id: existingEvent.id },
+          data: {
+            eventType: event.eventType,
+            status: 'processing',
+            message: null,
+            processedAt: null,
+          },
+        })
+      : await prisma.paddleWebhookEvent.create({
+          data: {
+            eventId: event.eventId,
+            eventType: event.eventType,
+            status: 'processing',
+          },
+        })
+    : null
+
   const organizationLookup = getOrganizationLookup(event.data)
   if (!organizationLookup) {
+    if (delivery) {
+      await prisma.paddleWebhookEvent.update({
+        where: { id: delivery.id },
+        data: {
+          status: 'ignored',
+          message:
+            'Paddle event did not include organization or subscription identifiers.',
+          processedAt: new Date(),
+        },
+      })
+    }
     return {
       processed: false,
       message:
@@ -140,6 +188,16 @@ export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
   })
 
   if (!organization) {
+    if (delivery) {
+      await prisma.paddleWebhookEvent.update({
+        where: { id: delivery.id },
+        data: {
+          status: 'ignored',
+          message: 'No organization matched this Paddle subscription event.',
+          processedAt: new Date(),
+        },
+      })
+    }
     return {
       processed: false,
       message: 'No organization matched this Paddle subscription event.',
@@ -198,6 +256,18 @@ export async function processPaddleSubscriptionEvent(event: PaddleEvent) {
       organizationId: organization.id,
     },
   })
+
+  if (delivery) {
+    await prisma.paddleWebhookEvent.update({
+      where: { id: delivery.id },
+      data: {
+        status: 'processed',
+        message: `Paddle ${event.eventType} processed.`,
+        organizationId: organization.id,
+        processedAt: new Date(),
+      },
+    })
+  }
 
   return { processed: true, message: `Paddle ${event.eventType} processed.` }
 }

@@ -60,11 +60,12 @@ function requiresOriginCheck(request: NextRequest) {
   if (!pathname.startsWith('/api/')) return false
   if (!isMutationMethod(request.method)) return false
   if (pathname.startsWith('/api/auth')) return false
+  if (pathname.startsWith('/api/jobs')) return false
   if (pathname.includes('/webhook')) return false
   return true
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (requiresOriginCheck(request) && !isTrustedMutationOrigin(request)) {

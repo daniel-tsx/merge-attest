@@ -44,4 +44,13 @@ describe('Paddle subscription helpers', () => {
       getBillingStatusForPaddleEvent('subscription.updated', 'active'),
     ).toBe('active')
   })
+
+  it('identifies processed webhook deliveries as duplicates', async () => {
+    const { isProcessedPaddleWebhookStatus } =
+      await import('../lib/paddle-webhooks')
+
+    expect(isProcessedPaddleWebhookStatus('processed')).toBe(true)
+    expect(isProcessedPaddleWebhookStatus('processing')).toBe(false)
+    expect(isProcessedPaddleWebhookStatus(null)).toBe(false)
+  })
 })

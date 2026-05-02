@@ -21,13 +21,14 @@ describe('environment safety', () => {
         DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/agentgate',
         BETTER_AUTH_SECRET: 'secret',
         GITHUB_WEBHOOK_SECRET: 'webhook',
+        JOB_RUNNER_SECRET: 'job',
       }),
     ).not.toThrow()
   })
 
   it('reports missing production secrets together', () => {
     expect(() => validateProductionEnv({ NODE_ENV: 'production' })).toThrow(
-      'DATABASE_URL, BETTER_AUTH_SECRET, GITHUB_WEBHOOK_SECRET',
+      'DATABASE_URL, BETTER_AUTH_SECRET, GITHUB_WEBHOOK_SECRET, JOB_RUNNER_SECRET',
     )
   })
 })

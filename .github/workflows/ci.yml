@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agentgate?schema=public
+      BETTER_AUTH_SECRET: ci-placeholder-better-auth-secret
+      BETTER_AUTH_URL: http://localhost:3000
+      GITHUB_WEBHOOK_SECRET: ci-placeholder-github-webhook-secret
+      JOB_RUNNER_SECRET: ci-placeholder-job-runner-secret
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Audit dependencies
+        run: pnpm audit --audit-level moderate
+
+      - name: Build
+        run: pnpm build

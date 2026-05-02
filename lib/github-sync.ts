@@ -11,8 +11,18 @@ import {
 } from '@/lib/github'
 import { canConsume, getPlanEntitlements } from '@/lib/entitlements'
 import { getPrismaClient } from '@/lib/prisma'
-import { getPrCheckUsage, recordPrChecks } from '@/lib/usage'
-import type { PlanKey, PullRequestFileInput, RepoRule } from '@/lib/types'
+import {
+  getCurrentUsagePeriod,
+  getPrCheckUsage,
+  PR_CHECKS_METRIC,
+  recordPrChecks,
+} from '@/lib/usage'
+import type {
+  ApprovalStatus,
+  PlanKey,
+  PullRequestFileInput,
+  RepoRule,
+} from '@/lib/types'
 
 type GitHubOwner = {
   login: string
@@ -158,9 +168,59 @@ function mapRules(
   }))
 }
 
-async function canRunPrCheck(organizationId: string) {
+export function getPrCheckSourceKey(input: {
+  repositoryId: string
+  pullNumber: number
+  headSha: string
+}) {
+  return `${input.repositoryId}:${input.pullNumber}:${input.headSha}`
+}
+
+export function getNextApprovalState(input: {
+  existing?: {
+    headSha: string | null
+    approvalStatus: ApprovalStatus
+    reviewDueAt: Date | null
+  } | null
+  headSha: string
+  requiresApproval: boolean
+  fallbackReviewDueAt: Date
+}) {
+  const existingApprovalStatus = input.existing?.approvalStatus
+  const shouldPreserveDecision =
+    input.existing?.headSha === input.headSha &&
+    (existingApprovalStatus === 'approved' ||
+      existingApprovalStatus === 'rejected' ||
+      existingApprovalStatus === 'risk_accepted')
+  const approvalStatus: ApprovalStatus = shouldPreserveDecision
+    ? (existingApprovalStatus ?? 'pending')
+    : input.requiresApproval
+      ? 'pending'
+      : 'not_required'
+  const reviewDueAt =
+    approvalStatus === 'pending'
+      ? (input.existing?.reviewDueAt ?? input.fallbackReviewDueAt)
+      : null
+
+  return { approvalStatus, reviewDueAt }
+}
+
+async function canRunPrCheck(organizationId: string, sourceKey: string) {
   const prisma = getPrismaClient()
   if (!prisma) return false
+
+  const { periodStart } = getCurrentUsagePeriod()
+  const existingCheck = await prisma.usageRecord.findUnique({
+    where: {
+      organizationId_metric_periodStart_sourceKey: {
+        organizationId,
+        metric: PR_CHECKS_METRIC,
+        periodStart,
+        sourceKey,
+      },
+    },
+  })
+  if (existingCheck) return true
 
   const organization = await prisma.organization.findUnique({
     where: { id: organizationId },
@@ -183,7 +243,12 @@ async function syncGitHubPullRequestRecord(input: {
 }) {
   const prisma = getPrismaClient()
   if (!prisma) return false
-  if (!(await canRunPrCheck(input.organizationId))) return false
+  const usageSourceKey = getPrCheckSourceKey({
+    repositoryId: input.repositoryId,
+    pullNumber: input.pullRequest.number,
+    headSha: input.pullRequest.head.sha,
+  })
+  if (!(await canRunPrCheck(input.organizationId, usageSourceKey))) return false
 
   const rawFiles = ((await listGitHubPullRequestFiles({
     owner: input.owner,
@@ -225,19 +290,6 @@ async function syncGitHubPullRequestRecord(input: {
     files,
     labels: [],
   })
-  const approvalStatus = violations.some(
-    (violation) =>
-      violation.actionType === 'require_approval' ||
-      violation.actionType === 'request_security_review' ||
-      violation.actionType === 'request_tests' ||
-      violation.actionType === 'block_merge',
-  )
-    ? 'pending'
-    : risk.score >= 50 || aiAssisted
-      ? 'pending'
-      : 'not_required'
-  const reviewDueAt =
-    approvalStatus === 'pending' ? defaultReviewDueAt(risk.level) : null
   const existing = await prisma.pullRequest.findUnique({
     where: {
       repositoryId_number: {
@@ -245,7 +297,28 @@ async function syncGitHubPullRequestRecord(input: {
         number: input.pullRequest.number,
       },
     },
-    select: { id: true },
+    select: {
+      id: true,
+      headSha: true,
+      approvalStatus: true,
+      reviewDueAt: true,
+    },
+  })
+  const requiresApproval =
+    violations.some(
+      (violation) =>
+        violation.actionType === 'require_approval' ||
+        violation.actionType === 'request_security_review' ||
+        violation.actionType === 'request_tests' ||
+        violation.actionType === 'block_merge',
+    ) ||
+    risk.score >= 50 ||
+    aiAssisted
+  const nextApprovalState = getNextApprovalState({
+    existing,
+    headSha: input.pullRequest.head.sha,
+    requiresApproval,
+    fallbackReviewDueAt: defaultReviewDueAt(risk.level),
   })
 
   const savedPullRequest = await prisma.pullRequest.upsert({
@@ -272,8 +345,8 @@ async function syncGitHubPullRequestRecord(input: {
       riskLevel: risk.level,
       testGapStatus: testGap.status,
       ciStatus: 'unknown',
-      approvalStatus,
-      reviewDueAt,
+      approvalStatus: nextApprovalState.approvalStatus,
+      reviewDueAt: nextApprovalState.reviewDueAt,
       filesChangedCount: files.length,
       linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
       linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
@@ -296,7 +369,8 @@ async function syncGitHubPullRequestRecord(input: {
       riskLevel: risk.level,
       testGapStatus: testGap.status,
       ciStatus: 'unknown',
-      approvalStatus,
+      approvalStatus: nextApprovalState.approvalStatus,
+      reviewDueAt: nextApprovalState.reviewDueAt,
       filesChangedCount: files.length,
       linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
       linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
@@ -388,11 +462,18 @@ async function syncGitHubPullRequestRecord(input: {
     },
   })
 
-  await recordPrChecks(input.organizationId, 1)
-  await prisma.repository.update({
-    where: { id: input.repositoryId },
-    data: { monthlyPrCheckUsage: { increment: 1 } },
-  })
+  const recordedUsage = await recordPrChecks(
+    input.organizationId,
+    1,
+    new Date(),
+    usageSourceKey,
+  )
+  if (recordedUsage) {
+    await prisma.repository.update({
+      where: { id: input.repositoryId },
+      data: { monthlyPrCheckUsage: { increment: 1 } },
+    })
+  }
 
   try {
     const checkRun = await publishAgentGateCheckRun({
@@ -406,7 +487,7 @@ async function syncGitHubPullRequestRecord(input: {
       riskLevel: risk.level,
       testGapStatus: testGap.status,
       ciStatus: 'unknown',
-      approvalStatus,
+      approvalStatus: nextApprovalState.approvalStatus,
     })
 
     if (checkRun.mode === 'live') {

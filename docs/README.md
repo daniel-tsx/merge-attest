@@ -46,6 +46,8 @@ The dashboard includes a first-run onboarding checklist that guides new organiza
 
 Audit exports are available at `/api/audit-log/export` for plans with the `auditExport` entitlement. The export returns CSV within the organization's current retention window, with unlimited retention for Enterprise.
 
+Operational jobs and incident checks are documented in `docs/OPERATIONS_RUNBOOK.md`.
+
 ## Database
 
 Set `DATABASE_URL` to a PostgreSQL database, then run:

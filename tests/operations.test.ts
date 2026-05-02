@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { summarizeDiagnostics } from '../lib/diagnostics'
+import { getJobRunnerDiagnostic, summarizeDiagnostics } from '../lib/diagnostics'
+import { authorizeJobRequest } from '../lib/job-auth'
 import {
   checkRateLimit,
   clearRateLimitBuckets,
@@ -8,6 +9,7 @@ import {
   rateLimitRules,
 } from '../lib/rate-limit'
 import { safeRelativeRedirect } from '../lib/redirects'
+import { getRetentionCutoff } from '../lib/retention'
 import { applySecurityHeaders, isTrustedMutationOrigin } from '../lib/security'
 
 describe('rate limits', () => {
@@ -80,7 +82,50 @@ describe('request security helpers', () => {
   })
 })
 
+describe('job authorization', () => {
+  it('requires the configured bearer token for job routes', () => {
+    process.env.JOB_RUNNER_SECRET = 'job-secret'
+
+    expect(
+      authorizeJobRequest(
+        new Request('https://app.example.test/api/jobs/github-webhooks', {
+          method: 'POST',
+          headers: { authorization: 'Bearer job-secret' },
+        }),
+      ).ok,
+    ).toBe(true)
+    expect(
+      authorizeJobRequest(
+        new Request('https://app.example.test/api/jobs/github-webhooks', {
+          method: 'POST',
+          headers: { authorization: 'Bearer wrong' },
+        }),
+      ).ok,
+    ).toBe(false)
+
+    delete process.env.JOB_RUNNER_SECRET
+  })
+})
+
+describe('retention helpers', () => {
+  it('computes retention cutoffs in whole-day windows', () => {
+    expect(
+      getRetentionCutoff(
+        30,
+        new Date('2026-05-31T12:00:00.000Z'),
+      ).toISOString(),
+    ).toBe('2026-05-01T12:00:00.000Z')
+  })
+})
+
 describe('diagnostics', () => {
+  it('reports job runner secret readiness', () => {
+    expect(
+      getJobRunnerDiagnostic({ JOB_RUNNER_SECRET: 'job-secret' }).status,
+    ).toBe('ok')
+    expect(getJobRunnerDiagnostic({}).status).toBe('warning')
+  })
+
   it('summarizes diagnostic severity', () => {
     expect(
       summarizeDiagnostics([{ name: 'database', status: 'ok', message: 'ok' }]),
@@ -96,5 +141,17 @@ describe('diagnostics', () => {
         { name: 'database', status: 'error', message: 'failed' },
       ]),
     ).toBe('error')
+  })
+})
+
+describe('public health route', () => {
+  it('returns minimal liveness without dependency diagnostics', async () => {
+    const { GET } = await import('../app/api/health/route')
+    const response = await GET()
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body).toEqual({ status: 'ok' })
+    expect(body.checks).toBeUndefined()
   })
 })

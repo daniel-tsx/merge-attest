@@ -46,6 +46,7 @@ export function validateProductionEnv(env: Env = process.env) {
     'DATABASE_URL',
     'BETTER_AUTH_SECRET',
     'GITHUB_WEBHOOK_SECRET',
+    'JOB_RUNNER_SECRET',
   ].filter((name) => !readEnv(name, env))
   if (missing.length) {
     throw new Error(

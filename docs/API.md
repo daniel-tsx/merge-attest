@@ -4,8 +4,10 @@ AgentGate exposes a small set of operational and integration endpoints.
 
 ## Health And Diagnostics
 
-- `GET /api/health`: public health summary with database, GitHub, Paddle, and job queue checks.
+- `GET /api/health`: public liveness check. It returns only `{ "status": "ok" }`.
 - `GET /api/diagnostics`: owner/admin diagnostic payload with plan limits, repository count, PR check usage, and recent webhook failures.
+- `POST /api/jobs/github-webhooks`: bearer-authenticated job runner for queued GitHub webhook deliveries. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
+- `POST /api/jobs/retention`: bearer-authenticated retention cleanup runner. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 
 ## Webhooks
 

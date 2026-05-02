@@ -19,9 +19,49 @@ const envVars = [
   'GITHUB_WEBHOOK_SECRET',
   'GITHUB_CLIENT_ID',
   'GITHUB_CLIENT_SECRET',
+  'JOB_RUNNER_SECRET',
 ]
 
-export default async function GitHubSettingsPage() {
+const syncMessages: Record<string, string> = {
+  live: 'GitHub sync completed against the connected installation.',
+  demo: 'GitHub sync could not run because the workspace is not fully connected.',
+}
+
+const backfillMessages: Record<string, string> = {
+  live: 'Backfill completed for stale connected repositories.',
+  demo: 'Backfill could not run because GitHub is not fully connected.',
+}
+
+function retryMessage(value: string) {
+  const processed = Number(value)
+  if (!Number.isFinite(processed)) return undefined
+  return `Webhook retry processed ${processed} queued deliver${processed === 1 ? 'y' : 'ies'}.`
+}
+
+function errorMessage(value: string) {
+  return value
+    .replaceAll('_', ' ')
+    .replace(/^\w/, (letter) => letter.toUpperCase())
+}
+
+function readParam(
+  params: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+) {
+  const value = params?.[key]
+  return Array.isArray(value) ? value[0] : value
+}
+
+export default async function GitHubSettingsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const params = searchParams ? await searchParams : undefined
+  const syncStatus = readParam(params, 'sync')
+  const backfillStatus = readParam(params, 'backfill')
+  const retryStatus = readParam(params, 'retry')
+  const errorStatus = readParam(params, 'error')
   const organization = await getCurrentOrganization()
   const [repositories, webhookDiagnostics] = await Promise.all([
     listRepositories(organization.id),
@@ -56,6 +96,26 @@ export default async function GitHubSettingsPage() {
           )
         }
       />
+      {syncStatus || backfillStatus || retryStatus || errorStatus ? (
+        <Card>
+          <CardContent className="space-y-2 p-4 text-sm text-muted-foreground">
+            {syncStatus && syncMessages[syncStatus] ? (
+              <p>{syncMessages[syncStatus]}</p>
+            ) : null}
+            {backfillStatus && backfillMessages[backfillStatus] ? (
+              <p>{backfillMessages[backfillStatus]}</p>
+            ) : null}
+            {retryStatus && retryMessage(retryStatus) ? (
+              <p>{retryMessage(retryStatus)}</p>
+            ) : null}
+            {errorStatus ? (
+              <p className="text-danger">
+                GitHub setup failed: {errorMessage(errorStatus)}.
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
       <Card>
         <CardHeader>
           <CardTitle>Integration Status</CardTitle>

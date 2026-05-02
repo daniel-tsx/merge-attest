@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  getNextApprovalState,
+  getPrCheckSourceKey,
   inferAgentSource,
   inferAiAssisted,
   mapGitHubPullRequestFile,
@@ -76,5 +78,46 @@ describe('GitHub sync helpers', () => {
         status: 'removed',
       }).changeType,
     ).toBe('deleted')
+  })
+
+  it('uses repository, pull request, and head SHA as the PR check source key', () => {
+    expect(
+      getPrCheckSourceKey({
+        repositoryId: 'repo_1',
+        pullNumber: 42,
+        headSha: 'abc123',
+      }),
+    ).toBe('repo_1:42:abc123')
+  })
+
+  it('preserves explicit approval decisions across same-SHA resyncs', () => {
+    const dueAt = new Date('2026-05-03T00:00:00.000Z')
+    const fallbackReviewDueAt = new Date('2026-05-04T00:00:00.000Z')
+
+    expect(
+      getNextApprovalState({
+        existing: {
+          headSha: 'abc123',
+          approvalStatus: 'approved',
+          reviewDueAt: dueAt,
+        },
+        headSha: 'abc123',
+        requiresApproval: true,
+        fallbackReviewDueAt,
+      }),
+    ).toEqual({ approvalStatus: 'approved', reviewDueAt: null })
+
+    expect(
+      getNextApprovalState({
+        existing: {
+          headSha: 'abc123',
+          approvalStatus: 'approved',
+          reviewDueAt: null,
+        },
+        headSha: 'def456',
+        requiresApproval: true,
+        fallbackReviewDueAt,
+      }),
+    ).toEqual({ approvalStatus: 'pending', reviewDueAt: fallbackReviewDueAt })
   })
 })
