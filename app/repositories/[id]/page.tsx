@@ -66,7 +66,7 @@ export default async function RepositoryDetailPage({
                 value={`/repositories/${repository.id}`}
               />
               <Button variant="secondary" type="submit">
-                <RefreshCw />
+                <RefreshCw aria-hidden="true" />
                 Sync repository
               </Button>
             </form>
@@ -125,6 +125,9 @@ export default async function RepositoryDetailPage({
           </CardHeader>
           <CardContent className="overflow-x-auto p-0">
             <Table>
+              <caption className="sr-only">
+                Pull requests for this repository with review status
+              </caption>
               <TableHeader>
                 <TableRow>
                   <TableHead>PR</TableHead>

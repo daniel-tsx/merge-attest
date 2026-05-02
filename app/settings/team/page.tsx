@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -66,7 +67,7 @@ export default async function TeamSettingsPage({
       />
       {teamStatus && teamMessages[teamStatus] ? (
         <Card>
-          <CardContent className="p-4 text-sm text-slate-700">
+          <CardContent className="p-4 text-sm text-muted-foreground">
             {teamMessages[teamStatus]}
           </CardContent>
         </Card>
@@ -75,10 +76,10 @@ export default async function TeamSettingsPage({
         <Card>
           <CardContent className="space-y-4 p-5">
             <div>
-              <h2 className="text-base font-semibold text-slate-950">
+              <h2 className="text-base font-semibold text-foreground">
                 Invite teammate
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 Invites expire after seven days and can be refreshed or revoked.
               </p>
             </div>
@@ -87,22 +88,32 @@ export default async function TeamSettingsPage({
               method="post"
               className="grid gap-3 md:grid-cols-[1fr_180px_auto]"
             >
-              <Input
-                type="email"
-                name="email"
-                placeholder="teammate@company.com"
-                required
-              />
-              <select
-                name="role"
-                defaultValue="member"
-                className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm"
-              >
-                <option value="admin">Admin</option>
-                <option value="member">Member</option>
-                <option value="viewer">Viewer</option>
-              </select>
-              <Button type="submit">Send invite</Button>
+              <label className="space-y-1.5">
+                <span className="block text-xs font-medium text-muted-foreground">
+                  Teammate email
+                </span>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="teammate@company.com"
+                  autoComplete="email"
+                  spellCheck={false}
+                  required
+                />
+              </label>
+              <label className="space-y-1.5">
+                <span className="block text-xs font-medium text-muted-foreground">
+                  Role
+                </span>
+                <Select name="role" defaultValue="member">
+                  <option value="admin">Admin</option>
+                  <option value="member">Member</option>
+                  <option value="viewer">Viewer</option>
+                </Select>
+              </label>
+              <Button type="submit" className="md:self-end">
+                Send invite
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -110,6 +121,9 @@ export default async function TeamSettingsPage({
       <Card>
         <CardContent className="overflow-x-auto p-0">
           <Table>
+            <caption className="sr-only">
+              Workspace members with role management actions
+            </caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
@@ -121,7 +135,7 @@ export default async function TeamSettingsPage({
             <TableBody>
               {members.map((member) => (
                 <TableRow key={member.id}>
-                  <TableCell className="font-medium text-slate-950">
+                  <TableCell className="font-medium text-foreground">
                     {member.name}
                   </TableCell>
                   <TableCell>{member.email}</TableCell>
@@ -143,16 +157,17 @@ export default async function TeamSettingsPage({
                             name="_action"
                             value="update_role"
                           />
-                          <select
+                          <Select
                             name="role"
                             defaultValue={member.role}
                             disabled={member.role === 'owner'}
-                            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs"
+                            aria-label={`Role for ${member.name}`}
+                            className="h-8 px-2 text-xs"
                           >
                             <option value="admin">Admin</option>
                             <option value="member">Member</option>
                             <option value="viewer">Viewer</option>
-                          </select>
+                          </Select>
                           <Button
                             type="submit"
                             size="sm"
@@ -184,7 +199,7 @@ export default async function TeamSettingsPage({
             </TableBody>
           </Table>
           {members.length === 0 ? (
-            <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+            <div className="border-t border-border p-4 text-sm text-muted-foreground">
               No members found for this workspace. The first signed-in user is
               added as owner automatically.
             </div>
@@ -194,6 +209,9 @@ export default async function TeamSettingsPage({
       <Card>
         <CardContent className="overflow-x-auto p-0">
           <Table>
+            <caption className="sr-only">
+              Pending and historical team invites
+            </caption>
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
@@ -207,7 +225,7 @@ export default async function TeamSettingsPage({
             <TableBody>
               {invites.map((invite) => (
                 <TableRow key={invite.id}>
-                  <TableCell className="font-medium text-slate-950">
+                  <TableCell className="font-medium text-foreground">
                     {invite.email}
                   </TableCell>
                   <TableCell>{invite.role}</TableCell>
@@ -251,7 +269,7 @@ export default async function TeamSettingsPage({
             </TableBody>
           </Table>
           {invites.length === 0 ? (
-            <div className="border-t border-slate-200 p-4 text-sm text-slate-600">
+            <div className="border-t border-border p-4 text-sm text-muted-foreground">
               No invites have been created yet.
             </div>
           ) : null}

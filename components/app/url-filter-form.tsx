@@ -82,6 +82,7 @@ export function UrlFilterForm({
     <div className="space-y-3">
       <form
         key={formKey}
+        aria-busy={isPending}
         className={cn('grid gap-3 md:items-end', className)}
         onSubmit={handleSubmit}
       >
@@ -112,6 +113,7 @@ export function UrlFilterForm({
                       : 'search'
                 }
                 defaultValue={String(values[field.name] ?? '')}
+                autoComplete="off"
                 placeholder={field.placeholder}
               />
             )}
@@ -131,6 +133,9 @@ export function UrlFilterForm({
           </Button>
         </div>
       </form>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {isPending ? 'Applying filters...' : ''}
+      </p>
       {activeFilters.length ? (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="font-medium">Active filters</span>

@@ -41,13 +41,13 @@ export default async function GitHubSettingsPage() {
           installUrl ? (
             <Button variant="secondary" asChild>
               <a href={installUrl}>
-                <GitPullRequest />
+                <GitPullRequest aria-hidden="true" />
                 Install GitHub App
               </a>
             </Button>
           ) : (
             <Button variant="secondary" disabled>
-              <GitPullRequest />
+              <GitPullRequest aria-hidden="true" />
               Set GITHUB_APP_SLUG
             </Button>
           )
@@ -98,7 +98,7 @@ export default async function GitHubSettingsPage() {
           >
             <input type="hidden" name="redirectTo" value="/settings/github" />
             <Button type="submit">
-              <GitPullRequest />
+              <GitPullRequest aria-hidden="true" />
               Sync repositories now
             </Button>
             <p className="text-sm text-slate-600">

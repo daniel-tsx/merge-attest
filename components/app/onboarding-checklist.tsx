@@ -6,10 +6,15 @@ import type { OnboardingStatus, OnboardingStep } from '@/lib/onboarding'
 
 function StepIcon({ status }: { status: OnboardingStep['status'] }) {
   if (status === 'complete')
-    return <CheckCircle2 className="size-5 text-success" />
+    return <CheckCircle2 className="size-5 text-success" aria-hidden="true" />
   if (status === 'blocked')
-    return <LockKeyhole className="size-5 text-subtle-foreground" />
-  return <Circle className="size-5 text-info" />
+    return (
+      <LockKeyhole
+        className="size-5 text-subtle-foreground"
+        aria-hidden="true"
+      />
+    )
+  return <Circle className="size-5 text-info" aria-hidden="true" />
 }
 
 function StepBadge({ status }: { status: OnboardingStep['status'] }) {

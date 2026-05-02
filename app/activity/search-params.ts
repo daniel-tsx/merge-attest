@@ -1,5 +1,6 @@
 import {
   createSearchParamsCache,
+  createSerializer,
   parseAsString,
   parseAsStringLiteral,
 } from 'nuqs/server'
@@ -31,3 +32,6 @@ export const activitySearchParams = {
 
 export const activitySearchParamsCache =
   createSearchParamsCache(activitySearchParams)
+
+export const serializeActivitySearchParams =
+  createSerializer(activitySearchParams)

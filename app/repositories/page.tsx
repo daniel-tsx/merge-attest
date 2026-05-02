@@ -51,7 +51,7 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
           <form action="/api/github/sync/repositories" method="post">
             <input type="hidden" name="redirectTo" value="/repositories" />
             <Button variant="secondary" type="submit">
-              <RefreshCw />
+              <RefreshCw aria-hidden="true" />
               Sync repositories
             </Button>
           </form>
@@ -91,7 +91,7 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
                       value="/repositories"
                     />
                     <Button type="submit">
-                      <RefreshCw />
+                      <RefreshCw aria-hidden="true" />
                       Sync repositories
                     </Button>
                   </form>
@@ -112,6 +112,10 @@ export default async function RepositoriesPage({ searchParams }: PageProps) {
               />
               <div className="overflow-x-auto">
                 <Table>
+                  <caption className="sr-only">
+                    Connected repositories with status, policy coverage, usage,
+                    risk, and sync time
+                  </caption>
                   <TableHeader className="sticky top-0 z-10">
                     <TableRow>
                       <TableHead>Name</TableHead>

@@ -1,5 +1,6 @@
 import {
   createSearchParamsCache,
+  createSerializer,
   parseAsString,
   parseAsStringLiteral,
 } from 'nuqs/server'
@@ -20,5 +21,9 @@ export const repositorySearchParams = {
 }
 
 export const repositorySearchParamsCache = createSearchParamsCache(
+  repositorySearchParams,
+)
+
+export const serializeRepositorySearchParams = createSerializer(
   repositorySearchParams,
 )

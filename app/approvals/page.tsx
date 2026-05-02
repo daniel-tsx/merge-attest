@@ -139,27 +139,42 @@ export default async function ApprovalsPage({ searchParams }: PageProps) {
                 method="post"
                 className="grid gap-2 md:grid-cols-[1fr_160px_auto]"
               >
-                <Select
-                  name="assigneeId"
-                  defaultValue={pr.assignedReviewer?.id ?? ''}
+                <label className="space-y-1.5">
+                  <span className="block text-xs font-medium text-muted-foreground">
+                    Assignee
+                  </span>
+                  <Select
+                    name="assigneeId"
+                    defaultValue={pr.assignedReviewer?.id ?? ''}
+                    disabled={!canRecord}
+                  >
+                    <option value="">Unassigned</option>
+                    {teamMembers
+                      .filter((member) => member.role !== 'viewer')
+                      .map((member) => (
+                        <option key={member.userId} value={member.userId}>
+                          {member.name}
+                        </option>
+                      ))}
+                  </Select>
+                </label>
+                <label className="space-y-1.5">
+                  <span className="block text-xs font-medium text-muted-foreground">
+                    Review due date
+                  </span>
+                  <Input
+                    type="date"
+                    name="reviewDueAt"
+                    defaultValue={pr.reviewDueAt?.slice(0, 10)}
+                    disabled={!canRecord}
+                  />
+                </label>
+                <Button
+                  type="submit"
+                  variant="secondary"
                   disabled={!canRecord}
+                  className="md:self-end"
                 >
-                  <option value="">Unassigned</option>
-                  {teamMembers
-                    .filter((member) => member.role !== 'viewer')
-                    .map((member) => (
-                      <option key={member.userId} value={member.userId}>
-                        {member.name}
-                      </option>
-                    ))}
-                </Select>
-                <Input
-                  type="date"
-                  name="reviewDueAt"
-                  defaultValue={pr.reviewDueAt?.slice(0, 10)}
-                  disabled={!canRecord}
-                />
-                <Button type="submit" variant="secondary" disabled={!canRecord}>
                   Assign
                 </Button>
               </form>

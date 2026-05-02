@@ -49,6 +49,10 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
           />
           <div className="overflow-x-auto">
             <Table>
+              <caption className="sr-only">
+                Pull request monitor results with repository, agent, risk, test,
+                CI, approval, diff, and updated status
+              </caption>
               <TableHeader className="sticky top-0 z-10">
                 <TableRow>
                   <TableHead>Pull request</TableHead>

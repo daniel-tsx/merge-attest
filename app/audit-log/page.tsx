@@ -88,6 +88,9 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
           />
           <div className="overflow-x-auto">
             <Table>
+              <caption className="sr-only">
+                Audit events matching the current filters
+              </caption>
               <TableHeader className="sticky top-0 z-10">
                 <TableRow>
                   <TableHead>Event</TableHead>
@@ -152,6 +155,9 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
           </div>
           <div className="overflow-x-auto">
             <Table>
+              <caption className="sr-only">
+                Saved audit exports for compliance traceability
+              </caption>
               <TableHeader>
                 <TableRow>
                   <TableHead>File</TableHead>

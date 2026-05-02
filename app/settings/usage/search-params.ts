@@ -1,4 +1,8 @@
-import { createSearchParamsCache, parseAsStringLiteral } from 'nuqs/server'
+import {
+  createSearchParamsCache,
+  createSerializer,
+  parseAsStringLiteral,
+} from 'nuqs/server'
 
 export const usageSearchParams = {
   period: parseAsStringLiteral([
@@ -9,3 +13,5 @@ export const usageSearchParams = {
 }
 
 export const usageSearchParamsCache = createSearchParamsCache(usageSearchParams)
+
+export const serializeUsageSearchParams = createSerializer(usageSearchParams)

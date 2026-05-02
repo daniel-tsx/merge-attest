@@ -108,6 +108,18 @@ Phase 6 adds a few code-level performance rules:
 - Keep Recharts isolated behind the dynamic chart client island unless a future profiling pass proves a different chart strategy is needed.
 - `@tanstack/react-query` remains unused; remove it only after confirming no near-term client data-fetching provider is planned.
 
+## Accessibility And Quality Patterns
+
+Phase 7 makes the polish checks repeatable:
+
+- Every form control needs a visible label. Use `aria-label` only for compact controls where a visible label would duplicate an adjacent heading.
+- Filter forms should expose pending state with `aria-busy` and a polite live region so server-rendered filter updates are announced.
+- Mutation feedback should use `role="status"` or `aria-live="polite"` with concise success/error copy.
+- Decorative Lucide icons inside labeled buttons, badges, cards, and navigation should set `aria-hidden="true"`.
+- Data tables should include a contextual `<caption className="sr-only">` when a visible card title already labels the table.
+- Route search-param modules should export serializers alongside parser caches when the same filters are used by forms, tests, or export routes.
+- URL-state tests should cover defaults, invalid enum fallbacks, and multi-filter serialization so bookmarkable filters do not regress silently.
+
 ## Verification Checklist
 
 Before merging UI changes:
@@ -116,4 +128,8 @@ Before merging UI changes:
 - Text and status colors remain readable.
 - Controls have clear hover, active, disabled, and pending states.
 - Components do not rely on hover-only interactions.
+- Form controls have visible labels or a deliberate accessible name.
+- Tables have visible headings plus screen-reader captions when needed.
+- Async success, error, and filter-pending states are announced politely.
+- URL parser and serializer tests cover changed filter modules.
 - Changed surfaces still render correctly at mobile and desktop widths.

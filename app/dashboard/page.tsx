@@ -129,7 +129,10 @@ export default async function DashboardPage() {
                     {description}
                   </p>
                 </div>
-                <Icon className="size-5 text-subtle-foreground" />
+                <Icon
+                  className="size-5 text-subtle-foreground"
+                  aria-hidden="true"
+                />
               </CardContent>
             </Card>
           )
@@ -251,6 +254,10 @@ export default async function DashboardPage() {
           </div>
           <div className="overflow-x-auto">
             <Table>
+              <caption className="sr-only">
+                Repository risk profiles ranked by average risk and risky pull
+                requests
+              </caption>
               <TableHeader>
                 <TableRow>
                   <TableHead>Repository</TableHead>
@@ -296,6 +303,9 @@ export default async function DashboardPage() {
             </div>
             <div className="overflow-x-auto">
               <Table>
+                <caption className="sr-only">
+                  High-attention pull requests with risk, tests, and CI status
+                </caption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>PR</TableHead>

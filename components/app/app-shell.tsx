@@ -159,9 +159,9 @@ function Navigation({
     <nav className="space-y-5" aria-label="Primary navigation">
       {navSections.map((section) => (
         <div key={section.label}>
-          <div className="px-3 text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
+          <h2 className="px-3 text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
             {section.label}
-          </div>
+          </h2>
           <div className="mt-2 space-y-1">
             {section.items.map((item) => (
               <NavLink

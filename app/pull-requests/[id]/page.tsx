@@ -146,6 +146,8 @@ export default async function PullRequestDetailPage({
             <div
               key={message.text}
               role="status"
+              aria-live="polite"
+              aria-atomic="true"
               className={`rounded-card border px-4 py-3 text-sm ${feedbackClasses(
                 message.tone,
               )}`}
@@ -244,6 +246,9 @@ export default async function PullRequestDetailPage({
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
               <Table>
+                <caption className="sr-only">
+                  Changed files with change type, additions, and deletions
+                </caption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Path</TableHead>
@@ -319,24 +324,34 @@ export default async function PullRequestDetailPage({
                   method="post"
                   className="mt-3 grid gap-2"
                 >
-                  <Select
-                    name="assigneeId"
-                    defaultValue={pr.assignedReviewer?.id ?? ''}
-                    disabled={!canRecord}
-                  >
-                    <option value="">Unassigned</option>
-                    {reviewers.map((member) => (
-                      <option key={member.userId} value={member.userId}>
-                        {member.name}
-                      </option>
-                    ))}
-                  </Select>
-                  <Input
-                    type="date"
-                    name="reviewDueAt"
-                    defaultValue={pr.reviewDueAt?.slice(0, 10)}
-                    disabled={!canRecord}
-                  />
+                  <label className="space-y-1.5">
+                    <span className="block text-xs font-medium text-muted-foreground">
+                      Assignee
+                    </span>
+                    <Select
+                      name="assigneeId"
+                      defaultValue={pr.assignedReviewer?.id ?? ''}
+                      disabled={!canRecord}
+                    >
+                      <option value="">Unassigned</option>
+                      {reviewers.map((member) => (
+                        <option key={member.userId} value={member.userId}>
+                          {member.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </label>
+                  <label className="space-y-1.5">
+                    <span className="block text-xs font-medium text-muted-foreground">
+                      Review due date
+                    </span>
+                    <Input
+                      type="date"
+                      name="reviewDueAt"
+                      defaultValue={pr.reviewDueAt?.slice(0, 10)}
+                      disabled={!canRecord}
+                    />
+                  </label>
                   <Button
                     type="submit"
                     variant="secondary"
@@ -395,12 +410,17 @@ export default async function PullRequestDetailPage({
                 method="post"
                 className="space-y-2"
               >
-                <Textarea
-                  name="body"
-                  placeholder="Add an internal review note"
-                  maxLength={2000}
-                  disabled={!canRecord}
-                />
+                <label className="space-y-1.5">
+                  <span className="block text-xs font-medium text-muted-foreground">
+                    Internal review note
+                  </span>
+                  <Textarea
+                    name="body"
+                    placeholder="Add an internal review note"
+                    maxLength={2000}
+                    disabled={!canRecord}
+                  />
+                </label>
                 <Button
                   type="submit"
                   size="sm"

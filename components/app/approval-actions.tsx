@@ -154,25 +154,34 @@ export function ApprovalActions({
   const formDisabled = !canRecord || isPending || isRefreshing
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form
+      action={formAction}
+      className="space-y-3"
+      aria-busy={isPending || isRefreshing}
+    >
       {!canRecord ? (
         <p className="rounded-control border border-info-border bg-info-soft p-3 text-sm text-info">
           You have read-only access to approval decisions.
         </p>
       ) : null}
-      <Textarea
-        value={note}
-        onChange={(event) => setNote(event.target.value)}
-        placeholder="Optional reviewer note"
-        maxLength={1000}
-        disabled={formDisabled}
-        name="note"
-      />
+      <label className="space-y-1.5">
+        <span className="block text-xs font-medium text-muted-foreground">
+          Optional reviewer note
+        </span>
+        <Textarea
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          placeholder="Add reviewer context"
+          maxLength={1000}
+          disabled={formDisabled}
+          name="note"
+        />
+      </label>
       <div className="flex flex-wrap gap-2">
         <ApprovalDecisionButton
           decision="approved"
           disabled={formDisabled}
-          icon={<Check />}
+          icon={<Check aria-hidden="true" />}
           label="Approve"
           pendingLabel="Approving..."
           variant="default"
@@ -180,21 +189,21 @@ export function ApprovalActions({
         <ApprovalDecisionButton
           decision="requested_tests"
           disabled={formDisabled}
-          icon={<MessageSquare />}
+          icon={<MessageSquare aria-hidden="true" />}
           label="Request tests"
           pendingLabel="Requesting..."
         />
         <ApprovalDecisionButton
           decision="risk_accepted"
           disabled={formDisabled}
-          icon={<ShieldAlert />}
+          icon={<ShieldAlert aria-hidden="true" />}
           label="Accept risk"
           pendingLabel="Recording..."
         />
         <ApprovalDecisionButton
           decision="rejected"
           disabled={formDisabled}
-          icon={<X />}
+          icon={<X aria-hidden="true" />}
           label="Reject"
           pendingLabel="Rejecting..."
           variant="danger"
