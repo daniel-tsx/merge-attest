@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { AuthShell } from '@/components/app/auth-shell'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 export default function ForgotPasswordPage() {
@@ -37,66 +37,68 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
-            <ShieldCheck className="size-5" />
+    <AuthShell
+      title="Reset your password"
+      description="Enter your email and we&apos;ll send a secure reset link if the account exists."
+      footer={
+        <Link
+          href="/sign-in"
+          className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-accent"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" />
+          Back to sign in
+        </Link>
+      }
+    >
+      {sent ? (
+        <div className="space-y-5 text-center">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-control bg-success-soft text-success-strong">
+            <CheckCircle2 className="size-6" aria-hidden="true" />
           </div>
-          <CardTitle className="text-xl">Reset your password</CardTitle>
-          <p className="text-sm text-slate-600">
-            Enter your email and we will send a secure reset link if the account
-            exists.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {sent ? (
-            <div className="space-y-4">
-              <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
-                Check your email for the password reset link.
-              </p>
-              <Button asChild className="w-full" variant="secondary">
-                <Link href="/sign-in">Back to sign in</Link>
-              </Button>
-            </div>
-          ) : (
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="space-y-1.5">
-                <label
-                  className="text-sm font-medium text-slate-700"
-                  htmlFor="email"
-                >
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              {error ? (
-                <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
-                </p>
-              ) : null}
-              <Button className="w-full" type="submit" disabled={submitting}>
-                {submitting ? 'Sending reset link...' : 'Send reset link'}
-              </Button>
-            </form>
-          )}
-          <p className="mt-4 text-center text-sm text-slate-600">
-            Remembered it?{' '}
-            <Link
-              className="font-medium text-slate-950 hover:underline"
-              href="/sign-in"
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              Check your inbox
+            </h2>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              If an account exists, we&apos;ve sent a password reset link to your
+              email. The link is single-use and expires within an hour.
+            </p>
+          </div>
+          <Button asChild className="w-full" variant="secondary">
+            <Link href="/sign-in">Return to sign in</Link>
+          </Button>
+        </div>
+      ) : (
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="space-y-1.5">
+            <label
+              className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+              htmlFor="email"
             >
-              Sign in
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+              Work email
+            </label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@company.com"
+              required
+            />
+          </div>
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-control border border-danger-border bg-danger-soft px-3 py-2 text-sm text-danger"
+            >
+              {error}
+            </p>
+          ) : null}
+          <Button className="w-full" type="submit" disabled={submitting}>
+            {submitting ? 'Sending reset link...' : 'Send reset link'}
+          </Button>
+        </form>
+      )}
+    </AuthShell>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { Filter, X } from 'lucide-react'
 import { useQueryStates, type UseQueryStatesKeysMap } from 'nuqs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,7 +89,7 @@ export function UrlFilterForm({
       >
         {fields.map((field) => (
           <label key={field.name} className="space-y-1.5">
-            <span className="block text-xs font-medium text-muted-foreground">
+            <span className="block text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
               {field.label}
             </span>
             {field.type === 'select' ? (
@@ -121,6 +122,7 @@ export function UrlFilterForm({
         ))}
         <div className="flex gap-2">
           <Button type="submit" variant="secondary" disabled={isPending}>
+            <Filter aria-hidden="true" />
             {isPending ? 'Applying...' : 'Apply'}
           </Button>
           <Button
@@ -137,12 +139,14 @@ export function UrlFilterForm({
         {isPending ? 'Applying filters...' : ''}
       </p>
       {activeFilters.length ? (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-medium">Active filters</span>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="font-medium uppercase tracking-wider text-subtle-foreground">
+            Active
+          </span>
           {activeFilters.map((filter) => (
             <span
               key={filter.name}
-              className="rounded-full border border-border bg-surface-subtle px-2.5 py-1 text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface-subtle px-2.5 py-1 font-medium text-foreground"
             >
               {filter.label}
             </span>
@@ -154,6 +158,7 @@ export function UrlFilterForm({
             disabled={isPending}
             onClick={handleReset}
           >
+            <X aria-hidden="true" />
             Clear all
           </Button>
         </div>

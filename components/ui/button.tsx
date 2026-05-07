@@ -4,21 +4,29 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control text-sm font-medium transition-colors duration-150 focus-visible:border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+  'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-control text-sm font-medium tracking-tight transition-[background-color,color,border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary-hover',
+        default:
+          'bg-primary text-primary-foreground shadow-card hover:bg-primary-hover',
         secondary:
-          'border border-border bg-surface text-foreground hover:bg-surface-hover',
+          'border border-border bg-surface text-foreground shadow-card hover:bg-surface-hover hover:border-border-strong',
         ghost:
           'text-muted-foreground hover:bg-surface-hover hover:text-foreground',
-        danger: 'bg-danger text-danger-foreground hover:bg-danger-hover',
+        accent:
+          'bg-accent text-accent-foreground shadow-card hover:bg-accent-hover',
+        danger:
+          'bg-danger text-danger-foreground shadow-card hover:bg-danger-hover',
+        outline:
+          'border border-border-strong bg-transparent text-foreground hover:bg-surface-hover',
       },
       size: {
         default: 'h-10 px-4',
-        sm: 'h-9 px-3 text-xs',
+        sm: 'h-8 px-3 text-xs',
+        lg: 'h-11 px-5 text-sm',
         icon: 'size-10 px-0',
+        'icon-sm': 'size-8 px-0',
       },
     },
     defaultVariants: {

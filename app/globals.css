@@ -1,61 +1,94 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* Surfaces — warm-cool neutral system */
+  --background: #f6f7f9;
+  --foreground: #0b1220;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --surface-subtle: #f1f5f9;
-  --surface-hover: #f8fafc;
-  --surface-pressed: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --muted: #f1f5f9;
-  --muted-foreground: #475569;
-  --subtle-foreground: #64748b;
-  --primary: #0f172a;
-  --primary-hover: #1e293b;
+  --surface-elevated: #ffffff;
+  --surface-muted: #f3f4f7;
+  --surface-subtle: #eef0f4;
+  --surface-hover: #f3f4f7;
+  --surface-pressed: #e8eaef;
+
+  /* Borders */
+  --border: #e4e7ec;
+  --border-strong: #cdd2da;
+  --border-subtle: #eef0f4;
+  --divider: #eef0f4;
+
+  /* Text */
+  --muted: #f3f4f7;
+  --muted-foreground: #4b5565;
+  --subtle-foreground: #6b7280;
+
+  /* Primary — deep indigo-charcoal */
+  --primary: #0b1220;
+  --primary-hover: #1c2434;
   --primary-foreground: #ffffff;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: #eff6ff;
+
+  /* Accent — refined cobalt */
+  --accent: #2d50e6;
+  --accent-hover: #233fc1;
+  --accent-soft: #eef2ff;
   --accent-foreground: #ffffff;
+  --accent-ring: #c5d0fb;
+
+  /* Status — calm but distinct */
   --success: #047857;
+  --success-strong: #065f46;
   --success-soft: #ecfdf5;
   --success-border: #a7f3d0;
-  --warning: #a16207;
-  --warning-soft: #fefce8;
+  --warning: #92580b;
+  --warning-soft: #fffbeb;
   --warning-border: #fde68a;
-  --attention: #c2410c;
-  --attention-soft: #fff7ed;
+  --attention: #b4470a;
+  --attention-soft: #fff3e8;
   --attention-border: #fed7aa;
-  --danger: #dc2626;
-  --danger-hover: #b91c1c;
-  --danger-soft: #fef2f2;
-  --danger-border: #fecaca;
+  --danger: #c4233c;
+  --danger-hover: #9f1c30;
+  --danger-soft: #fef2f4;
+  --danger-border: #fecdd3;
   --danger-foreground: #ffffff;
-  --info: #1d4ed8;
-  --info-soft: #eff6ff;
-  --info-border: #bfdbfe;
-  --focus: #2563eb;
-  --focus-ring: #bfdbfe;
+  --info: #1e44d6;
+  --info-soft: #eef2ff;
+  --info-border: #c7d0fb;
+
+  /* Interaction */
+  --focus: #2d50e6;
+  --focus-ring: #c5d0fb;
+
+  /* Elevation — softer, more layered */
   --shadow-card:
-    0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.08);
-  --shadow-card-hover: 0 8px 24px -16px rgb(15 23 42 / 0.35);
+    0 1px 1px rgb(15 23 42 / 0.04),
+    0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-card-hover:
+    0 4px 12px -4px rgb(15 23 42 / 0.12),
+    0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-overlay:
+    0 24px 48px -16px rgb(15 23 42 / 0.22),
+    0 8px 24px -12px rgb(15 23 42 / 0.18);
+  --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+
+  /* Shape */
   --radius-control: 0.5rem;
   --radius-card: 0.875rem;
+  --radius-pill: 9999px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
   --color-surface-muted: var(--surface-muted);
   --color-surface-subtle: var(--surface-subtle);
   --color-surface-hover: var(--surface-hover);
   --color-surface-pressed: var(--surface-pressed);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-border-subtle: var(--border-subtle);
+  --color-divider: var(--divider);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-subtle-foreground: var(--subtle-foreground);
@@ -66,7 +99,9 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-ring: var(--accent-ring);
   --color-success: var(--success);
+  --color-success-strong: var(--success-strong);
   --color-success-soft: var(--success-soft);
   --color-success-border: var(--success-border);
   --color-warning: var(--warning);
@@ -87,8 +122,11 @@
   --color-focus-ring: var(--focus-ring);
   --shadow-card: var(--shadow-card);
   --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-inset: var(--shadow-inset);
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -97,10 +135,23 @@
   border-color: var(--border);
 }
 
+html {
+  font-feature-settings:
+    'cv11' 1,
+    'ss01' 1,
+    'cv02' 1,
+    'cv03' 1;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings:
+    'cv11' 1,
+    'ss01' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -114,6 +165,30 @@ textarea {
 ::selection {
   background: var(--accent-soft);
   color: var(--foreground);
+}
+
+/* Subtle dotted backdrop reserved for branded surfaces */
+.bg-dot-grid {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--foreground) 10%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+}
+
+.bg-dot-grid-on-dark {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, white 8%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+}
+
+/* Numerical/metric typography */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,7 +4,12 @@ import { usePathname } from 'next/navigation'
 import { AppShell } from '@/components/app/app-shell'
 import type { PlanKey } from '@/lib/types'
 
-const publicRoutes = new Set(['/sign-in', '/sign-up'])
+const publicRoutes = new Set([
+  '/sign-in',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+])
 
 export function RootShell({
   children,

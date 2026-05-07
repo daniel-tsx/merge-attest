@@ -1,5 +1,6 @@
 import type { SearchParams } from 'nuqs/server'
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { PullRequestFilters } from '@/app/pull-requests/filters'
@@ -36,18 +37,19 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Pull Request Monitor"
+        eyebrow="Review work"
+        title="Pull request monitor"
         description="Scan AI-assisted pull requests by risk, test gap, CI state, and approval status."
       />
       <Card>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           <PullRequestFilters />
           <ResultSummary
             count={pullRequests.length}
             label="pull requests"
             detail="Matching the current URL filters"
           />
-          <div className="overflow-x-auto">
+          <div className="-mx-5 overflow-x-auto">
             <Table>
               <caption className="sr-only">
                 Pull request monitor results with repository, agent, risk, test,
@@ -64,7 +66,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                   <TableHead>Approval</TableHead>
                   <TableHead>Diff</TableHead>
                   <TableHead>Updated</TableHead>
-                  <TableHead>Action</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -72,17 +74,22 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                   <TableRow key={item.id}>
                     <TableCell className="min-w-80">
                       <Link
-                        className="font-medium text-foreground hover:underline"
+                        className="font-medium text-foreground hover:text-accent"
                         href={`/pull-requests/${item.id}`}
                       >
                         #{item.number} {item.title}
                       </Link>
-                      <div className="text-xs text-muted-foreground">
-                        {item.author} · {item.branch} → {item.baseBranch}
+                      <div className="mt-0.5 text-xs text-subtle-foreground">
+                        {item.author} ·{' '}
+                        <span className="font-mono text-[11px]">
+                          {item.branch} → {item.baseBranch}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell>{item.repositoryName}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-foreground">
+                      {item.repositoryName}
+                    </TableCell>
+                    <TableCell className="capitalize">
                       {item.aiAssisted === null
                         ? 'unknown'
                         : item.agentSource.replace('_', ' ')}
@@ -90,7 +97,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <RiskBadge level={item.riskLevel} />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs tabular-nums text-muted-foreground">
                           {item.riskScore}
                         </span>
                       </div>
@@ -104,17 +111,26 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
                     <TableCell>
                       <ApprovalBadge status={item.approvalStatus} />
                     </TableCell>
-                    <TableCell>
-                      +{formatNumber(item.linesAdded)} / -
-                      {formatNumber(item.linesDeleted)}
+                    <TableCell className="font-mono text-xs">
+                      <span className="text-success-strong">
+                        +{formatNumber(item.linesAdded)}
+                      </span>
+                      <span className="text-subtle-foreground"> / </span>
+                      <span className="text-danger">
+                        -{formatNumber(item.linesDeleted)}
+                      </span>
                     </TableCell>
                     <TableCell>{formatDate(item.updatedAt)}</TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       <Link
                         href={`/pull-requests/${item.id}`}
-                        className="text-sm font-medium text-foreground hover:underline"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
                       >
                         Review
+                        <ArrowUpRight
+                          className="size-3.5"
+                          aria-hidden="true"
+                        />
                       </Link>
                     </TableCell>
                   </TableRow>
@@ -122,7 +138,7 @@ export default async function PullRequestsPage({ searchParams }: PageProps) {
               </TableBody>
             </Table>
             {pullRequests.length === 0 ? (
-              <div className="border-t border-border p-4">
+              <div className="border-t border-border p-5">
                 <EmptyState
                   title="No pull requests match these filters"
                   description="Sync repositories or clear the filters to see more results."
