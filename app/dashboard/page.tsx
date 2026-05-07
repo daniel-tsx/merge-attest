@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
+import { MetricCard } from '@/components/app/metric-card'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
 import { CiBadge, RiskBadge, TestGapBadge } from '@/components/app/status-badge'
@@ -34,17 +35,6 @@ import { githubConfigured } from '@/lib/github'
 import { getOnboardingStatus } from '@/lib/onboarding'
 import { buildReportingMetrics } from '@/lib/reporting'
 import { formatDate, formatNumber } from '@/lib/utils'
-
-const metricIcons = [
-  Boxes,
-  GitPullRequest,
-  ShieldAlert,
-  TestTube2,
-  CheckCircle2,
-  AlertTriangle,
-  Activity,
-  ListChecks,
-]
 
 export default async function DashboardPage() {
   const organization = await getCurrentOrganization()
@@ -91,57 +81,105 @@ export default async function DashboardPage() {
       0,
     ),
   }
-  const metricCards = [
-    ['Pending approvals', metrics.pendingApprovals, 'Decisions waiting'],
-    ['High-risk PRs', metrics.highRiskPrs, 'Needs attention'],
-    ['Failed CI checks', metrics.failedCiChecks, 'Blocking confidence'],
-    ['PRs with test gaps', metrics.prsWithTestGaps, 'Needs test review'],
-    ['Repositories', metrics.repositoriesConnected, 'Connected sources'],
-    ['AI PRs this week', metrics.aiPrsThisWeek, 'AI-assisted volume'],
-    ['Average risk score', metrics.averageRiskScore, 'Across open PRs'],
-    ['Rule violations', metrics.ruleViolations, 'Policy signals'],
-  ] as const
+
+  const heroMetrics = [
+    {
+      label: 'Pending approvals',
+      value: metrics.pendingApprovals,
+      description: 'Decisions waiting on a reviewer',
+      icon: CheckCircle2,
+      tone: metrics.pendingApprovals > 0 ? ('accent' as const) : ('neutral' as const),
+    },
+    {
+      label: 'High-risk PRs',
+      value: metrics.highRiskPrs,
+      description: 'High or critical risk score',
+      icon: ShieldAlert,
+      tone: metrics.highRiskPrs > 0 ? ('danger' as const) : ('success' as const),
+    },
+    {
+      label: 'Failed CI checks',
+      value: metrics.failedCiChecks,
+      description: 'Blocking merge confidence',
+      icon: AlertTriangle,
+      tone: metrics.failedCiChecks > 0 ? ('warning' as const) : ('success' as const),
+    },
+    {
+      label: 'PRs with test gaps',
+      value: metrics.prsWithTestGaps,
+      description: 'Suggested test coverage',
+      icon: TestTube2,
+      tone: metrics.prsWithTestGaps > 0 ? ('warning' as const) : ('success' as const),
+    },
+  ]
+
+  const secondaryMetrics = [
+    {
+      label: 'Repositories',
+      value: metrics.repositoriesConnected,
+      description: 'Connected sources',
+      icon: Boxes,
+    },
+    {
+      label: 'AI PRs',
+      value: metrics.aiPrsThisWeek,
+      description: 'AI-assisted volume',
+      icon: GitPullRequest,
+    },
+    {
+      label: 'Average risk',
+      value: metrics.averageRiskScore,
+      description: 'Across open PRs',
+      icon: Activity,
+    },
+    {
+      label: 'Rule violations',
+      value: metrics.ruleViolations,
+      description: 'Policy signals',
+      icon: ListChecks,
+    },
+  ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow="Overview"
         title="Dashboard"
         description="Operational view of AI-assisted pull requests, test gaps, approval pressure, and risky changes."
       />
       <OnboardingChecklist status={onboardingStatus} />
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {metricCards.map(([label, value, description], index) => {
-          const Icon = metricIcons[index]
-          return (
-            <Card
-              key={label}
-              className={index < 4 ? 'border-border-strong' : undefined}
-            >
-              <CardContent className="flex items-center justify-between p-4">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {label}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">
-                    {formatNumber(value)}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {description}
-                  </p>
-                </div>
-                <Icon
-                  className="size-5 text-subtle-foreground"
-                  aria-hidden="true"
-                />
-              </CardContent>
-            </Card>
-          )
-        })}
+
+      <section className="space-y-3">
+        <h2 className="sr-only">Key metrics</h2>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {heroMetrics.map((metric) => (
+            <MetricCard
+              key={metric.label}
+              label={metric.label}
+              value={formatNumber(metric.value)}
+              description={metric.description}
+              icon={metric.icon}
+              tone={metric.tone}
+            />
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {secondaryMetrics.map((metric) => (
+            <MetricCard
+              key={metric.label}
+              label={metric.label}
+              value={formatNumber(metric.value)}
+              description={metric.description}
+              icon={metric.icon}
+            />
+          ))}
+        </div>
       </section>
+
       <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Compliance Reporting</CardTitle>
+            <CardTitle>Compliance reporting</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2">
             {[
@@ -155,12 +193,12 @@ export default async function DashboardPage() {
             ].map(([label, value]) => (
               <div
                 key={label}
-                className="rounded-control border border-border bg-surface-muted p-3"
+                className="rounded-control border border-border bg-surface-muted/40 p-4"
               >
-                <div className="text-xs uppercase text-muted-foreground">
+                <div className="text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
                   {label}
                 </div>
-                <div className="mt-2 text-xl font-semibold text-foreground">
+                <div className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
                   {value}
                 </div>
               </div>
@@ -169,19 +207,19 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Noisy Rules</CardTitle>
+            <CardTitle>Noisy rules</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2">
             {reportingMetrics.noisyRules.length ? (
               reportingMetrics.noisyRules.map((rule) => (
                 <div
                   key={rule.ruleName}
-                  className="flex items-center justify-between rounded-control border border-border p-3 text-sm"
+                  className="flex items-center justify-between rounded-control border border-border bg-surface-muted/30 px-3 py-2.5 text-sm"
                 >
                   <span className="font-medium text-foreground">
                     {rule.ruleName}
                   </span>
-                  <span className="text-muted-foreground">
+                  <span className="rounded-pill bg-surface px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground ring-1 ring-border">
                     {rule.count} triggers
                   </span>
                 </div>
@@ -190,23 +228,23 @@ export default async function DashboardPage() {
               <EmptyState
                 title="No noisy rules yet"
                 description="Rule trigger data will appear after repositories have synced pull requests."
-                className="p-4"
+                className="py-6"
               />
             )}
           </CardContent>
         </Card>
       </section>
+
       <section className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Risk Trend</CardTitle>
+            <CardTitle>Risk trend</CardTitle>
           </CardHeader>
           <CardContent>
             {trendData.length ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Tracking average risk across {trendData.length} reporting
-                  periods.
+                  Average risk across {trendData.length} reporting periods.
                 </p>
                 <TrendChart data={trendData} metric="risk" />
               </div>
@@ -220,14 +258,13 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Test Gap Trend</CardTitle>
+            <CardTitle>Test gap trend</CardTitle>
           </CardHeader>
           <CardContent>
             {trendData.length ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Showing detected test gaps across {trendData.length} reporting
-                  periods.
+                  Detected test gaps across {trendData.length} reporting periods.
                 </p>
                 <TrendChart data={trendData} metric="testGaps" />
               </div>
@@ -240,12 +277,13 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </section>
+
       <Card>
         <CardHeader>
-          <CardTitle>Repository Risk Profiles</CardTitle>
+          <CardTitle>Repository risk profiles</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="px-4 pt-4">
+          <div className="px-5 pt-5">
             <ResultSummary
               count={reportingMetrics.repositoryRiskProfiles.length}
               label="repository profiles"
@@ -261,7 +299,7 @@ export default async function DashboardPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Repository</TableHead>
-                  <TableHead>Average Risk</TableHead>
+                  <TableHead>Average risk</TableHead>
                   <TableHead>Risky PRs</TableHead>
                 </TableRow>
               </TableHeader>
@@ -279,7 +317,7 @@ export default async function DashboardPage() {
             </Table>
           </div>
           {reportingMetrics.repositoryRiskProfiles.length === 0 ? (
-            <div className="p-4">
+            <div className="p-5">
               <EmptyState
                 title="No repository risk profiles yet"
                 description="Repository risk profiles will appear after pull requests are synced."
@@ -288,13 +326,14 @@ export default async function DashboardPage() {
           ) : null}
         </CardContent>
       </Card>
+
       <section className="grid gap-4 xl:grid-cols-[1.35fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>High Attention Pull Requests</CardTitle>
+            <CardTitle>High-attention pull requests</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="px-4 pt-4">
+            <div className="px-5 pt-5">
               <ResultSummary
                 count={highAttentionPullRequests.length}
                 label="pull requests"
@@ -319,13 +358,13 @@ export default async function DashboardPage() {
                   {highAttentionPullRequests.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="min-w-72">
-                        <a
-                          className="font-medium text-foreground hover:underline"
+                        <Link
+                          className="font-medium text-foreground hover:text-accent"
                           href={`/pull-requests/${item.id}`}
                         >
                           #{item.number} {item.title}
-                        </a>
-                        <div className="text-xs text-muted-foreground">
+                        </Link>
+                        <div className="mt-0.5 text-xs text-subtle-foreground">
                           {item.author}
                         </div>
                       </TableCell>
@@ -333,7 +372,7 @@ export default async function DashboardPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <RiskBadge level={item.riskLevel} />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs tabular-nums text-muted-foreground">
                             {item.riskScore}
                           </span>
                         </div>
@@ -350,7 +389,7 @@ export default async function DashboardPage() {
               </Table>
             </div>
             {highAttentionPullRequests.length === 0 ? (
-              <div className="p-4">
+              <div className="p-5">
                 <EmptyState
                   title="No high-attention pull requests"
                   description="Sync repositories to populate this queue."
@@ -361,13 +400,13 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Recent Agent Activity</CardTitle>
+            <CardTitle>Recent agent activity</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {activityEvents.map((event) => (
               <div
                 key={event.id}
-                className="rounded-control border border-border p-3"
+                className="rounded-control border border-border bg-surface-muted/30 p-3.5 transition-colors hover:bg-surface-muted/60"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-sm font-medium text-foreground">
@@ -375,11 +414,11 @@ export default async function DashboardPage() {
                   </div>
                   <RiskBadge level={event.riskLevel} />
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1.5 text-sm text-muted-foreground">
                   {event.summary}
                 </p>
                 <p className="mt-2 text-xs text-subtle-foreground">
-                  {event.agentSource.replace('_', ' ')} by {event.actor} ·{' '}
+                  {event.agentSource.replace('_', ' ')} · {event.actor} ·{' '}
                   {formatDate(event.timestamp)}
                 </p>
               </div>
@@ -391,7 +430,7 @@ export default async function DashboardPage() {
                 actions={
                   <Link
                     href="/repositories"
-                    className="text-sm font-medium text-foreground hover:underline"
+                    className="text-sm font-medium text-accent hover:underline"
                   >
                     View repositories
                   </Link>

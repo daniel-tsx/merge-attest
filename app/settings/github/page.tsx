@@ -1,5 +1,7 @@
-import { GitPullRequest } from 'lucide-react'
+import { GitPullRequest, RefreshCw } from 'lucide-react'
+import { EmptyState } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
+import { SettingsNav } from '@/components/app/settings-nav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -78,7 +80,8 @@ export default async function GitHubSettingsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="GitHub App"
+        eyebrow="Workspace"
+        title="GitHub app"
         description="Installation settings, webhook endpoint, and demo-mode state for GitHub pull request sync."
         actions={
           installUrl ? (
@@ -96,9 +99,18 @@ export default async function GitHubSettingsPage({
           )
         }
       />
+      <SettingsNav />
       {syncStatus || backfillStatus || retryStatus || errorStatus ? (
-        <Card>
-          <CardContent className="space-y-2 p-4 text-sm text-muted-foreground">
+        <Card
+          className={
+            errorStatus
+              ? 'border-danger-border bg-danger-soft/40'
+              : 'border-info-border bg-info-soft/40'
+          }
+        >
+          <CardContent
+            className={`space-y-1.5 text-sm ${errorStatus ? 'text-danger' : 'text-info'}`}
+          >
             {syncStatus && syncMessages[syncStatus] ? (
               <p>{syncMessages[syncStatus]}</p>
             ) : null}
@@ -109,51 +121,64 @@ export default async function GitHubSettingsPage({
               <p>{retryMessage(retryStatus)}</p>
             ) : null}
             {errorStatus ? (
-              <p className="text-danger">
-                GitHub setup failed: {errorMessage(errorStatus)}.
-              </p>
+              <p>GitHub setup failed: {errorMessage(errorStatus)}.</p>
             ) : null}
           </CardContent>
         </Card>
       ) : null}
       <Card>
         <CardHeader>
-          <CardTitle>Integration Status</CardTitle>
+          <CardTitle>Integration status</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-4">
-          <div>
-            <div className="text-xs uppercase text-slate-500">Mode</div>
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Mode
+            </div>
             <div className="mt-2">
-              <Badge tone={configured ? 'green' : 'blue'}>
+              <Badge tone={configured ? 'green' : 'blue'} withDot>
                 {configured ? 'configured' : 'demo mode'}
               </Badge>
             </div>
           </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
               Webhook endpoint
             </div>
-            <div className="mt-2 font-mono text-xs">/api/github/webhook</div>
-          </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">Repositories</div>
-            <div className="mt-2 font-semibold">
-              {repositories.length}{' '}
-              {organization.dataMode === 'live' ? 'synced' : 'demo'}{' '}
-              repositories
+            <div className="mt-2 break-all rounded-control bg-surface px-2 py-1 font-mono text-xs">
+              /api/github/webhook
             </div>
           </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">Organization</div>
-            <div className="mt-2 font-semibold">{organization.name}</div>
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Repositories
+            </div>
+            <div className="mt-2 text-sm font-semibold">
+              {repositories.length}{' '}
+              <span className="font-normal text-muted-foreground">
+                {organization.dataMode === 'live' ? 'synced' : 'demo'}
+              </span>
+            </div>
+          </div>
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Organization
+            </div>
+            <div className="mt-2 text-sm font-semibold">
+              {organization.name}
+            </div>
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Manual Sync</CardTitle>
+          <CardTitle>Manual sync</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Imports repositories and open pull requests from the connected
+            GitHub installation.
+          </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <form
             action="/api/github/sync/repositories"
             method="post"
@@ -161,22 +186,18 @@ export default async function GitHubSettingsPage({
           >
             <input type="hidden" name="redirectTo" value="/settings/github" />
             <Button type="submit">
-              <GitPullRequest aria-hidden="true" />
+              <RefreshCw aria-hidden="true" />
               Sync repositories now
             </Button>
-            <p className="text-sm text-slate-600">
-              Imports repositories and open pull requests from the connected
-              GitHub installation.
-            </p>
           </form>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 border-t border-divider pt-4">
             <form action="/api/github/backfill" method="post">
-              <Button type="submit" variant="secondary">
+              <Button type="submit" variant="secondary" size="sm">
                 Backfill stale repositories
               </Button>
             </form>
             <form action="/api/github/webhook/retry" method="post">
-              <Button type="submit" variant="secondary">
+              <Button type="submit" variant="secondary" size="sm">
                 Retry failed webhooks
               </Button>
             </form>
@@ -185,28 +206,30 @@ export default async function GitHubSettingsPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Sync Diagnostics</CardTitle>
+          <CardTitle>Sync diagnostics</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div>
-              <div className="text-xs uppercase text-slate-500">
-                Recent webhook deliveries
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+                Recent deliveries
               </div>
-              <div className="mt-2 text-2xl font-semibold">
+              <div className="mt-2 text-2xl font-semibold tabular-nums tracking-tight">
                 {webhookDiagnostics.length}
               </div>
             </div>
-            <div>
-              <div className="text-xs uppercase text-slate-500">
+            <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
                 Failed deliveries
               </div>
-              <div className="mt-2 text-2xl font-semibold">
+              <div
+                className={`mt-2 text-2xl font-semibold tabular-nums tracking-tight ${failedDeliveries > 0 ? 'text-danger' : 'text-foreground'}`}
+              >
                 {failedDeliveries}
               </div>
             </div>
-            <div>
-              <div className="text-xs uppercase text-slate-500">
+            <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
                 Last delivery
               </div>
               <div className="mt-2 text-sm font-medium">
@@ -216,18 +239,22 @@ export default async function GitHubSettingsPage({
               </div>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 rounded-md border border-slate-200">
+          <div className="divide-y divide-divider rounded-control border border-border">
             {webhookDiagnostics.map((delivery) => (
               <div
                 key={delivery.id}
-                className="grid gap-2 p-3 text-sm md:grid-cols-[1fr_120px_90px_160px]"
+                className="grid gap-2 p-3 text-sm md:grid-cols-[1fr_120px_90px_160px] md:items-center"
               >
                 <div>
-                  <div className="font-medium text-slate-950">
-                    {delivery.event}
-                    {delivery.action ? `.${delivery.action}` : ''}
+                  <div className="font-medium text-foreground">
+                    <span className="font-mono">{delivery.event}</span>
+                    {delivery.action ? (
+                      <span className="font-mono text-subtle-foreground">
+                        .{delivery.action}
+                      </span>
+                    ) : null}
                   </div>
-                  <div className="mt-1 text-xs text-slate-500">
+                  <div className="mt-0.5 text-xs text-subtle-foreground">
                     {delivery.message ??
                       delivery.lastError ??
                       delivery.deliveryId}
@@ -244,14 +271,15 @@ export default async function GitHubSettingsPage({
                             ? 'yellow'
                             : 'slate'
                     }
+                    withDot
                   >
                     {delivery.status}
                   </Badge>
                 </div>
-                <div className="text-slate-600">
+                <div className="text-xs tabular-nums text-muted-foreground">
                   {delivery.attemptCount} attempts
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-subtle-foreground">
                   {delivery.nextRetryAt
                     ? `Retry ${formatDate(delivery.nextRetryAt)}`
                     : delivery.processedAt
@@ -261,8 +289,11 @@ export default async function GitHubSettingsPage({
               </div>
             ))}
             {webhookDiagnostics.length === 0 ? (
-              <div className="p-4 text-sm text-slate-600">
-                No webhook deliveries have been recorded for this workspace yet.
+              <div className="p-5">
+                <EmptyState
+                  title="No webhook deliveries yet"
+                  description="Deliveries will appear here once the GitHub installation sends events."
+                />
               </div>
             ) : null}
           </div>
@@ -270,16 +301,19 @@ export default async function GitHubSettingsPage({
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Required Environment Variables</CardTitle>
+          <CardTitle>Required environment variables</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            These must be present for live GitHub sync to work.
+          </p>
         </CardHeader>
         <CardContent className="grid gap-2 md:grid-cols-2">
           {envVars.map((key) => (
             <div
               key={key}
-              className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2"
+              className="flex items-center justify-between rounded-control border border-border bg-surface-muted/30 px-3 py-2"
             >
-              <code className="text-xs">{key}</code>
-              <Badge tone={process.env[key] ? 'green' : 'slate'}>
+              <code className="font-mono text-xs text-foreground">{key}</code>
+              <Badge tone={process.env[key] ? 'green' : 'slate'} withDot>
                 {process.env[key] ? 'set' : 'missing'}
               </Badge>
             </div>

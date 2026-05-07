@@ -7,7 +7,10 @@ export function Table({
 }: React.TableHTMLAttributes<HTMLTableElement>) {
   return (
     <table
-      className={cn('w-full caption-bottom text-sm text-foreground', className)}
+      className={cn(
+        'w-full caption-bottom text-sm text-foreground tabular-nums',
+        className,
+      )}
       {...props}
     />
   )
@@ -20,7 +23,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        'border-b border-border bg-surface-muted text-xs text-muted-foreground',
+        'border-b border-border bg-surface-muted/60 text-[11px] font-medium uppercase tracking-wider text-subtle-foreground',
         className,
       )}
       {...props}
@@ -33,7 +36,7 @@ export function TableBody({
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
-    <tbody className={cn('divide-y divide-border', className)} {...props} />
+    <tbody className={cn('divide-y divide-divider', className)} {...props} />
   )
 }
 
@@ -43,7 +46,10 @@ export function TableRow({
 }: React.HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className={cn('transition-colors hover:bg-surface-hover', className)}
+      className={cn(
+        'transition-colors hover:bg-surface-hover/60 data-[state=selected]:bg-accent-soft',
+        className,
+      )}
       {...props}
     />
   )
@@ -55,7 +61,10 @@ export function TableHead({
 }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn('h-10 px-3 text-left font-medium', className)}
+      className={cn(
+        'h-10 px-4 text-left font-medium first:pl-5 last:pr-5',
+        className,
+      )}
       {...props}
     />
   )
@@ -67,7 +76,10 @@ export function TableCell({
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
     <td
-      className={cn('px-3 py-3 align-middle text-muted-foreground', className)}
+      className={cn(
+        'px-4 py-3 align-middle text-sm text-muted-foreground first:pl-5 last:pr-5',
+        className,
+      )}
       {...props}
     />
   )

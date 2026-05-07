@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { AuthShell } from '@/components/app/auth-shell'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { signUp } from '@/lib/auth-client'
 import { safeRelativeRedirect } from '@/lib/redirects'
@@ -65,86 +65,95 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
-            <ShieldCheck className="size-5" />
-          </div>
-          <CardTitle className="text-xl">
-            Create your AgentGate workspace
-          </CardTitle>
-          <p className="text-sm text-slate-600">
-            Start monitoring AI-assisted pull requests with a free workspace.
+    <AuthShell
+      title="Create your workspace"
+      description="Start monitoring AI-assisted pull requests in minutes — free to get started."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link
+            className="font-medium text-foreground hover:text-accent"
+            href="/sign-in"
+          >
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label
+            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            htmlFor="name"
+          >
+            Full name
+          </label>
+          <Input
+            id="name"
+            name="name"
+            autoComplete="name"
+            placeholder="Jane Engineer"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label
+            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            htmlFor="email"
+          >
+            Work email
+          </label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@company.com"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label
+            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            placeholder="Minimum 8 characters"
+            required
+          />
+        </div>
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-control border border-danger-border bg-danger-soft px-3 py-2 text-sm text-danger"
+          >
+            {error}
           </p>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-1.5">
-              <label
-                className="text-sm font-medium text-slate-700"
-                htmlFor="name"
-              >
-                Name
-              </label>
-              <Input id="name" name="name" autoComplete="name" required />
-            </div>
-            <div className="space-y-1.5">
-              <label
-                className="text-sm font-medium text-slate-700"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label
-                className="text-sm font-medium text-slate-700"
-                htmlFor="password"
-              >
-                Password
-              </label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-            </div>
-            {error ? (
-              <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-            {message ? (
-              <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
-                {message}
-              </p>
-            ) : null}
-            <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? 'Creating account...' : 'Create account'}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-slate-600">
-            Already have an account?{' '}
-            <Link
-              className="font-medium text-slate-950 hover:underline"
-              href="/sign-in"
-            >
-              Sign in
-            </Link>
+        ) : null}
+        {message ? (
+          <p
+            role="status"
+            className="rounded-control border border-success-border bg-success-soft px-3 py-2 text-sm text-success-strong"
+          >
+            {message}
           </p>
-        </CardContent>
-      </Card>
-    </main>
+        ) : null}
+        <Button className="w-full" type="submit" disabled={submitting}>
+          {submitting ? 'Creating account...' : 'Create account'}
+          <ArrowRight aria-hidden="true" />
+        </Button>
+        <p className="text-center text-xs text-subtle-foreground">
+          By creating an account you agree to AgentGate&apos;s terms and privacy
+          policy.
+        </p>
+      </form>
+    </AuthShell>
   )
 }

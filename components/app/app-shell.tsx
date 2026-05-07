@@ -15,12 +15,12 @@ import {
   ListChecks,
   Menu,
   Settings,
-  ShieldCheck,
   X,
   type LucideIcon,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Badge, StatusDot } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { LogoMark } from '@/components/app/logo'
 import { cn } from '@/lib/utils'
 import type { PlanKey } from '@/lib/types'
 
@@ -115,35 +115,36 @@ function NavLink({
       aria-current={active ? 'page' : undefined}
       onClick={onNavigate}
       className={cn(
-        'group flex min-h-11 items-center gap-3 rounded-control px-3 py-2 text-sm font-medium transition-colors',
+        'group relative flex min-h-10 items-center gap-3 rounded-control px-2.5 py-2 text-sm font-medium transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring',
         active
-          ? 'bg-primary text-primary-foreground shadow-card'
+          ? 'bg-surface-subtle text-foreground'
           : 'text-muted-foreground hover:bg-surface-hover hover:text-foreground',
       )}
     >
+      {active ? (
+        <span
+          aria-hidden="true"
+          className="absolute -left-3 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-pill bg-accent"
+        />
+      ) : null}
       <span
         className={cn(
-          'flex size-8 shrink-0 items-center justify-center rounded-control transition-colors',
+          'flex size-7 shrink-0 items-center justify-center rounded-control transition-colors',
           active
-            ? 'bg-primary-foreground/10 text-primary-foreground'
-            : 'bg-surface-subtle text-subtle-foreground group-hover:text-foreground',
+            ? 'bg-accent text-accent-foreground shadow-card'
+            : 'text-subtle-foreground group-hover:text-foreground',
         )}
       >
-        <Icon className="size-4" aria-hidden="true" />
+        <Icon className="size-3.5" aria-hidden="true" />
       </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate">{item.label}</span>
-        <span
-          className={cn(
-            'block truncate text-xs font-normal',
-            active ? 'text-primary-foreground/70' : 'text-subtle-foreground',
-          )}
-        >
-          {item.description}
-        </span>
-      </span>
-      {active ? <ChevronRight className="size-4" aria-hidden="true" /> : null}
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      {active ? (
+        <ChevronRight
+          className="size-3.5 text-subtle-foreground"
+          aria-hidden="true"
+        />
+      ) : null}
     </Link>
   )
 }
@@ -156,13 +157,13 @@ function Navigation({
   onNavigate?: () => void
 }) {
   return (
-    <nav className="space-y-5" aria-label="Primary navigation">
+    <nav className="space-y-6" aria-label="Primary navigation">
       {navSections.map((section) => (
         <div key={section.label}>
-          <h2 className="px-3 text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
+          <h2 className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
             {section.label}
           </h2>
-          <div className="mt-2 space-y-1">
+          <div className="mt-2 space-y-0.5">
             {section.items.map((item) => (
               <NavLink
                 key={item.href}
@@ -175,6 +176,48 @@ function Navigation({
         </div>
       ))}
     </nav>
+  )
+}
+
+function WorkspaceCard({
+  organizationName,
+  planKey,
+  dataMode,
+}: {
+  organizationName: string
+  planKey: PlanKey
+  dataMode: 'live' | 'demo'
+}) {
+  return (
+    <div className="rounded-card border border-border bg-surface p-3 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
+            Workspace
+          </div>
+          <div className="mt-0.5 truncate text-sm font-semibold text-foreground">
+            {organizationName}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface-subtle px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          <StatusDot tone={dataMode === 'live' ? 'green' : 'blue'} pulse={dataMode === 'live'} />
+          {dataMode === 'live' ? 'Live' : 'Demo'}
+        </div>
+      </div>
+      <div className="mt-3 flex items-center justify-between border-t border-divider pt-3 text-xs">
+        <span className="text-subtle-foreground">Plan</span>
+        <span className="font-medium capitalize text-foreground">
+          {planKey}
+        </span>
+      </div>
+      <Link
+        href="/settings/github"
+        className="mt-3 inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+      >
+        <KeyRound className="size-3.5" aria-hidden="true" />
+        Configure GitHub App
+      </Link>
+    </div>
   )
 }
 
@@ -195,6 +238,9 @@ export function AppShell({
   const previousPathname = React.useRef(pathname)
   const currentItem =
     navItems.find((item) => isActivePath(pathname, item.href)) ?? navItems[0]
+  const currentSection = navSections.find((section) =>
+    section.items.some((item) => isActivePath(pathname, item.href)),
+  )
 
   React.useEffect(() => {
     if (previousPathname.current === pathname) {
@@ -215,55 +261,36 @@ export function AppShell({
         Skip to main content
       </a>
 
-      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-border bg-surface lg:block">
-        <div className="flex h-16 items-center gap-3 border-b border-border px-4">
-          <div className="flex size-10 items-center justify-center rounded-card bg-primary text-primary-foreground shadow-card">
-            <ShieldCheck className="size-5" aria-hidden="true" />
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
+        <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
+          <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground shadow-card">
+            <LogoMark className="size-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold">AgentGate</div>
-            <div className="truncate text-xs text-muted-foreground">
-              {organizationName}
+            <div className="text-sm font-semibold tracking-tight">
+              AgentGate
+            </div>
+            <div className="-mt-0.5 text-[11px] text-subtle-foreground">
+              AI Code Governance
             </div>
           </div>
         </div>
 
-        <div className="px-3 py-4">
+        <div className="flex-1 overflow-y-auto px-4 py-5">
           <Navigation pathname={pathname} />
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-border bg-surface p-4">
-          <div className="rounded-card border border-border bg-surface-muted p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wide text-subtle-foreground">
-                  Workspace
-                </div>
-                <div className="mt-1 truncate text-sm font-semibold">
-                  {organizationName}
-                </div>
-              </div>
-              <Badge tone={dataMode === 'live' ? 'green' : 'blue'}>
-                {dataMode === 'live' ? 'live' : 'demo'}
-              </Badge>
-            </div>
-            <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Plan</span>
-              <span className="font-medium text-foreground">{planKey}</span>
-            </div>
-            <Link
-              href="/settings/github"
-              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-            >
-              <KeyRound className="size-3.5" aria-hidden="true" />
-              Configure GitHub App
-            </Link>
-          </div>
+        <div className="border-t border-border p-3">
+          <WorkspaceCard
+            organizationName={organizationName}
+            planKey={planKey}
+            dataMode={dataMode}
+          />
         </div>
       </aside>
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface px-4 sm:px-6">
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/70 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
               <Dialog.Trigger asChild>
@@ -278,18 +305,18 @@ export function AppShell({
                 </Button>
               </Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 z-40 bg-primary/40" />
-                <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(22rem,calc(100vw-2rem))] flex-col border-r border-border bg-surface shadow-card-hover">
-                  <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-card bg-primary text-primary-foreground">
-                        <ShieldCheck className="size-5" aria-hidden="true" />
+                <Dialog.Overlay className="fixed inset-0 z-40 bg-primary/40 backdrop-blur-sm" />
+                <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(20rem,calc(100vw-2rem))] flex-col border-r border-border bg-surface shadow-overlay">
+                  <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-5">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
+                        <LogoMark className="size-4" />
                       </div>
                       <div className="min-w-0">
-                        <Dialog.Title className="text-sm font-semibold">
+                        <Dialog.Title className="text-sm font-semibold tracking-tight">
                           AgentGate
                         </Dialog.Title>
-                        <Dialog.Description className="truncate text-xs text-muted-foreground">
+                        <Dialog.Description className="truncate text-[11px] text-subtle-foreground">
                           {organizationName}
                         </Dialog.Description>
                       </div>
@@ -305,28 +332,39 @@ export function AppShell({
                       </Button>
                     </Dialog.Close>
                   </div>
-                  <div className="flex-1 overflow-y-auto px-3 py-4">
+                  <div className="flex-1 overflow-y-auto px-4 py-5">
                     <Navigation
                       pathname={pathname}
                       onNavigate={() => setMobileNavOpen(false)}
                     />
                   </div>
-                  <div className="border-t border-border p-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge tone="slate">{planKey} plan</Badge>
-                      <Badge tone={dataMode === 'live' ? 'green' : 'blue'}>
-                        {dataMode === 'live' ? 'live data' : 'demo data'}
-                      </Badge>
-                    </div>
+                  <div className="border-t border-border p-3">
+                    <WorkspaceCard
+                      organizationName={organizationName}
+                      planKey={planKey}
+                      dataMode={dataMode}
+                    />
                   </div>
                 </Dialog.Content>
               </Dialog.Portal>
             </Dialog.Root>
 
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">
-                {currentItem.label}
-              </div>
+              <nav
+                aria-label="Breadcrumb"
+                className="flex items-center gap-1.5 text-xs text-subtle-foreground"
+              >
+                <span className="hidden truncate sm:inline">
+                  {currentSection?.label ?? 'Workspace'}
+                </span>
+                <ChevronRight
+                  className="hidden size-3 sm:inline"
+                  aria-hidden="true"
+                />
+                <span className="truncate font-medium text-foreground">
+                  {currentItem.label}
+                </span>
+              </nav>
               <div className="hidden truncate text-xs text-muted-foreground sm:block">
                 {currentItem.description}
               </div>
@@ -334,11 +372,14 @@ export function AppShell({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Badge tone={dataMode === 'live' ? 'green' : 'blue'}>
+            <Badge tone={dataMode === 'live' ? 'green' : 'blue'} withDot>
               {dataMode === 'live' ? 'live data' : 'demo data'}
             </Badge>
-            <Badge tone="slate" className="hidden sm:inline-flex">
-              {planKey} plan
+            <Badge
+              tone="slate"
+              className="hidden capitalize sm:inline-flex"
+            >
+              {planKey}
             </Badge>
           </div>
         </header>
@@ -347,7 +388,7 @@ export function AppShell({
           id="main-content"
           ref={mainRef}
           tabIndex={-1}
-          className="mx-auto w-full max-w-7xl p-4 outline-none sm:p-6"
+          className="mx-auto w-full max-w-7xl p-4 outline-none sm:p-6 lg:p-8"
         >
           {children}
         </main>

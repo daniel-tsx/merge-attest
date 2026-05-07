@@ -15,13 +15,21 @@ export function RiskBadge({ level }: { level: RiskLevel }) {
         : level === 'medium'
           ? 'yellow'
           : 'green'
-  return <Badge tone={tone}>{level}</Badge>
+  return (
+    <Badge tone={tone} withDot>
+      {level}
+    </Badge>
+  )
 }
 
 export function TestGapBadge({ status }: { status: TestGapStatus }) {
   const tone =
     status === 'high' ? 'red' : status === 'warning' ? 'yellow' : 'green'
-  return <Badge tone={tone}>{status === 'none' ? 'none' : status}</Badge>
+  return (
+    <Badge tone={tone} withDot>
+      {status === 'none' ? 'covered' : status}
+    </Badge>
+  )
 }
 
 export function CiBadge({ status }: { status: CiStatus }) {
@@ -33,7 +41,11 @@ export function CiBadge({ status }: { status: CiStatus }) {
         : status === 'pending'
           ? 'yellow'
           : 'slate'
-  return <Badge tone={tone}>{status}</Badge>
+  return (
+    <Badge tone={tone} withDot>
+      {status}
+    </Badge>
+  )
 }
 
 export function ApprovalBadge({ status }: { status: ApprovalStatus }) {
@@ -45,5 +57,9 @@ export function ApprovalBadge({ status }: { status: ApprovalStatus }) {
         : status === 'pending'
           ? 'yellow'
           : 'slate'
-  return <Badge tone={tone}>{status.replaceAll('_', ' ')}</Badge>
+  return (
+    <Badge tone={tone} withDot>
+      {status.replaceAll('_', ' ')}
+    </Badge>
+  )
 }

@@ -1,4 +1,6 @@
+import { Check, ExternalLink, Sparkles } from 'lucide-react'
 import { PageHeader } from '@/components/app/page-header'
+import { SettingsNav } from '@/components/app/settings-nav'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,6 +16,7 @@ import {
 } from '@/lib/billing'
 import { canManageBilling } from '@/lib/collaboration'
 import { plans } from '@/lib/plans'
+import { cn } from '@/lib/utils'
 
 const billingMessages: Record<string, string> = {
   checkout_unavailable:
@@ -47,12 +50,14 @@ export default async function BillingSettingsPage({
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="Workspace"
         title="Billing"
         description={`Plan gates are enforced server-side. Paddle billing mode: ${billingMode}.`}
         actions={
           canManage ? (
             <form action="/api/billing/portal" method="post">
               <Button variant="secondary" type="submit" disabled={!portalUrl}>
+                <ExternalLink aria-hidden="true" />
                 Manage billing portal
               </Button>
             </form>
@@ -63,23 +68,26 @@ export default async function BillingSettingsPage({
           )
         }
       />
+      <SettingsNav />
       {billingMessage && billingMessages[billingMessage] ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-slate-700">
+        <Card className="border-info-border bg-info-soft/40">
+          <CardContent className="text-sm text-info">
             {billingMessages[billingMessage]}
           </CardContent>
         </Card>
       ) : null}
       <Card>
-        <CardContent className="grid gap-4 p-5 md:grid-cols-4">
-          <div>
-            <div className="text-xs uppercase text-slate-500">Current plan</div>
-            <div className="mt-2 text-lg font-semibold text-slate-950">
+        <CardContent className="grid gap-4 md:grid-cols-4">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Current plan
+            </div>
+            <div className="mt-1.5 text-lg font-semibold capitalize text-foreground">
               {organization.planKey}
             </div>
           </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
               Billing status
             </div>
             <div className="mt-2">
@@ -92,14 +100,17 @@ export default async function BillingSettingsPage({
                       ? 'blue'
                       : 'green'
                 }
+                withDot
               >
                 {getBillingStatusLabel(organization.billingStatus)}
               </Badge>
             </div>
           </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">Lifecycle</div>
-            <div className="mt-2 text-sm text-slate-700">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Lifecycle
+            </div>
+            <div className="mt-1.5 text-sm text-muted-foreground">
               {getBillingCallout({
                 status: organization.billingStatus,
                 trialEndsAt: organization.trialEndsAt,
@@ -108,9 +119,11 @@ export default async function BillingSettingsPage({
               })}
             </div>
           </div>
-          <div>
-            <div className="text-xs uppercase text-slate-500">Access</div>
-            <div className="mt-2 text-sm text-slate-700">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Access
+            </div>
+            <div className="mt-1.5 text-sm text-muted-foreground">
               {canManage
                 ? 'You can manage billing.'
                 : 'Only owners can manage billing.'}
@@ -123,62 +136,112 @@ export default async function BillingSettingsPage({
           const entitlements = getPlanEntitlements(plan.key)
           const current = plan.key === organization.planKey
 
+          const featureRows: Array<[string, boolean]> = [
+            ['Approvals', entitlements.features.approvals],
+            ['Custom rules', entitlements.features.customRules],
+            ['GitHub comments', entitlements.features.githubComments],
+            ['Audit exports', entitlements.features.auditExport],
+          ]
+
           return (
             <Card
               key={plan.key}
-              className={current ? 'border-slate-950' : undefined}
+              className={cn(
+                'relative overflow-hidden transition-shadow hover:shadow-card-hover',
+                current && 'border-accent ring-2 ring-accent-ring',
+              )}
             >
+              {current ? (
+                <div className="absolute right-3 top-3">
+                  <Badge tone="blue" withDot>
+                    Current
+                  </Badge>
+                </div>
+              ) : null}
               <CardHeader>
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle>{plan.name}</CardTitle>
-                  {current ? <Badge tone="blue">current</Badge> : null}
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base">{plan.name}</CardTitle>
+                  {plan.key === 'team' ? (
+                    <Sparkles
+                      className="size-3.5 text-accent"
+                      aria-hidden="true"
+                    />
+                  ) : null}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-semibold">
-                  {plan.priceMonthly}
-                  <span className="text-sm font-normal text-slate-500">
-                    /month
-                  </span>
-                </div>
-                <div className="space-y-1 text-sm text-slate-600">
-                  <div>
-                    {limitLabel(entitlements.repositoryLimit, 'repositories')}
-                  </div>
-                  <div>
-                    {limitLabel(entitlements.prCheckLimit, 'PR checks/month')}
-                  </div>
-                  <div>
-                    {entitlements.auditRetentionDays
-                      ? `${entitlements.auditRetentionDays}-day audit history`
-                      : 'Custom audit retention'}
+              <CardContent className="space-y-5">
+                <div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-semibold tracking-tight text-foreground">
+                      {plan.priceMonthly}
+                    </span>
+                    <span className="text-sm text-subtle-foreground">
+                      /month
+                    </span>
                   </div>
                 </div>
-                <ul className="space-y-1 text-sm text-slate-700">
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-baseline justify-between gap-2 border-b border-divider pb-2">
+                    <span className="text-subtle-foreground">Repositories</span>
+                    <span className="font-medium text-foreground">
+                      {limitLabel(entitlements.repositoryLimit, 'repos')}
+                    </span>
+                  </li>
+                  <li className="flex items-baseline justify-between gap-2 border-b border-divider pb-2">
+                    <span className="text-subtle-foreground">PR checks</span>
+                    <span className="font-medium text-foreground">
+                      {limitLabel(entitlements.prCheckLimit, '/month')}
+                    </span>
+                  </li>
+                  <li className="flex items-baseline justify-between gap-2 border-b border-divider pb-2">
+                    <span className="text-subtle-foreground">
+                      Audit history
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {entitlements.auditRetentionDays
+                        ? `${entitlements.auditRetentionDays} days`
+                        : 'Custom'}
+                    </span>
+                  </li>
+                </ul>
+                <ul className="space-y-1.5 text-sm">
                   {plan.features.map((feature) => (
-                    <li key={feature}>• {feature}</li>
+                    <li
+                      key={feature}
+                      className="flex items-start gap-2 text-foreground"
+                    >
+                      <Check
+                        className="mt-0.5 size-3.5 shrink-0 text-success"
+                        aria-hidden="true"
+                      />
+                      <span className="text-muted-foreground">{feature}</span>
+                    </li>
                   ))}
                 </ul>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    Approvals:{' '}
-                    {entitlements.features.approvals ? 'included' : 'upgrade'}
-                  </div>
-                  <div>
-                    Custom rules:{' '}
-                    {entitlements.features.customRules ? 'included' : 'upgrade'}
-                  </div>
-                  <div>
-                    GitHub comments:{' '}
-                    {entitlements.features.githubComments
-                      ? 'included'
-                      : 'upgrade'}
-                  </div>
-                  <div>
-                    Audit exports:{' '}
-                    {entitlements.features.auditExport ? 'included' : 'upgrade'}
-                  </div>
-                </div>
+                <ul className="grid grid-cols-2 gap-2 border-t border-divider pt-4 text-xs">
+                  {featureRows.map(([label, included]) => (
+                    <li
+                      key={label}
+                      className="inline-flex items-center gap-1.5 text-muted-foreground"
+                    >
+                      <span
+                        className={cn(
+                          'inline-flex size-3.5 shrink-0 items-center justify-center rounded-full',
+                          included
+                            ? 'bg-success-soft text-success-strong'
+                            : 'bg-surface-subtle text-subtle-foreground',
+                        )}
+                      >
+                        {included ? (
+                          <Check className="size-2.5" aria-hidden="true" />
+                        ) : (
+                          <span className="size-1 rounded-full bg-current" />
+                        )}
+                      </span>
+                      {label}
+                    </li>
+                  ))}
+                </ul>
                 {current ? (
                   <Button variant="secondary" className="w-full" disabled>
                     Current plan

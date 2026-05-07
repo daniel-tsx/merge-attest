@@ -1,10 +1,17 @@
 import { notFound } from 'next/navigation'
 import type React from 'react'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import { PageHeader } from '@/components/app/page-header'
 import { RiskBadge } from '@/components/app/status-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -60,18 +67,32 @@ const agentSources = [
 
 const riskLevels = ['', 'low', 'medium', 'high', 'critical']
 
-const statusMessages: Record<string, string> = {
-  created: 'Rule created.',
-  updated: 'Rule updated.',
-  enabled: 'Rule enabled.',
-  disabled: 'Rule disabled.',
-  deleted: 'Rule deleted.',
-  duplicated: 'Rule duplicated as a disabled draft.',
-  template_applied: 'Template applied.',
-  forbidden: 'Only organization owners and admins can manage rules.',
-  auth_required: 'Sign in is required to manage rules.',
-  not_found: 'Rule or repository not found.',
-  upgrade_required: 'Custom repository rules require the Team plan or higher.',
+type StatusEntry = { tone: 'success' | 'info' | 'danger'; message: string }
+
+const statusMessages: Record<string, StatusEntry> = {
+  created: { tone: 'success', message: 'Rule created.' },
+  updated: { tone: 'success', message: 'Rule updated.' },
+  enabled: { tone: 'success', message: 'Rule enabled.' },
+  disabled: { tone: 'info', message: 'Rule disabled.' },
+  deleted: { tone: 'info', message: 'Rule deleted.' },
+  duplicated: {
+    tone: 'info',
+    message: 'Rule duplicated as a disabled draft.',
+  },
+  template_applied: { tone: 'success', message: 'Template applied.' },
+  forbidden: {
+    tone: 'danger',
+    message: 'Only organization owners and admins can manage rules.',
+  },
+  auth_required: {
+    tone: 'danger',
+    message: 'Sign in is required to manage rules.',
+  },
+  not_found: { tone: 'danger', message: 'Rule or repository not found.' },
+  upgrade_required: {
+    tone: 'info',
+    message: 'Custom repository rules require the Team plan or higher.',
+  },
 }
 
 function formatLabel(value: string) {
@@ -80,8 +101,10 @@ function formatLabel(value: string) {
 
 function fieldLabel(label: string, children: React.ReactNode) {
   return (
-    <label className="space-y-1 text-xs font-medium text-muted-foreground">
-      <span>{label}</span>
+    <label className="space-y-1.5">
+      <span className="block text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
+        {label}
+      </span>
       {children}
     </label>
   )
@@ -203,6 +226,30 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
   )
 }
 
+function StatusCallout({ status }: { status: StatusEntry }) {
+  const Icon =
+    status.tone === 'success'
+      ? CheckCircle2
+      : status.tone === 'danger'
+        ? AlertTriangle
+        : Info
+  const tone =
+    status.tone === 'success'
+      ? 'border-success-border bg-success-soft text-success-strong'
+      : status.tone === 'danger'
+        ? 'border-danger-border bg-danger-soft text-danger'
+        : 'border-info-border bg-info-soft text-info'
+  return (
+    <div
+      role="status"
+      className={`flex items-start gap-2.5 rounded-card border px-4 py-3 text-sm ${tone}`}
+    >
+      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      {status.message}
+    </div>
+  )
+}
+
 export default async function RepositoryRulesPage({
   params,
   searchParams,
@@ -247,28 +294,35 @@ export default async function RepositoryRulesPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`${repository.name} Rules`}
-        description="Manage repository policy, scopes, actions, templates, and reviewer hints evaluated against every synced pull request."
+        eyebrow={
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="size-3.5" aria-hidden="true" />
+            {repository.name}
+          </span>
+        }
+        title="Repository rules"
+        description="Manage policy, scopes, actions, templates, and reviewer hints evaluated against every synced pull request."
       />
 
       {status && statusMessages[status] ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            {statusMessages[status]}
-          </CardContent>
-        </Card>
+        <StatusCallout status={statusMessages[status]} />
       ) : null}
 
       {!customRulesAvailable ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="font-medium text-foreground">
-                Custom rules require the Team plan
+        <Card className="border-info-border bg-info-soft/40">
+          <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-info-soft text-info">
+                <Sparkles className="size-4" aria-hidden="true" />
               </div>
-              <div className="text-sm text-muted-foreground">
-                Upgrade to create templates, scoped policies, and rule actions
-                for this repository.
+              <div>
+                <div className="font-semibold text-foreground">
+                  Custom rules require the Team plan
+                </div>
+                <div className="mt-0.5 text-sm text-muted-foreground">
+                  Upgrade to create templates, scoped policies, and rule actions
+                  for this repository.
+                </div>
               </div>
             </div>
             <Button asChild>
@@ -278,54 +332,76 @@ export default async function RepositoryRulesPage({
         </Card>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {ruleTemplates.map((template) => (
-          <Card key={template.key}>
-            <CardContent className="space-y-4 p-5">
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-base font-semibold text-foreground">
-                    {template.name}
-                  </h2>
-                  <RiskBadge level={template.severity} />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {template.description}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Badge>{formatLabel(template.triggerType)}</Badge>
-                <Badge>{formatLabel(template.actionType)}</Badge>
-                {template.pathPattern ? (
-                  <Badge>{template.pathPattern}</Badge>
-                ) : null}
-              </div>
-              <form action={`/api/repositories/${id}/rules`} method="post">
-                <input type="hidden" name="_action" value="apply_template" />
-                <input type="hidden" name="templateKey" value={template.key} />
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  disabled={!customRulesAvailable}
-                >
-                  Apply template
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardContent className="space-y-4 p-5">
+      <section className="space-y-3">
+        <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Create custom rule
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Rule templates
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Scope policy by branch, path, agent, label, or minimum risk level.
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Apply curated policies in one click.
             </p>
           </div>
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          {ruleTemplates.map((template) => (
+            <Card
+              key={template.key}
+              className="transition-shadow hover:shadow-card-hover"
+            >
+              <CardContent className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                      {template.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {template.description}
+                    </p>
+                  </div>
+                  <RiskBadge level={template.severity} />
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge tone="slate">
+                    Trigger: {formatLabel(template.triggerType)}
+                  </Badge>
+                  <Badge tone="slate">
+                    Action: {formatLabel(template.actionType)}
+                  </Badge>
+                  {template.pathPattern ? (
+                    <Badge tone="slate">Path: {template.pathPattern}</Badge>
+                  ) : null}
+                </div>
+                <form action={`/api/repositories/${id}/rules`} method="post">
+                  <input type="hidden" name="_action" value="apply_template" />
+                  <input
+                    type="hidden"
+                    name="templateKey"
+                    value={template.key}
+                  />
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="sm"
+                    disabled={!customRulesAvailable}
+                  >
+                    Apply template
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Create custom rule</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Scope policy by branch, path, agent, label, or minimum risk level.
+          </p>
+        </CardHeader>
+        <CardContent>
           <form
             action={`/api/repositories/${id}/rules`}
             method="post"
@@ -341,189 +417,203 @@ export default async function RepositoryRulesPage({
       </Card>
 
       <Card>
-        <CardContent className="space-y-4 p-5">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Active policy
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {rules.length
-                ? `${rules.length} rules configured for this repository.`
-                : 'No repository rules configured yet.'}
-            </p>
-          </div>
-          <div className="space-y-3">
-            {rules.map((rule) => (
-              <div
-                key={rule.id}
-                className="rounded-card border border-border p-4 shadow-card"
-              >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-medium text-foreground">
-                        {rule.name}
-                      </h3>
-                      <RiskBadge level={rule.severity} />
-                      <Badge tone={rule.enabled ? 'green' : 'slate'}>
-                        {rule.enabled ? 'enabled' : 'disabled'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {rule.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge>{formatLabel(rule.triggerType)}</Badge>
-                      <Badge>{formatLabel(rule.actionType)}</Badge>
-                      {rule.branchPattern ? (
-                        <Badge>Branch: {rule.branchPattern}</Badge>
-                      ) : null}
-                      {rule.pathPattern ? (
-                        <Badge>Path: {rule.pathPattern}</Badge>
-                      ) : null}
-                      {rule.labelPattern ? (
-                        <Badge>Label: {rule.labelPattern}</Badge>
-                      ) : null}
-                      {rule.agentSource ? (
-                        <Badge>Agent: {formatLabel(rule.agentSource)}</Badge>
-                      ) : null}
-                      {rule.minimumRiskLevel ? (
-                        <Badge>
-                          Min risk: {formatLabel(rule.minimumRiskLevel)}
-                        </Badge>
-                      ) : null}
-                      {rule.codeOwnerHint ? (
-                        <Badge>Reviewer: {rule.codeOwnerHint}</Badge>
-                      ) : null}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Updated {formatDate(rule.updatedAt)}
-                    </div>
+        <CardHeader>
+          <CardTitle>Active policy</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            {rules.length
+              ? `${rules.length} ${rules.length === 1 ? 'rule' : 'rules'} configured for this repository.`
+              : 'No repository rules configured yet.'}
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {rules.map((rule) => (
+            <div
+              key={rule.id}
+              className="rounded-card border border-border bg-surface-muted/20 p-4"
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {rule.name}
+                    </h3>
+                    <RiskBadge level={rule.severity} />
+                    <Badge tone={rule.enabled ? 'green' : 'slate'} withDot>
+                      {rule.enabled ? 'enabled' : 'disabled'}
+                    </Badge>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <form
-                      action={`/api/repositories/${id}/rules/${rule.id}`}
-                      method="post"
-                    >
-                      <input type="hidden" name="_action" value="toggle" />
-                      <input
-                        type="hidden"
-                        name="enabled"
-                        value={rule.enabled ? 'false' : 'true'}
-                      />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant="secondary"
-                        disabled={!customRulesAvailable}
-                      >
-                        {rule.enabled ? 'Disable' : 'Enable'}
-                      </Button>
-                    </form>
-                    <form
-                      action={`/api/repositories/${id}/rules/${rule.id}`}
-                      method="post"
-                    >
-                      <input type="hidden" name="_action" value="duplicate" />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant="secondary"
-                        disabled={!customRulesAvailable}
-                      >
-                        Duplicate
-                      </Button>
-                    </form>
-                    <form
-                      action={`/api/repositories/${id}/rules/${rule.id}`}
-                      method="post"
-                    >
-                      <input type="hidden" name="_action" value="delete" />
-                      <Button
-                        type="submit"
-                        size="sm"
-                        variant="danger"
-                        disabled={!customRulesAvailable}
-                      >
-                        Delete
-                      </Button>
-                    </form>
+                  <p className="text-sm text-muted-foreground">
+                    {rule.description}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Badge tone="slate">
+                      Trigger: {formatLabel(rule.triggerType)}
+                    </Badge>
+                    <Badge tone="slate">
+                      Action: {formatLabel(rule.actionType)}
+                    </Badge>
+                    {rule.branchPattern ? (
+                      <Badge tone="slate">Branch: {rule.branchPattern}</Badge>
+                    ) : null}
+                    {rule.pathPattern ? (
+                      <Badge tone="slate">Path: {rule.pathPattern}</Badge>
+                    ) : null}
+                    {rule.labelPattern ? (
+                      <Badge tone="slate">Label: {rule.labelPattern}</Badge>
+                    ) : null}
+                    {rule.agentSource ? (
+                      <Badge tone="slate">
+                        Agent: {formatLabel(rule.agentSource)}
+                      </Badge>
+                    ) : null}
+                    {rule.minimumRiskLevel ? (
+                      <Badge tone="slate">
+                        Min risk: {formatLabel(rule.minimumRiskLevel)}
+                      </Badge>
+                    ) : null}
+                    {rule.codeOwnerHint ? (
+                      <Badge tone="slate">
+                        Reviewer: {rule.codeOwnerHint}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <div className="text-xs text-subtle-foreground">
+                    Updated {formatDate(rule.updatedAt)}
                   </div>
                 </div>
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium text-foreground">
-                    Edit rule
-                  </summary>
+                <div className="flex flex-wrap gap-2">
                   <form
                     action={`/api/repositories/${id}/rules/${rule.id}`}
                     method="post"
-                    className="mt-4 space-y-4"
                   >
-                    <input type="hidden" name="_action" value="update" />
-                    <RuleFields rule={rule} />
+                    <input type="hidden" name="_action" value="toggle" />
+                    <input
+                      type="hidden"
+                      name="enabled"
+                      value={rule.enabled ? 'false' : 'true'}
+                    />
                     <Button
                       type="submit"
                       size="sm"
+                      variant="secondary"
                       disabled={!customRulesAvailable}
                     >
-                      Save changes
+                      {rule.enabled ? 'Disable' : 'Enable'}
                     </Button>
                   </form>
-                </details>
+                  <form
+                    action={`/api/repositories/${id}/rules/${rule.id}`}
+                    method="post"
+                  >
+                    <input type="hidden" name="_action" value="duplicate" />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="secondary"
+                      disabled={!customRulesAvailable}
+                    >
+                      Duplicate
+                    </Button>
+                  </form>
+                  <form
+                    action={`/api/repositories/${id}/rules/${rule.id}`}
+                    method="post"
+                  >
+                    <input type="hidden" name="_action" value="delete" />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      variant="danger"
+                      disabled={!customRulesAvailable}
+                    >
+                      Delete
+                    </Button>
+                  </form>
+                </div>
               </div>
-            ))}
-          </div>
+              <details className="group mt-4 border-t border-divider pt-3">
+                <summary className="cursor-pointer text-xs font-medium uppercase tracking-wider text-subtle-foreground hover:text-foreground">
+                  Edit rule
+                </summary>
+                <form
+                  action={`/api/repositories/${id}/rules/${rule.id}`}
+                  method="post"
+                  className="mt-4 space-y-4"
+                >
+                  <input type="hidden" name="_action" value="update" />
+                  <RuleFields rule={rule} />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!customRulesAvailable}
+                  >
+                    Save changes
+                  </Button>
+                </form>
+              </details>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
       <Card>
-        <CardContent className="space-y-4 p-5">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">
-              Policy preview
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Recent pull requests evaluated against the current enabled policy.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {previewPullRequests.length ? (
-              previewPullRequests.map(({ pullRequest, violations }) => (
-                <div
-                  key={pullRequest.id}
-                  className="rounded-card border border-border p-4"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <div className="font-medium text-foreground">
-                        #{pullRequest.number} {pullRequest.title}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {pullRequest.branch} -{' '}
-                        {formatLabel(pullRequest.agentSource)}
-                      </div>
+        <CardHeader>
+          <CardTitle>Policy preview</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Recent pull requests evaluated against the current enabled policy.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {previewPullRequests.length ? (
+            previewPullRequests.map(({ pullRequest, violations }) => (
+              <div
+                key={pullRequest.id}
+                className="rounded-card border border-border bg-surface-muted/20 p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-foreground">
+                      #{pullRequest.number} {pullRequest.title}
                     </div>
-                    <Badge tone={violations.length ? 'orange' : 'green'}>
-                      {violations.length
-                        ? `${violations.length} rules fire`
-                        : 'No rules fire'}
-                    </Badge>
+                    <div className="mt-0.5 text-xs text-subtle-foreground">
+                      <span className="font-mono">{pullRequest.branch}</span> ·{' '}
+                      <span className="capitalize">
+                        {formatLabel(pullRequest.agentSource)}
+                      </span>
+                    </div>
                   </div>
-                  {violations.length ? (
-                    <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-                      {violations.map((violation) => (
-                        <li key={violation.id}>{violation.summary}</li>
-                      ))}
-                    </ul>
-                  ) : null}
+                  <Badge
+                    tone={violations.length ? 'orange' : 'green'}
+                    withDot
+                  >
+                    {violations.length
+                      ? `${violations.length} ${violations.length === 1 ? 'rule' : 'rules'} fire`
+                      : 'No rules fire'}
+                  </Badge>
                 </div>
-              ))
-            ) : (
-              <div className="rounded-card border border-dashed border-border bg-surface-muted p-6 text-sm text-muted-foreground">
-                Sync pull requests to preview policy impact.
+                {violations.length ? (
+                  <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+                    {violations.map((violation) => (
+                      <li
+                        key={violation.id}
+                        className="flex gap-2 text-xs text-muted-foreground"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="mt-1.5 size-1 shrink-0 rounded-full bg-attention"
+                        />
+                        {violation.summary}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="rounded-card border border-dashed border-border bg-surface-muted/40 px-4 py-8 text-center text-sm text-muted-foreground">
+              Sync pull requests to preview policy impact.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

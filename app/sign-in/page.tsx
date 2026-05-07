@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useState } from 'react'
-import { ShieldCheck } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { AuthShell } from '@/components/app/auth-shell'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { signIn } from '@/lib/auth-client'
 import { safeRelativeRedirect } from '@/lib/redirects'
@@ -55,77 +55,74 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
-            <ShieldCheck className="size-5" />
-          </div>
-          <CardTitle className="text-xl">Sign in to AgentGate</CardTitle>
-          <p className="text-sm text-slate-600">
-            Continue to your AI pull request control center.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-1.5">
-              <label
-                className="text-sm font-medium text-slate-700"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label
-                className="text-sm font-medium text-slate-700"
-                htmlFor="password"
-              >
-                Password
-              </label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </div>
-            {error ? (
-              <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-            <Button className="w-full" type="submit" disabled={submitting}>
-              {submitting ? 'Signing in...' : 'Sign in'}
-            </Button>
-          </form>
-          <p className="mt-3 text-center text-sm">
+    <AuthShell
+      title="Welcome back"
+      description="Sign in to continue to your AI pull request control center."
+      footer={
+        <>
+          New to AgentGate?{' '}
+          <Link
+            className="font-medium text-foreground hover:text-accent"
+            href="/sign-up"
+          >
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label
+            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            htmlFor="email"
+          >
+            Work email
+          </label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@company.com"
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label
+              className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+              htmlFor="password"
+            >
+              Password
+            </label>
             <Link
-              className="font-medium text-slate-950 hover:underline"
               href="/forgot-password"
+              className="text-xs font-medium text-accent hover:underline"
             >
-              Forgot your password?
+              Forgot?
             </Link>
+          </div>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error ? (
+          <p
+            role="alert"
+            className="rounded-control border border-danger-border bg-danger-soft px-3 py-2 text-sm text-danger"
+          >
+            {error}
           </p>
-          <p className="mt-4 text-center text-sm text-slate-600">
-            New to AgentGate?{' '}
-            <Link
-              className="font-medium text-slate-950 hover:underline"
-              href="/sign-up"
-            >
-              Create an account
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+        ) : null}
+        <Button className="w-full" type="submit" disabled={submitting}>
+          {submitting ? 'Signing in...' : 'Sign in'}
+          <ArrowRight aria-hidden="true" />
+        </Button>
+      </form>
+    </AuthShell>
   )
 }

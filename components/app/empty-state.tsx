@@ -1,30 +1,39 @@
+import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function EmptyState({
   title,
   description,
   actions,
+  icon: Icon = Inbox,
   className,
 }: {
   title: string
   description: string
   actions?: ReactNode
+  icon?: LucideIcon
   className?: string
 }) {
   return (
     <div
       className={cn(
-        'rounded-card border border-dashed border-border bg-surface-muted p-6 text-center',
+        'rounded-card border border-dashed border-border bg-surface-muted/40 px-6 py-10 text-center',
         className,
       )}
     >
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+      <div className="mx-auto flex size-11 items-center justify-center rounded-control border border-border bg-surface text-subtle-foreground shadow-card">
+        <Icon className="size-5" aria-hidden="true" />
+      </div>
+      <h2 className="mt-4 text-sm font-semibold tracking-tight text-foreground">
+        {title}
+      </h2>
+      <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
         {description}
       </p>
       {actions ? (
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
           {actions}
         </div>
       ) : null}
@@ -43,10 +52,13 @@ export function ResultSummary({
 }) {
   return (
     <div className="flex flex-col gap-1 border-b border-border pb-3 text-sm sm:flex-row sm:items-center sm:justify-between">
-      <div className="font-medium text-foreground">
-        {count} {label}
+      <div className="flex items-baseline gap-2 font-medium text-foreground">
+        <span className="tabular-nums text-foreground">{count}</span>
+        <span className="text-muted-foreground">{label}</span>
       </div>
-      {detail ? <div className="text-muted-foreground">{detail}</div> : null}
+      {detail ? (
+        <div className="text-xs text-subtle-foreground">{detail}</div>
+      ) : null}
     </div>
   )
 }

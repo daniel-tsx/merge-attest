@@ -1,7 +1,13 @@
-import { CheckCircle2, Circle, LockKeyhole } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Circle,
+  LockKeyhole,
+  Sparkles,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { OnboardingStatus, OnboardingStep } from '@/lib/onboarding'
 
 function StepIcon({ status }: { status: OnboardingStep['status'] }) {
@@ -14,58 +20,90 @@ function StepIcon({ status }: { status: OnboardingStep['status'] }) {
         aria-hidden="true"
       />
     )
-  return <Circle className="size-5 text-info" aria-hidden="true" />
+  return <Circle className="size-5 text-accent" aria-hidden="true" />
 }
 
 function StepBadge({ status }: { status: OnboardingStep['status'] }) {
-  if (status === 'complete') return <Badge tone="green">done</Badge>
-  if (status === 'blocked') return <Badge tone="slate">blocked</Badge>
-  return <Badge tone="blue">next</Badge>
+  if (status === 'complete') return <Badge tone="green" withDot>done</Badge>
+  if (status === 'blocked') return <Badge tone="slate" withDot>blocked</Badge>
+  return <Badge tone="blue" withDot>next</Badge>
 }
 
 export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
   if (status.completed) return null
 
+  const completedCount = status.steps.filter(
+    (step) => step.status === 'complete',
+  ).length
+  const totalCount = status.steps.length
+  const progress = Math.round((completedCount / totalCount) * 100)
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Finish Setup</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          Connect GitHub and sync your first repository so AgentGate can start
-          monitoring pull requests.
-        </p>
-        <div className="grid gap-3 lg:grid-cols-4">
-          {status.steps.map((step) => (
+    <section className="overflow-hidden rounded-card border border-border bg-surface shadow-card">
+      <header className="flex flex-col gap-3 border-b border-border p-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 items-center justify-center rounded-control bg-accent-soft text-accent">
+            <Sparkles className="size-4" aria-hidden="true" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+              Finish your setup
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Connect GitHub and sync your first repository so AgentGate can
+              start monitoring pull requests.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="hidden h-1.5 w-32 overflow-hidden rounded-pill bg-surface-subtle md:block">
             <div
-              key={step.id}
-              className="rounded-control border border-border p-3"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <StepIcon status={step.status} />
-                <StepBadge status={step.status} />
-              </div>
-              <h3 className="mt-3 text-sm font-semibold text-foreground">
+              className="h-full rounded-pill bg-accent transition-[width] duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="text-xs font-medium tabular-nums text-muted-foreground">
+            {completedCount}/{totalCount} complete
+          </span>
+        </div>
+      </header>
+      <div className="grid gap-px bg-border lg:grid-cols-4">
+        {status.steps.map((step) => (
+          <div
+            key={step.id}
+            className={cn(
+              'flex flex-col gap-3 bg-surface p-4',
+              step.status === 'complete' && 'bg-success-soft/30',
+            )}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <StepIcon status={step.status} />
+              <StepBadge status={step.status} />
+            </div>
+            <div className="min-h-16">
+              <h3 className="text-sm font-semibold tracking-tight text-foreground">
                 {step.title}
               </h3>
-              <p className="mt-1 min-h-10 text-sm text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {step.description}
               </p>
-              {step.actionHref && step.status !== 'complete' ? (
-                <Button
-                  asChild
-                  className="mt-3 w-full"
-                  size="sm"
-                  variant={step.status === 'blocked' ? 'secondary' : 'default'}
-                >
-                  <a href={step.actionHref}>{step.actionLabel}</a>
-                </Button>
-              ) : null}
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            {step.actionHref && step.status !== 'complete' ? (
+              <Button
+                asChild
+                size="sm"
+                variant={step.status === 'blocked' ? 'secondary' : 'default'}
+                className="w-full"
+              >
+                <a href={step.actionHref}>
+                  {step.actionLabel}
+                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                </a>
+              </Button>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
