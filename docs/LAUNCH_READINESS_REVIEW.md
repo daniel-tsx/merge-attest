@@ -495,26 +495,26 @@ Verification:
 
 Required before private pilot:
 
-- [ ] P0 security fixes complete.
-- [ ] Real production-like PostgreSQL database with migrations applied.
-- [ ] Better Auth secret and URL configured.
-- [ ] GitHub App credentials, webhook secret, callback URL, and permissions verified.
-- [ ] Invite flow verified against wrong-user, replay, and expired-token scenarios.
-- [ ] Webhook processing retries visible in diagnostics.
-- [ ] Error tracking and alerting configured.
-- [x] Support mailbox configuration required; monitor and escalation ownership still need operational confirmation.
+- P0 security fixes complete.
+- Real production-like PostgreSQL database with migrations applied.
+- Better Auth secret and URL configured.
+- GitHub App credentials, webhook secret, callback URL, and permissions verified.
+- Invite flow verified against wrong-user, replay, and expired-token scenarios.
+- Webhook processing retries visible in diagnostics.
+- Error tracking and alerting configured.
+- Support mailbox configuration required; monitor and escalation ownership still need operational confirmation.
 
 Required before public paid launch:
 
-- [ ] P1 product readiness blockers complete.
-- [ ] Paddle checkout, portal, and webhook lifecycle tested in sandbox and live mode.
-- [x] Plan entitlements match UI/docs/pricing.
-- [ ] Audit retention cleanup implemented and documented.
-- [x] Email verification and password recovery enabled.
-- [ ] Dependency audit passes or has approved documented exceptions.
-- [ ] E2E activation path passes in CI.
-- [ ] Terms, privacy, security contact, data deletion/export, and subprocessors documented.
-- [ ] Backup restore drill completed.
+- P1 product readiness blockers complete.
+- Paddle checkout, portal, and webhook lifecycle tested in sandbox and live mode.
+- Plan entitlements match UI/docs/pricing.
+- Audit retention cleanup implemented and documented.
+- Email verification and password recovery enabled.
+- Dependency audit passes or has approved documented exceptions.
+- E2E activation path passes in CI.
+- Terms, privacy, security contact, data deletion/export, and subprocessors documented.
+- Backup restore drill completed.
 
 ## Suggested Next Implementation Order
 
