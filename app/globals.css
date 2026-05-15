@@ -129,6 +129,48 @@
   --radius-pill: var(--radius-pill);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --animate-gate-scan: gate-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  --animate-gate-halo: gate-halo 2.4s ease-in-out infinite;
+  --animate-skeleton-shimmer: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes gate-scan {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(58px);
+    opacity: 0;
+  }
+}
+
+@keyframes gate-halo {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 * {

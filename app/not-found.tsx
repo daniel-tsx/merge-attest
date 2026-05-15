@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { SearchX } from 'lucide-react'
+import { GateScan } from '@/components/app/gate-scan'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -7,17 +7,15 @@ export default function NotFoundPage() {
   return (
     <main className="flex min-h-[60vh] items-center justify-center p-4">
       <Card className="w-full max-w-lg">
-        <CardHeader>
-          <div className="mb-4 flex size-10 items-center justify-center rounded-card bg-surface-muted text-muted-foreground">
-            <SearchX className="size-5" aria-hidden="true" />
-          </div>
-          <CardTitle>Page not found</CardTitle>
+        <CardHeader className="flex flex-col items-start gap-3 border-b-0 pb-0">
+          <GateScan size="lg" tone="muted" state="question" />
+          <CardTitle className="text-base">Nothing behind this gate</CardTitle>
           <p className="text-sm text-muted-foreground">
             This page may have moved, or the pull request, repository, or
             workspace resource may no longer be available.
           </p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <Button asChild>
             <Link href="/dashboard">Go to dashboard</Link>
           </Button>
