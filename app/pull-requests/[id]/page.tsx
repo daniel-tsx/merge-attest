@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import {
   AlertTriangle,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/app/empty-state'
 import { ApprovalActions } from '@/components/app/approval-actions'
+import { addReviewNote, assignReviewer } from '@/app/pull-requests/actions'
 import { PageHeader } from '@/components/app/page-header'
 import { RiskScoreRing } from '@/components/app/risk-score'
 import {
@@ -34,6 +36,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   getCurrentOrganization,
   getPullRequest,
@@ -92,16 +95,6 @@ export default async function PullRequestDetailPage({
     listTeamMembers(organization.id),
   ])
   if (!pr) notFound()
-  const [auditEvents, activityEvents] = await Promise.all([
-    listAuditEvents(organization.id, {
-      pullRequestId: pr.id,
-      take: 8,
-    }),
-    listActivityEvents(organization.id, {
-      pullRequestId: pr.id,
-      take: 8,
-    }),
-  ])
   const reviewers = teamMembers.filter((member) => member.role !== 'viewer')
   const approvalsAvailable = isFeatureAvailable(
     organization.planKey,
@@ -109,11 +102,6 @@ export default async function PullRequestDetailPage({
   )
   const canRecord = approvalsAvailable && canRecordApproval(organization.role)
   const entitlements = getPlanEntitlements(organization.planKey)
-  const timeline = buildPullRequestTimeline({
-    pullRequest: pr,
-    auditEvents,
-    activityEvents,
-  })
   const feedbackMessages = [
     assignmentStatus === 'assigned'
       ? { text: 'Reviewer assignment updated.', tone: 'success' as const }
@@ -443,8 +431,7 @@ export default async function PullRequestDetailPage({
                   </span>
                 </div>
                 <form
-                  action={`/api/pull-requests/${pr.id}/assignment`}
-                  method="post"
+                  action={assignReviewer.bind(null, pr.id)}
                   className="mt-3 grid gap-2"
                 >
                   <label className="space-y-1.5">
@@ -536,8 +523,7 @@ export default async function PullRequestDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <form
-                action={`/api/pull-requests/${pr.id}/comments`}
-                method="post"
+                action={addReviewNote.bind(null, pr.id)}
                 className="space-y-2"
               >
                 <label className="space-y-1.5">
@@ -623,54 +609,103 @@ export default async function PullRequestDetailPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Review timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {timeline.length ? (
-                <ol className="space-y-0.5">
-                  {timeline.map((item, index) => (
-                    <li
-                      key={`${item.source}-${item.id}`}
-                      className="relative flex gap-3 py-2"
-                    >
-                      <div className="relative flex flex-col items-center">
-                        <span className="mt-1 size-1.5 rounded-full bg-accent ring-2 ring-accent-soft" />
-                        {index < timeline.length - 1 ? (
-                          <span
-                            aria-hidden="true"
-                            className="absolute top-3 h-full w-px bg-divider"
-                          />
-                        ) : null}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-foreground">
-                          {item.title}
-                        </div>
-                        {item.detail ? (
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            {item.detail}
-                          </div>
-                        ) : null}
-                        <div className="mt-1 text-[11px] uppercase tracking-wider text-subtle-foreground">
-                          {item.source} · {formatDate(item.timestamp)}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <EmptyState
-                  title="No review timeline yet"
-                  description="Timeline entries will appear when review, audit, or agent activity is recorded."
-                  className="py-6"
-                />
-              )}
-            </CardContent>
-          </Card>
+          <Suspense fallback={<TimelineCardSkeleton />}>
+            <ReviewTimeline organizationId={organization.id} pr={pr} />
+          </Suspense>
         </div>
       </section>
     </div>
+  )
+}
+
+type LoadedPullRequest = NonNullable<
+  Awaited<ReturnType<typeof getPullRequest>>
+>
+
+async function ReviewTimeline({
+  organizationId,
+  pr,
+}: {
+  organizationId: string
+  pr: LoadedPullRequest
+}) {
+  const [auditEvents, activityEvents] = await Promise.all([
+    listAuditEvents(organizationId, { pullRequestId: pr.id, take: 8 }),
+    listActivityEvents(organizationId, { pullRequestId: pr.id, take: 8 }),
+  ])
+  const timeline = buildPullRequestTimeline({
+    pullRequest: pr,
+    auditEvents,
+    activityEvents,
+  })
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Review timeline</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {timeline.length ? (
+          <ol className="space-y-0.5">
+            {timeline.map((item, index) => (
+              <li
+                key={`${item.source}-${item.id}`}
+                className="relative flex gap-3 py-2"
+              >
+                <div className="relative flex flex-col items-center">
+                  <span className="mt-1 size-1.5 rounded-full bg-accent ring-2 ring-accent-soft" />
+                  {index < timeline.length - 1 ? (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-3 h-full w-px bg-divider"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-foreground">
+                    {item.title}
+                  </div>
+                  {item.detail ? (
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {item.detail}
+                    </div>
+                  ) : null}
+                  <div className="mt-1 text-[11px] uppercase tracking-wider text-subtle-foreground">
+                    {item.source} · {formatDate(item.timestamp)}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <EmptyState
+            title="No review timeline yet"
+            description="Timeline entries will appear when review, audit, or agent activity is recorded."
+            className="py-6"
+          />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function TimelineCardSkeleton() {
+  return (
+    <Card role="status" aria-label="Loading review timeline">
+      <CardHeader>
+        <CardTitle>Review timeline</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="flex gap-3">
+            <Skeleton className="mt-1 size-1.5 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   )
 }

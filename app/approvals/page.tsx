@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { SearchParams } from 'nuqs/server'
 import Link from 'next/link'
 import {
@@ -9,7 +10,9 @@ import {
 } from 'lucide-react'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
+import { ListSkeleton } from '@/components/app/page-loading'
 import { ApprovalActions } from '@/components/app/approval-actions'
+import { assignReviewer } from '@/app/pull-requests/actions'
 import { ApprovalFilters } from '@/app/approvals/filters'
 import {
   ApprovalBadge,
@@ -32,11 +35,26 @@ import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate } from '@/lib/utils'
 import { approvalsSearchParamsCache } from './search-params'
 
-export default async function ApprovalsPage({
-  searchParams,
-}: {
+type PageProps = {
   searchParams: Promise<SearchParams>
-}) {
+}
+
+export default function ApprovalsPage({ searchParams }: PageProps) {
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Review work"
+        title="Approval queue"
+        description="Human review queue for risky, AI-assisted, or test-gap pull requests."
+      />
+      <Suspense fallback={<ListSkeleton />}>
+        <ApprovalsContent searchParams={searchParams} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function ApprovalsContent({ searchParams }: PageProps) {
   const [filters, organization] = await Promise.all([
     approvalsSearchParamsCache.parse(searchParams),
     getCurrentOrganization(),
@@ -60,12 +78,7 @@ export default async function ApprovalsPage({
         )
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Review work"
-        title="Approval queue"
-        description="Human review queue for risky, AI-assisted, or test-gap pull requests."
-      />
+    <>
       {!approvalsAvailable ? (
         <Card className="border-info-border bg-info-soft/40">
           <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -184,8 +197,7 @@ export default async function ApprovalsPage({
                 </div>
               </dl>
               <form
-                action={`/api/pull-requests/${pr.id}/assignment`}
-                method="post"
+                action={assignReviewer.bind(null, pr.id)}
                 className="grid gap-2 md:grid-cols-[1fr_160px_auto]"
               >
                 <label className="space-y-1.5">
@@ -248,6 +260,6 @@ export default async function ApprovalsPage({
           </CardContent>
         </Card>
       ) : null}
-    </div>
+    </>
   )
 }

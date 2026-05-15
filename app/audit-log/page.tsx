@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import type { SearchParams } from 'nuqs/server'
 import Link from 'next/link'
 import { Download, FileText, ListChecks } from 'lucide-react'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
+import { LogSkeleton } from '@/components/app/page-loading'
 import { AuditLogFilters } from '@/app/audit-log/filters'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,17 +30,32 @@ import {
   serializeAuditLogSearchParams,
 } from './search-params'
 
+type PageProps = {
+  searchParams: Promise<SearchParams>
+}
+
 function readDate(value: string) {
   if (!value) return undefined
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? undefined : date
 }
 
-export default async function AuditLogPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>
-}) {
+export default function AuditLogPage({ searchParams }: PageProps) {
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Review work"
+        title="Audit log"
+        description="Immutable trail for repository syncs, risk calculations, rule triggers, approvals, and settings changes."
+      />
+      <Suspense fallback={<LogSkeleton />}>
+        <AuditLogContent searchParams={searchParams} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function AuditLogContent({ searchParams }: PageProps) {
   const [params, organization] = await Promise.all([
     auditLogSearchParamsCache.parse(searchParams),
     getCurrentOrganization(),
@@ -63,27 +80,22 @@ export default async function AuditLogPage({
   )}`
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Review work"
-        title="Audit log"
-        description="Immutable trail for repository syncs, risk calculations, rule triggers, approvals, and settings changes."
-        actions={
-          entitlements.features.auditExport ? (
-            <Button asChild variant="secondary">
-              <a href={exportHref}>
-                <Download aria-hidden="true" />
-                Export CSV
-              </a>
-            </Button>
-          ) : (
-            <Button variant="secondary" disabled>
+    <>
+      <div className="flex justify-end">
+        {entitlements.features.auditExport ? (
+          <Button asChild variant="secondary">
+            <a href={exportHref}>
               <Download aria-hidden="true" />
-              Growth plan export
-            </Button>
-          )
-        }
-      />
+              Export CSV
+            </a>
+          </Button>
+        ) : (
+          <Button variant="secondary" disabled>
+            <Download aria-hidden="true" />
+            Growth plan export
+          </Button>
+        )}
+      </div>
       <Card>
         <CardContent className="space-y-5">
           <AuditLogFilters repositories={repositories} />
@@ -204,6 +216,6 @@ export default async function AuditLogPage({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }

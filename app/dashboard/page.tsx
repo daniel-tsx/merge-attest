@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import {
   Activity,
   AlertTriangle,
@@ -13,6 +14,7 @@ import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { MetricCard } from '@/components/app/metric-card'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
+import { DashboardSkeleton } from '@/components/app/page-loading'
 import { CiBadge, RiskBadge, TestGapBadge } from '@/components/app/status-badge'
 import { TrendChart } from '@/components/charts/dashboard-charts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,7 +38,22 @@ import { getOnboardingStatus } from '@/lib/onboarding'
 import { buildReportingMetrics } from '@/lib/reporting'
 import { formatDate, formatNumber } from '@/lib/utils'
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Overview"
+        title="Dashboard"
+        description="Operational view of AI-assisted pull requests, test gaps, approval pressure, and risky changes."
+      />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+      </Suspense>
+    </div>
+  )
+}
+
+async function DashboardContent() {
   const organization = await getCurrentOrganization()
   const [repositories, pullRequests, activityEvents] = await Promise.all([
     listRepositories(organization.id),
@@ -142,11 +159,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Overview"
-        title="Dashboard"
-        description="Operational view of AI-assisted pull requests, test gaps, approval pressure, and risky changes."
-      />
       <OnboardingChecklist status={onboardingStatus} />
 
       <section className="space-y-3">

@@ -1,4 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageRules } from '@/lib/collaboration'
 import { isFeatureAvailable } from '@/lib/plans'
@@ -45,16 +48,6 @@ const agentSources: AgentSource[] = [
 
 const riskLevels: RiskLevel[] = ['low', 'medium', 'high', 'critical']
 
-function redirectToRules(
-  request: NextRequest,
-  repositoryId: string,
-  status: string,
-) {
-  const url = new URL(`/repositories/${repositoryId}/rules`, request.url)
-  url.searchParams.set('status', status)
-  return NextResponse.redirect(url)
-}
-
 function optionalText(value: FormDataEntryValue | null) {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()
@@ -62,8 +55,7 @@ function optionalText(value: FormDataEntryValue | null) {
 }
 
 function requiredText(value: FormDataEntryValue | null, fallback: string) {
-  const trimmed = optionalText(value)
-  return trimmed ?? fallback
+  return optionalText(value) ?? fallback
 }
 
 function pickOption<T extends string>(
@@ -117,37 +109,38 @@ function parseRuleForm(formData: FormData) {
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+async function syncActiveRulesCount(repositoryId: string) {
+  const prisma = getPrismaClient()
+  if (!prisma) return
+  const activeRulesCount = await prisma.repoRule.count({
+    where: { repositoryId, enabled: true },
+  })
+  await prisma.repository.update({
+    where: { id: repositoryId },
+    data: { activeRulesCount },
+  })
+}
+
+export async function createRule(repositoryId: string, formData: FormData) {
+  const base = `/repositories/${repositoryId}/rules`
   const organization = await ensureCurrentUserOrganization()
   const prisma = getPrismaClient()
-  const { id } = await params
-
-  if (!organization || !prisma) {
-    return redirectToRules(request, id, 'auth_required')
-  }
-
-  if (!canManageRules(organization.role)) {
-    return redirectToRules(request, id, 'forbidden')
-  }
-
+  if (!organization || !prisma) redirect(`${base}?status=auth_required`)
+  if (!canManageRules(organization.role)) redirect(`${base}?status=forbidden`)
   if (!isFeatureAvailable(organization.planKey, 'customRules')) {
-    return redirectToRules(request, id, 'upgrade_required')
+    redirect(`${base}?status=upgrade_required`)
   }
 
   const repository = await prisma.repository.findFirst({
-    where: { id, organizationId: organization.id },
+    where: { id: repositoryId, organizationId: organization.id },
   })
+  if (!repository) redirect(`${base}?status=not_found`)
 
-  if (!repository) return redirectToRules(request, id, 'not_found')
-
-  const formData = await request.formData()
-  const action = formData.get('_action')
   const templateKey = optionalText(formData.get('templateKey'))
   const template =
-    action === 'apply_template' ? getRuleTemplate(templateKey ?? '') : null
+    formData.get('_action') === 'apply_template'
+      ? getRuleTemplate(templateKey ?? '')
+      : null
   const ruleData = template
     ? {
         name: template.name,
@@ -172,16 +165,7 @@ export async function POST(
       organizationId: organization.id,
     },
   })
-
-  const activeRulesCount = await prisma.repoRule.count({
-    where: { repositoryId: repository.id, enabled: true },
-  })
-
-  await prisma.repository.update({
-    where: { id: repository.id },
-    data: { activeRulesCount },
-  })
-
+  await syncActiveRulesCount(repository.id)
   await prisma.auditEvent.create({
     data: {
       eventType: 'settings_changed',
@@ -198,5 +182,86 @@ export async function POST(
     },
   })
 
-  return redirectToRules(request, id, template ? 'template_applied' : 'created')
+  revalidatePath(base)
+  redirect(`${base}?status=${template ? 'template_applied' : 'created'}`)
+}
+
+export async function mutateRule(
+  repositoryId: string,
+  ruleId: string,
+  formData: FormData,
+) {
+  const base = `/repositories/${repositoryId}/rules`
+  const organization = await ensureCurrentUserOrganization()
+  const prisma = getPrismaClient()
+  if (!organization || !prisma) redirect(`${base}?status=auth_required`)
+  if (!canManageRules(organization.role)) redirect(`${base}?status=forbidden`)
+  if (!isFeatureAvailable(organization.planKey, 'customRules')) {
+    redirect(`${base}?status=upgrade_required`)
+  }
+
+  const rule = await prisma.repoRule.findFirst({
+    where: { id: ruleId, repositoryId, organizationId: organization.id },
+  })
+  if (!rule) redirect(`${base}?status=not_found`)
+
+  const actionValue = formData.get('_action')
+  const action = typeof actionValue === 'string' ? actionValue : 'update'
+  let auditSummary = `Updated repository rule: ${rule.name}`
+  let status = 'updated'
+
+  if (action === 'delete') {
+    await prisma.repoRule.delete({ where: { id: rule.id } })
+    auditSummary = `Deleted repository rule: ${rule.name}`
+    status = 'deleted'
+  } else if (action === 'toggle') {
+    const enabled = formData.get('enabled') === 'true'
+    await prisma.repoRule.update({
+      where: { id: rule.id },
+      data: { enabled },
+    })
+    auditSummary = `${enabled ? 'Enabled' : 'Disabled'} repository rule: ${rule.name}`
+    status = enabled ? 'enabled' : 'disabled'
+  } else if (action === 'duplicate') {
+    await prisma.repoRule.create({
+      data: {
+        name: `${rule.name} copy`,
+        description: rule.description,
+        enabled: false,
+        triggerType: rule.triggerType,
+        actionType: rule.actionType,
+        severity: rule.severity,
+        branchPattern: rule.branchPattern,
+        pathPattern: rule.pathPattern,
+        labelPattern: rule.labelPattern,
+        agentSource: rule.agentSource,
+        minimumRiskLevel: rule.minimumRiskLevel,
+        codeOwnerHint: rule.codeOwnerHint,
+        repositoryId: rule.repositoryId,
+        organizationId: organization.id,
+      },
+    })
+    auditSummary = `Duplicated repository rule: ${rule.name}`
+    status = 'duplicated'
+  } else {
+    await prisma.repoRule.update({
+      where: { id: rule.id },
+      data: parseRuleForm(formData),
+    })
+  }
+
+  await syncActiveRulesCount(repositoryId)
+  await prisma.auditEvent.create({
+    data: {
+      eventType: 'settings_changed',
+      actor: organization.userName || organization.userEmail,
+      summary: auditSummary,
+      metadata: { ruleId: rule.id, action },
+      organizationId: organization.id,
+      repositoryId,
+    },
+  })
+
+  revalidatePath(base)
+  redirect(`${base}?status=${status}`)
 }

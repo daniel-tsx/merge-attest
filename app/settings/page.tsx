@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import {
   ArrowUpRight,
   Bell,
@@ -10,6 +11,7 @@ import {
 import Link from 'next/link'
 import { PageHeader } from '@/components/app/page-header'
 import { SettingsNav } from '@/components/app/settings-nav'
+import { FormSkeleton } from '@/components/app/page-loading'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -22,7 +24,23 @@ import { githubConfigured } from '@/lib/github'
 import { getPrCheckUsage } from '@/lib/usage'
 import { formatNumber } from '@/lib/utils'
 
-export default async function SettingsPage() {
+export default function SettingsPage() {
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Workspace"
+        title="Settings"
+        description="Organization profile, integration state, billing gates, usage, API keys, retention, and notifications."
+      />
+      <SettingsNav />
+      <Suspense fallback={<FormSkeleton />}>
+        <SettingsOverview />
+      </Suspense>
+    </div>
+  )
+}
+
+async function SettingsOverview() {
   const organization = await getCurrentOrganization()
   const [members, repositories, prCheckUsage, apiKeyCount] = await Promise.all([
     listTeamMembers(organization.id),
@@ -87,13 +105,7 @@ export default async function SettingsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Workspace"
-        title="Settings"
-        description="Organization profile, integration state, billing gates, usage, API keys, retention, and notifications."
-      />
-      <SettingsNav />
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Organization profile</CardTitle>
@@ -160,6 +172,6 @@ export default async function SettingsPage() {
           )
         })}
       </div>
-    </div>
+    </>
   )
 }

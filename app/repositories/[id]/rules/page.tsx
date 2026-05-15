@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import type React from 'react'
 import {
@@ -15,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   getCurrentOrganization,
   getRepositoryPullRequests,
@@ -26,6 +28,7 @@ import { evaluateRepoRules } from '@/lib/rules'
 import { isFeatureAvailable } from '@/lib/plans'
 import type { RepoRule } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
+import { createRule, mutateRule } from './actions'
 
 const triggerTypes: RepoRule['triggerType'][] = [
   'ai_assisted',
@@ -268,28 +271,10 @@ export default async function RepositoryRulesPage({
       : undefined
   const repository = await getRepository(organization.id, id)
   if (!repository) notFound()
-  const [rules, pullRequests] = await Promise.all([
-    getRepositoryRules(organization.id, id),
-    getRepositoryPullRequests(organization.id, id),
-  ])
   const customRulesAvailable = isFeatureAvailable(
     organization.planKey,
     'customRules',
   )
-  const previewPullRequests = pullRequests.slice(0, 3).map((pullRequest) => ({
-    pullRequest,
-    violations: evaluateRepoRules(rules, {
-      aiAssisted: pullRequest.aiAssisted,
-      riskLevel: pullRequest.riskLevel,
-      ciStatus: pullRequest.ciStatus,
-      testGapStatus: pullRequest.testGapStatus,
-      riskSignals: pullRequest.riskSignals,
-      branch: pullRequest.branch,
-      agentSource: pullRequest.agentSource,
-      files: pullRequest.files,
-      labels: [],
-    }),
-  }))
 
   return (
     <div className="space-y-6">
@@ -372,7 +357,7 @@ export default async function RepositoryRulesPage({
                     <Badge tone="slate">Path: {template.pathPattern}</Badge>
                   ) : null}
                 </div>
-                <form action={`/api/repositories/${id}/rules`} method="post">
+                <form action={createRule.bind(null, id)}>
                   <input type="hidden" name="_action" value="apply_template" />
                   <input
                     type="hidden"
@@ -403,8 +388,7 @@ export default async function RepositoryRulesPage({
         </CardHeader>
         <CardContent>
           <form
-            action={`/api/repositories/${id}/rules`}
-            method="post"
+            action={createRule.bind(null, id)}
             className="space-y-4"
           >
             <input type="hidden" name="_action" value="create" />
@@ -416,6 +400,47 @@ export default async function RepositoryRulesPage({
         </CardContent>
       </Card>
 
+      <Suspense fallback={<RulesPolicySkeleton />}>
+        <RulesPolicySections
+          repositoryId={id}
+          organizationId={organization.id}
+          customRulesAvailable={customRulesAvailable}
+        />
+      </Suspense>
+    </div>
+  )
+}
+
+async function RulesPolicySections({
+  repositoryId,
+  organizationId,
+  customRulesAvailable,
+}: {
+  repositoryId: string
+  organizationId: string
+  customRulesAvailable: boolean
+}) {
+  const [rules, pullRequests] = await Promise.all([
+    getRepositoryRules(organizationId, repositoryId),
+    getRepositoryPullRequests(organizationId, repositoryId),
+  ])
+  const previewPullRequests = pullRequests.slice(0, 3).map((pullRequest) => ({
+    pullRequest,
+    violations: evaluateRepoRules(rules, {
+      aiAssisted: pullRequest.aiAssisted,
+      riskLevel: pullRequest.riskLevel,
+      ciStatus: pullRequest.ciStatus,
+      testGapStatus: pullRequest.testGapStatus,
+      riskSignals: pullRequest.riskSignals,
+      branch: pullRequest.branch,
+      agentSource: pullRequest.agentSource,
+      files: pullRequest.files,
+      labels: [],
+    }),
+  }))
+
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Active policy</CardTitle>
@@ -482,10 +507,7 @@ export default async function RepositoryRulesPage({
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <form
-                    action={`/api/repositories/${id}/rules/${rule.id}`}
-                    method="post"
-                  >
+                  <form action={mutateRule.bind(null, repositoryId, rule.id)}>
                     <input type="hidden" name="_action" value="toggle" />
                     <input
                       type="hidden"
@@ -501,10 +523,7 @@ export default async function RepositoryRulesPage({
                       {rule.enabled ? 'Disable' : 'Enable'}
                     </Button>
                   </form>
-                  <form
-                    action={`/api/repositories/${id}/rules/${rule.id}`}
-                    method="post"
-                  >
+                  <form action={mutateRule.bind(null, repositoryId, rule.id)}>
                     <input type="hidden" name="_action" value="duplicate" />
                     <Button
                       type="submit"
@@ -515,10 +534,7 @@ export default async function RepositoryRulesPage({
                       Duplicate
                     </Button>
                   </form>
-                  <form
-                    action={`/api/repositories/${id}/rules/${rule.id}`}
-                    method="post"
-                  >
+                  <form action={mutateRule.bind(null, repositoryId, rule.id)}>
                     <input type="hidden" name="_action" value="delete" />
                     <Button
                       type="submit"
@@ -536,8 +552,7 @@ export default async function RepositoryRulesPage({
                   Edit rule
                 </summary>
                 <form
-                  action={`/api/repositories/${id}/rules/${rule.id}`}
-                  method="post"
+                  action={mutateRule.bind(null, repositoryId, rule.id)}
                   className="mt-4 space-y-4"
                 >
                   <input type="hidden" name="_action" value="update" />
@@ -616,6 +631,24 @@ export default async function RepositoryRulesPage({
           )}
         </CardContent>
       </Card>
+    </>
+  )
+}
+
+function RulesPolicySkeleton() {
+  return (
+    <div className="space-y-6" role="status" aria-label="Loading repository policy">
+      {Array.from({ length: 2 }).map((_, card) => (
+        <Card key={card}>
+          <CardContent className="space-y-3 p-4">
+            <Skeleton className="h-4 w-32" />
+            {Array.from({ length: 3 }).map((_, row) => (
+              <Skeleton key={row} className="h-20 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      ))}
+      <span className="sr-only">Loading repository policy</span>
     </div>
   )
 }

@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ErrorPage({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   useEffect(() => {
     console.error(error)
@@ -33,7 +33,7 @@ export default function ErrorPage({
           )}
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 pt-4">
-          <Button type="button" onClick={reset}>
+          <Button type="button" onClick={() => unstable_retry()}>
             Try again
           </Button>
           <Button type="button" variant="secondary" asChild>

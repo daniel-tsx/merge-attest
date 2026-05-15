@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -21,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusDot } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -38,6 +40,8 @@ import {
 } from '@/lib/data/app-data'
 import { formatDate, formatNumber } from '@/lib/utils'
 
+type LoadedRepository = NonNullable<Awaited<ReturnType<typeof getRepository>>>
+
 export default async function RepositoryDetailPage({
   params,
 }: {
@@ -49,22 +53,6 @@ export default async function RepositoryDetailPage({
   ])
   const repository = await getRepository(organization.id, id)
   if (!repository) notFound()
-
-  const [prs, rules, auditEvents] = await Promise.all([
-    getRepositoryPullRequests(organization.id, id),
-    getRepositoryRules(organization.id, id),
-    listAuditEvents(organization.id, {
-      repositoryId: id,
-      take: 8,
-    }),
-  ])
-
-  const connectionTone =
-    repository.connectedStatus === 'connected'
-      ? 'green'
-      : repository.connectedStatus === 'demo'
-        ? 'blue'
-        : 'yellow'
 
   return (
     <div className="space-y-6">
@@ -102,6 +90,72 @@ export default async function RepositoryDetailPage({
           </>
         }
       />
+      <Suspense fallback={<RepositoryInsightsSkeleton />}>
+        <RepositoryInsights
+          organizationId={organization.id}
+          repository={repository}
+        />
+      </Suspense>
+      <Card>
+        <CardHeader>
+          <CardTitle className="inline-flex items-center gap-2">
+            <SettingsIcon className="size-3.5" aria-hidden="true" />
+            Repository settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Provider
+            </div>
+            <div className="mt-1 font-medium text-foreground">
+              {repository.provider}
+            </div>
+          </div>
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Created
+            </div>
+            <div className="mt-1 font-medium text-foreground">
+              {formatDate(repository.createdAt)}
+            </div>
+          </div>
+          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+              Updated
+            </div>
+            <div className="mt-1 font-medium text-foreground">
+              {formatDate(repository.updatedAt)}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+async function RepositoryInsights({
+  organizationId,
+  repository,
+}: {
+  organizationId: string
+  repository: LoadedRepository
+}) {
+  const [prs, rules, auditEvents] = await Promise.all([
+    getRepositoryPullRequests(organizationId, repository.id),
+    getRepositoryRules(organizationId, repository.id),
+    listAuditEvents(organizationId, { repositoryId: repository.id, take: 8 }),
+  ])
+
+  const connectionTone =
+    repository.connectedStatus === 'connected'
+      ? 'green'
+      : repository.connectedStatus === 'demo'
+        ? 'blue'
+        : 'yellow'
+
+  return (
+    <>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Connection"
@@ -252,40 +306,41 @@ export default async function RepositoryDetailPage({
           </CardContent>
         </Card>
       </section>
-      <Card>
-        <CardHeader>
-          <CardTitle className="inline-flex items-center gap-2">
-            <SettingsIcon className="size-3.5" aria-hidden="true" />
-            Repository settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
-              Provider
-            </div>
-            <div className="mt-1 font-medium text-foreground">
-              {repository.provider}
-            </div>
-          </div>
-          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
-              Created
-            </div>
-            <div className="mt-1 font-medium text-foreground">
-              {formatDate(repository.createdAt)}
-            </div>
-          </div>
-          <div className="rounded-control border border-border bg-surface-muted/30 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
-              Updated
-            </div>
-            <div className="mt-1 font-medium text-foreground">
-              {formatDate(repository.updatedAt)}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    </>
+  )
+}
+
+function RepositoryInsightsSkeleton() {
+  return (
+    <div className="space-y-6" role="status" aria-label="Loading repository">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index}>
+            <CardContent className="space-y-3 p-4">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-7 w-20" />
+              <Skeleton className="h-3 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+      <section className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-40 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <Skeleton className="h-4 w-20" />
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-14 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+      <span className="sr-only">Loading repository</span>
     </div>
   )
 }

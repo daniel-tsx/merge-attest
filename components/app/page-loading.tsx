@@ -29,11 +29,11 @@ export function PageLoading({
       aria-label={title}
     >
       <PageLoadingHeader title={title} description={description} />
-      {variant === 'dashboard' && <DashboardBody />}
-      {variant === 'list' && <ListBody />}
-      {variant === 'detail' && <DetailBody />}
-      {variant === 'log' && <LogBody />}
-      {variant === 'form' && <FormBody />}
+      {variant === 'dashboard' && <DashboardSkeleton />}
+      {variant === 'list' && <ListSkeleton />}
+      {variant === 'detail' && <DetailSkeleton />}
+      {variant === 'log' && <LogSkeleton />}
+      {variant === 'form' && <FormSkeleton />}
       <span className="sr-only">{title}</span>
     </div>
   )
@@ -80,10 +80,7 @@ function TableRowsSkeleton({ rows }: { rows: number }) {
     <div className="space-y-2">
       <div className="grid grid-cols-12 gap-3 px-2">
         {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton
-            key={`th-${index}`}
-            className="col-span-2 h-3"
-          />
+          <Skeleton key={`th-${index}`} className="col-span-2 h-3" />
         ))}
       </div>
       <div className="divide-y divide-border rounded-control border border-border">
@@ -117,9 +114,9 @@ function FilterBarSkeleton() {
   )
 }
 
-function DashboardBody() {
+export function DashboardSkeleton() {
   return (
-    <>
+    <div className="space-y-6">
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <MetricCardSkeleton key={index} />
@@ -153,11 +150,11 @@ function DashboardBody() {
           <TableRowsSkeleton rows={5} />
         </CardContent>
       </Card>
-    </>
+    </div>
   )
 }
 
-function ListBody() {
+export function ListSkeleton() {
   return (
     <Card>
       <CardContent className="space-y-4 p-4">
@@ -172,7 +169,7 @@ function ListBody() {
   )
 }
 
-function LogBody() {
+export function LogSkeleton() {
   return (
     <Card>
       <CardContent className="space-y-4 p-4">
@@ -187,7 +184,7 @@ function LogBody() {
   )
 }
 
-function DetailBody() {
+export function DetailSkeleton() {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
@@ -240,7 +237,7 @@ function DetailBody() {
   )
 }
 
-function FormBody() {
+export function FormSkeleton() {
   return (
     <Card>
       <CardContent className="max-w-2xl space-y-5 p-4">
@@ -256,5 +253,24 @@ function FormBody() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+export function TableSkeleton({
+  label = 'Loading results',
+  rows = 8,
+}: {
+  label?: string
+  rows?: number
+}) {
+  return (
+    <div className="space-y-4" role="status" aria-label={label}>
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <TableRowsSkeleton rows={rows} />
+      <span className="sr-only">{label}</span>
+    </div>
   )
 }

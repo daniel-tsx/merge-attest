@@ -22,6 +22,7 @@ import {
 } from '@/lib/data/app-data'
 import { canManageTeam } from '@/lib/collaboration'
 import { formatDate } from '@/lib/utils'
+import { inviteMember, mutateInvite, mutateMember } from './actions'
 
 const teamMessages: Record<string, string> = {
   invited: 'Invite created. Share the invite link with your teammate.',
@@ -112,8 +113,7 @@ export default async function TeamSettingsPage({
           </CardHeader>
           <CardContent>
             <form
-              action="/api/team/invites"
-              method="post"
+              action={inviteMember}
               className="grid gap-3 md:grid-cols-[1fr_180px_auto]"
             >
               <label className="space-y-1.5">
@@ -192,8 +192,7 @@ export default async function TeamSettingsPage({
                       <TableCell className="text-right">
                         <div className="flex flex-wrap justify-end gap-2">
                           <form
-                            action={`/api/team/members/${member.id}`}
-                            method="post"
+                            action={mutateMember.bind(null, member.id)}
                             className="flex gap-2"
                           >
                             <input
@@ -221,10 +220,7 @@ export default async function TeamSettingsPage({
                               Save
                             </Button>
                           </form>
-                          <form
-                            action={`/api/team/members/${member.id}`}
-                            method="post"
-                          >
+                          <form action={mutateMember.bind(null, member.id)}>
                             <input type="hidden" name="_action" value="remove" />
                             <Button
                               type="submit"
@@ -302,10 +298,7 @@ export default async function TeamSettingsPage({
                     {canManage ? (
                       <TableCell className="text-right">
                         <div className="flex flex-wrap justify-end gap-2">
-                          <form
-                            action={`/api/team/invites/${invite.id}`}
-                            method="post"
-                          >
+                          <form action={mutateInvite.bind(null, invite.id)}>
                             <input
                               type="hidden"
                               name="_action"
@@ -319,10 +312,7 @@ export default async function TeamSettingsPage({
                               Refresh
                             </Button>
                           </form>
-                          <form
-                            action={`/api/team/invites/${invite.id}`}
-                            method="post"
-                          >
+                          <form action={mutateInvite.bind(null, invite.id)}>
                             <input type="hidden" name="_action" value="revoke" />
                             <Button type="submit" size="sm" variant="danger">
                               Revoke

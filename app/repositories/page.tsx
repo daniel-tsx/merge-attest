@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import type { SearchParams } from 'nuqs/server'
 import Link from 'next/link'
 import {
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
+import { ListSkeleton } from '@/components/app/page-loading'
 import { RepositoryFilters } from '@/app/repositories/filters'
 import { RiskBadge } from '@/components/app/status-badge'
 import { Badge, StatusDot } from '@/components/ui/badge'
@@ -31,24 +33,11 @@ import { getPlanEntitlements, remainingLimit } from '@/lib/entitlements'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { repositorySearchParamsCache } from './search-params'
 
-export default async function RepositoriesPage({
-  searchParams,
-}: {
+type PageProps = {
   searchParams: Promise<SearchParams>
-}) {
-  const [filters, organization] = await Promise.all([
-    repositorySearchParamsCache.parse(searchParams),
-    getCurrentOrganization(),
-  ])
-  const allRepositories = await listRepositories(organization.id)
-  const repositories = applyRepositoryFilters(allRepositories, filters)
-  const entitlements = getPlanEntitlements(organization.planKey)
-  const remainingRepositories = remainingLimit(
-    entitlements.repositoryLimit,
-    allRepositories.length,
-  )
-  const repositoryLimitReached = remainingRepositories === 0
+}
 
+export default function RepositoriesPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6">
       <PageHeader
@@ -65,6 +54,29 @@ export default async function RepositoriesPage({
           </form>
         }
       />
+      <Suspense fallback={<ListSkeleton />}>
+        <RepositoriesContent searchParams={searchParams} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function RepositoriesContent({ searchParams }: PageProps) {
+  const [filters, organization] = await Promise.all([
+    repositorySearchParamsCache.parse(searchParams),
+    getCurrentOrganization(),
+  ])
+  const allRepositories = await listRepositories(organization.id)
+  const repositories = applyRepositoryFilters(allRepositories, filters)
+  const entitlements = getPlanEntitlements(organization.planKey)
+  const remainingRepositories = remainingLimit(
+    entitlements.repositoryLimit,
+    allRepositories.length,
+  )
+  const repositoryLimitReached = remainingRepositories === 0
+
+  return (
+    <>
       {repositoryLimitReached ? (
         <Card className="border-attention-border bg-attention-soft/40">
           <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -77,7 +89,10 @@ export default async function RepositoriesPage({
                   Repository limit reached
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Your <span className="font-medium capitalize">{organization.planKey}</span>{' '}
+                  Your{' '}
+                  <span className="font-medium capitalize">
+                    {organization.planKey}
+                  </span>{' '}
                   plan includes {entitlements.repositoryLimit} repositories.
                   Upgrade before syncing additional repositories.
                 </div>
@@ -154,10 +169,7 @@ export default async function RepositoriesPage({
                           <div className="mt-0.5 flex items-center gap-1.5 text-xs text-subtle-foreground">
                             <span>{repository.provider}</span>
                             <span aria-hidden="true">·</span>
-                            <GitBranch
-                              className="size-3"
-                              aria-hidden="true"
-                            />
+                            <GitBranch className="size-3" aria-hidden="true" />
                             <span className="font-mono text-[11px]">
                               {repository.defaultBranch}
                             </span>
@@ -220,6 +232,6 @@ export default async function RepositoriesPage({
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }
