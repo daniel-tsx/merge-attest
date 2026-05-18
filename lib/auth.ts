@@ -8,6 +8,9 @@ import { getPrismaClient } from '@/lib/prisma'
 const betterAuthUrl = getBetterAuthUrl()
 const prisma = getPrismaClient()
 const emailDeliveryConfigured = isEmailDeliveryConfigured()
+const trustedOrigins = Array.from(
+  new Set([betterAuthUrl, 'https://dash.better-auth.com']),
+)
 
 export const auth = betterAuth({
   ...(prisma
@@ -42,7 +45,7 @@ export const auth = betterAuth({
       })
     },
   },
-  trustedOrigins: [betterAuthUrl],
+  trustedOrigins,
   plugins: [
     dash({
       apiUrl: process.env.BETTER_AUTH_API_URL,
