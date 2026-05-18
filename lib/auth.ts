@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth'
+import { dash } from '@better-auth/infra'
 import { prismaAdapter } from '@better-auth/prisma-adapter'
 import { getBetterAuthSecret, getBetterAuthUrl, isProduction } from '@/lib/env'
 import {
@@ -44,4 +45,11 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [betterAuthUrl],
+  plugins: [
+    dash({
+      apiUrl: process.env.BETTER_AUTH_API_URL,
+      kvUrl: process.env.BETTER_AUTH_KV_URL,
+      apiKey: process.env.BETTER_AUTH_API_KEY,
+    }),
+  ],
 })

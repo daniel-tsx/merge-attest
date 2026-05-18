@@ -46,6 +46,7 @@ export function validateProductionEnv(env: Env = process.env) {
     'DATABASE_URL',
     'BETTER_AUTH_SECRET',
     'BETTER_AUTH_URL',
+    'BETTER_AUTH_API_KEY',
     'GITHUB_APP_ID',
     'GITHUB_APP_SLUG',
     'GITHUB_APP_PRIVATE_KEY',
