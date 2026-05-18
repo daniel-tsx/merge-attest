@@ -1,15 +1,13 @@
 import { betterAuth } from 'better-auth'
 import { dash } from '@better-auth/infra'
 import { prismaAdapter } from '@better-auth/prisma-adapter'
-import { getBetterAuthSecret, getBetterAuthUrl, isProduction } from '@/lib/env'
-import {
-  isEmailDeliveryConfigured,
-  sendTransactionalEmail,
-} from '@/lib/email'
+import { getBetterAuthSecret, getBetterAuthUrl } from '@/lib/env'
+import { isEmailDeliveryConfigured, sendTransactionalEmail } from '@/lib/email'
 import { getPrismaClient } from '@/lib/prisma'
 
 const betterAuthUrl = getBetterAuthUrl()
 const prisma = getPrismaClient()
+const emailDeliveryConfigured = isEmailDeliveryConfigured()
 
 export const auth = betterAuth({
   ...(prisma
@@ -23,7 +21,7 @@ export const auth = betterAuth({
   secret: getBetterAuthSecret(),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: isProduction() || isEmailDeliveryConfigured(),
+    requireEmailVerification: emailDeliveryConfigured,
     revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       await sendTransactionalEmail({
@@ -34,8 +32,8 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    sendOnSignUp: true,
-    sendOnSignIn: true,
+    sendOnSignUp: emailDeliveryConfigured,
+    sendOnSignIn: emailDeliveryConfigured,
     sendVerificationEmail: async ({ user, url }) => {
       await sendTransactionalEmail({
         to: user.email,

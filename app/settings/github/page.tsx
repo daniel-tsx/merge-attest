@@ -19,9 +19,6 @@ const envVars = [
   'GITHUB_APP_SLUG',
   'GITHUB_APP_PRIVATE_KEY',
   'GITHUB_WEBHOOK_SECRET',
-  'GITHUB_CLIENT_ID',
-  'GITHUB_CLIENT_SECRET',
-  'JOB_RUNNER_SECRET',
 ]
 
 const syncMessages: Record<string, string> = {

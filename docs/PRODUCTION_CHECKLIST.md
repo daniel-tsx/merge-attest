@@ -10,9 +10,9 @@ Use this checklist before running AgentGate for customer work.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
 - `GITHUB_WEBHOOK_SECRET` is configured in both AgentGate and the GitHub App.
 - Paddle API key, webhook secret, customer portal URL, and Starter/Team/Growth price IDs are configured before enabling production billing.
-- `EMAIL_FROM` and `RESEND_API_KEY` are configured so email verification and password reset links can be sent.
-- `JOB_RUNNER_SECRET` is configured for scheduled operational job endpoints.
-- `SUPPORT_EMAIL` is a monitored support mailbox.
+- `EMAIL_FROM` and `RESEND_API_KEY` are configured before enabling email verification and password reset delivery.
+- `JOB_RUNNER_SECRET` is configured before enabling scheduled operational job endpoints.
+- `SUPPORT_EMAIL` is configured before publishing support contact details.
 - `APP_VERSION` or `VERCEL_GIT_COMMIT_SHA` is available for log and error context.
 
 ## Runtime Checks

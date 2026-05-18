@@ -51,16 +51,6 @@ export function validateProductionEnv(env: Env = process.env) {
     'GITHUB_APP_SLUG',
     'GITHUB_APP_PRIVATE_KEY',
     'GITHUB_WEBHOOK_SECRET',
-    'PADDLE_API_KEY',
-    'PADDLE_WEBHOOK_SECRET',
-    'PADDLE_STARTER_PRICE_ID',
-    'PADDLE_TEAM_PRICE_ID',
-    'PADDLE_GROWTH_PRICE_ID',
-    'PADDLE_CUSTOMER_PORTAL_URL',
-    'JOB_RUNNER_SECRET',
-    'EMAIL_FROM',
-    'RESEND_API_KEY',
-    'SUPPORT_EMAIL',
   ].filter((name) => !readEnv(name, env))
   if (missing.length) {
     throw new Error(
