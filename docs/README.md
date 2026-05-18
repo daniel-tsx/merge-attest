@@ -113,3 +113,4 @@ pnpm build
 ## Product Planning
 
 The refreshed productization roadmap lives in `docs/PRODUCTIZATION_PLAN.md`.
+The Merge Mate review-engine adoption plan lives in `docs/MERGE_MATE_ADOPTION_PLAN.md`.

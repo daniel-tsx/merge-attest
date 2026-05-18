@@ -9,9 +9,18 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     '.next/**',
+    '**/.next/**',
     'out/**',
+    '**/out/**',
     'build/**',
+    '**/build/**',
     'next-env.d.ts',
+    // Local agent worktrees and generated code should not be lint inputs.
+    '.claude/**',
+    '**/.claude/**',
+    'lib/generated/**',
+    'coverage/**',
+    '.turbo/**',
   ]),
 ])
 
