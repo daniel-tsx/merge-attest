@@ -7,6 +7,7 @@ Project documentation has moved to `docs/`.
 - Product and setup documentation: `docs/README.md`
 - Original productization plan: `docs/PRODUCTIZATION_PLAN.md`
 - Enhancement roadmap: `docs/ENHANCEMENT_PLAN.md`
+- Merge Mate AI review adoption plan: `docs/MERGE_MATE_ADOPTION_PLAN.md`
 - Production checklist: `docs/PRODUCTION_CHECKLIST.md`
 - API and operations notes: `docs/API.md`
 - Privacy, retention, and support notes: `docs/PRIVACY_RETENTION_SUPPORT.md`

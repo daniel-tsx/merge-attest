@@ -29,6 +29,7 @@ export default async function RootLayout({
   const pathname = (await headers()).get('x-agentgate-pathname')
   const isPublicRoute =
     !pathname ||
+    pathname === '/' ||
     pathname === '/sign-in' ||
     pathname === '/sign-up' ||
     pathname === '/forgot-password' ||

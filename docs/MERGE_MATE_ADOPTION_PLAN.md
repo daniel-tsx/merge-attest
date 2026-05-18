@@ -122,7 +122,7 @@ This avoids double charging and duplicate comments across webhook replays, manua
 
 Goal: one PR head SHA creates one durable review lifecycle record.
 
-Status: implemented on 2026-05-18 with DB-backed `AiReviewJob` lifecycle records, deterministic queue job ids, sync-time enqueueing, a protected `/api/jobs/pr-reviews` runner, and diagnostics for queued, active, blocked, failed, and stale review jobs. The runner currently blocks queued jobs with an OpenRouter credential message until Phase 2 adds BYOK credential storage.
+Status: implemented on 2026-05-18 with DB-backed `AiReviewJob` lifecycle records, deterministic queue job ids, sync-time enqueueing, a protected `/api/jobs/pr-reviews` runner, and diagnostics for queued, active, blocked, failed, and stale review jobs. After Phase 5, enqueueing respects repository AI review settings and disabled repositories do not create review jobs.
 
 Tasks:
 
@@ -145,7 +145,7 @@ Verification:
 
 Goal: let organizations or users connect an OpenRouter key without exposing it in the UI or logs.
 
-Status: implemented on 2026-05-18 for organization-level BYOK. AgentGate stores encrypted OpenRouter credentials, verifies keys against OpenRouter, exposes save/verify/replace/delete controls under `/settings/ai`, records audit events, and keeps deleted or missing keys as blocked review jobs. Early pilot precedence is organization key only; user fallback is intentionally deferred.
+Status: implemented on 2026-05-18 for organization-level BYOK. AgentGate stores encrypted OpenRouter credentials, verifies keys against OpenRouter, exposes save/verify/replace/delete controls under `/settings/ai`, records audit events, and keeps deleted or missing keys as blocked review jobs. Key handling trims surrounding whitespace, rejects empty or oversized keys, caps verifier request bodies, and never returns plaintext keys. Early pilot precedence is organization key only; user fallback is intentionally deferred.
 
 Tasks:
 
@@ -165,7 +165,7 @@ Verification:
 
 Goal: only send useful diffs and only post comments on valid changed lines.
 
-Status: implemented on 2026-05-18 for the worker guardrail boundary. AgentGate can fetch GitHub PR diffs, parse unified hunks into added commentable lines, filter ignored, generated, lockfile, vendored, binary, oversized, and empty-file diffs, and validate AI response comments through a strict Zod schema before any GitHub posting path exists. Repository-level ignored path settings remain a Phase 5 UI/data-model task; the Phase 3 filtering helper already accepts ignored path patterns for that integration.
+Status: implemented on 2026-05-18 for the worker guardrail boundary. AgentGate can fetch GitHub PR diffs, parse unified hunks into added commentable lines, filter ignored, generated, lockfile, vendored, binary, oversized, and empty-file diffs, and validate AI response comments through a strict Zod schema before GitHub output is published. Repository-level ignored path settings are now integrated from Phase 5 and list entries are capped before pattern matching.
 
 Tasks:
 
@@ -189,7 +189,7 @@ Verification:
 
 Goal: make GitHub feedback useful, idempotent, and plan-gated.
 
-Status: implemented on 2026-05-18 for the publishing boundary. AgentGate now has AI-specific GitHub output helpers for inline PR reviews, managed summary comments, and advisory check runs, stores provider ids on `AiReviewJob`, gates publishing through the existing GitHub comments entitlement, and prevents duplicate inline review posting when a job already has a GitHub review id. The worker still waits for real AI model execution before calling this output boundary.
+Status: implemented on 2026-05-18 for the publishing boundary. AgentGate now has AI-specific GitHub output helpers for inline PR reviews, managed summary comments, and advisory check runs, stores provider ids on `AiReviewJob`, gates publishing through the existing GitHub comments entitlement, sanitizes AI-authored markdown before GitHub output, and prevents duplicate inline review posting when a job already has a GitHub review id. The worker still waits for real AI model execution before calling this output boundary.
 
 Tasks:
 
@@ -232,7 +232,7 @@ Verification:
 
 Goal: make AI reviews feel native to AgentGate, not bolted on.
 
-Status: implemented on 2026-05-18 with AI review status in pull request lists, repository pull request tables, pull request detail pages, review timeline entries, blocked/skipped/failed callouts, dashboard AI review metrics, and AI review output included in Growth/Enterprise review packets. Audit exports continue to export audit events, including AI settings/output events when those events are recorded.
+Status: implemented on 2026-05-18 with AI review status in pull request lists, repository pull request tables, pull request detail pages, review timeline entries, blocked/skipped/failed callouts, dashboard AI review metrics, and AI review output included in Growth/Enterprise review packets. The data layer now loads only the latest AI job for list views and five recent jobs for pull request detail pages. Audit exports continue to export audit events, including AI settings/output events when those events are recorded, while review packets omit raw GitHub provider ids.
 
 Tasks:
 
@@ -266,6 +266,14 @@ Verification:
 - AgentGate covers the complete review loop with tests.
 - Merge Mate has no unique customer-facing capability left.
 - Documentation clearly points future work to AgentGate.
+
+## Implementation Hardening Notes
+
+- OpenRouter key endpoints cap request size, reject oversized keys, and avoid echoing submitted secrets.
+- GitHub AI output sanitizes model-authored markdown before publishing to reduce mention spam and hidden-comment abuse.
+- Review packet serialization reports whether GitHub output was published instead of exposing raw provider ids.
+- List views use bounded AI review includes to avoid loading full job history for every pull request.
+- Repository ignored-path and stack-tag settings are capped before processing to keep pattern matching predictable.
 
 ## First Implementation Milestone
 

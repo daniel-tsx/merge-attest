@@ -2,9 +2,11 @@
 
 ## Customer Data
 
-AgentGate stores organization membership, connected repository metadata, pull request metadata, changed file paths, risk signals, rule violations, approvals, review notes, audit events, billing identifiers, and usage records.
+AgentGate stores organization membership, connected repository metadata, pull request metadata, changed file paths, risk signals, rule violations, approvals, review notes, AI review job metadata, repository AI review settings, audit events, billing identifiers, and usage records.
 
-AgentGate does not need to store full source file contents to provide the current product workflow. Keep future integrations scoped to metadata unless a customer explicitly opts in.
+AgentGate does not need to store full source file contents to provide the current product workflow. AI review guardrails use GitHub pull request diffs during processing, but the product should keep future integrations scoped to metadata unless a customer explicitly opts in.
+
+OpenRouter API keys are customer-provided credentials and must be encrypted before storage. Do not include plaintext keys in diagnostics, audit exports, review packets, or logs.
 
 ## Retention
 
@@ -30,3 +32,4 @@ Production launch requires response targets for billing, security, and operation
 - Use structured logs with release and environment context for troubleshooting.
 - Limit diagnostics endpoints to owners/admins.
 - Treat review packets and audit exports as customer confidential data.
+- Sanitize AI-authored GitHub markdown before publishing or exporting it.

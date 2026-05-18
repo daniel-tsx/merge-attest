@@ -10,6 +10,7 @@ AgentGate is a SaaS control center for engineering teams using AI coding agents.
 - PostgreSQL with Prisma ORM
 - Better Auth with Prisma-backed user, account, session, and verification tables
 - Octokit GitHub App service boundary
+- OpenRouter BYOK AI review provider boundary
 - Paddle billing service boundary
 - React Hook Form and Zod dependencies for validated forms
 - Recharts dashboards
@@ -46,6 +47,8 @@ The dashboard includes a first-run onboarding checklist that guides new organiza
 
 Audit exports are available at `/api/audit-log/export` for plans with the `auditExport` entitlement. The export returns CSV within the organization's current retention window, with unlimited retention for Enterprise.
 
+AI pull request reviews are available as an advisory review layer. Repository AI review settings are disabled by default and can be configured at `/repositories/[id]/ai`; organization OpenRouter keys are stored from `/settings/ai` using encrypted credential storage. The current worker has durable lifecycle, diff filtering, validation, and GitHub output boundaries in place, but real model execution is intentionally not enabled yet.
+
 Operational jobs and incident checks are documented in `docs/OPERATIONS_RUNBOOK.md`.
 
 ## Database
@@ -77,6 +80,7 @@ pnpm build
 - `/reset-password`
 - `/repositories`
 - `/repositories/[id]`
+- `/repositories/[id]/ai`
 - `/repositories/[id]/rules`
 - `/pull-requests`
 - `/pull-requests/[id]`
@@ -86,6 +90,7 @@ pnpm build
 - `/settings`
 - `/settings/team`
 - `/settings/github`
+- `/settings/ai`
 - `/settings/billing`
 - `/settings/usage`
 
@@ -101,6 +106,9 @@ pnpm build
 - `lib/github.ts`: GitHub App integration boundary. It uses Octokit when app credentials and installation data exist, otherwise returns demo-mode responses.
 - `lib/github-sync.ts`: GitHub repository and pull request import pipeline for installation-backed sync.
 - `lib/github-webhooks.ts`: GitHub webhook delivery parsing, dedupe, and event dispatch.
+- `lib/jobs/pr-review-lifecycle.ts` and `lib/jobs/pr-review-worker.ts`: durable AI pull request review lifecycle, idempotency, and worker orchestration.
+- `lib/ai/credentials.ts`, `lib/ai/openrouter.ts`, `lib/ai/settings.ts`, and `lib/ai/review.ts`: encrypted OpenRouter BYOK storage, key verification, repository AI review settings, and AI response validation.
+- `lib/github/diff.ts` and `lib/github/output.ts`: PR diff filtering, changed-line validation support, managed AI review comments, inline review publishing, and advisory check-run output.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
 - `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan metadata.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.

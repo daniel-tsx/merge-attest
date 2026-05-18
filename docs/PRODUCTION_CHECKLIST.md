@@ -20,8 +20,9 @@ Use this checklist before running AgentGate for customer work.
 
 - `GET /api/health` returns `{ "status": "ok" }` without exposing dependency details.
 - `GET /api/diagnostics` works for owners/admins and shows database, GitHub, Paddle, email, and job queue status.
-- Scheduled calls to `/api/jobs/github-webhooks` and `/api/jobs/retention` succeed with the job runner bearer token.
+- Scheduled calls to `/api/jobs/github-webhooks`, `/api/jobs/pr-reviews`, and `/api/jobs/retention` succeed with the job runner bearer token.
 - OpenRouter key verification from `/settings/ai` succeeds before enabling AI review jobs for pilot workspaces.
+- Repository AI review settings remain disabled until a pilot repository has confirmed OpenRouter credentials, expected ignored-path rules, and agreed output toggles.
 - Password reset from `/forgot-password` sends an email and `/reset-password` accepts the token once.
 - New production sign-ups receive verification email before workspace access.
 - Webhook delivery retries are healthy with no unexpected failed jobs.
@@ -37,3 +38,4 @@ Use this checklist before running AgentGate for customer work.
 - Transactional email mode is `live` in production, not `mock` or `unconfigured`.
 - Support knows the configured support email and escalation path.
 - Incident review packets can be exported for risky merged pull requests.
+- AI review packets do not expose raw provider ids, OpenRouter keys, or unsanitized AI-authored GitHub markdown.

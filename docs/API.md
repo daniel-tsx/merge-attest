@@ -6,7 +6,7 @@ AgentGate exposes a small set of operational and integration endpoints.
 
 - `GET /api/health`: public liveness check. It returns only `{ "status": "ok" }`.
 - `GET /api/diagnostics`: owner/admin diagnostic payload with plan limits, repository count, PR check usage, and recent webhook failures.
-- `POST /api/ai/openrouter/test`: owner/admin OpenRouter key verifier. Returns validity and model count without returning the submitted key.
+- `POST /api/ai/openrouter/test`: owner/admin OpenRouter key verifier. Accepts a small JSON body with `apiKey`, trims surrounding whitespace, rejects empty or oversized keys, verifies the key with OpenRouter, and returns validity plus model count without returning the submitted key.
 - `POST /api/jobs/github-webhooks`: bearer-authenticated job runner for queued GitHub webhook deliveries. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 - `POST /api/jobs/pr-reviews`: bearer-authenticated job runner for queued AI pull request reviews. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 - `POST /api/jobs/retention`: bearer-authenticated retention cleanup runner. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
@@ -30,6 +30,14 @@ AgentGate exposes a small set of operational and integration endpoints.
 
 - `GET /api/audit-log/export`: owner/admin CSV export, plan gated.
 - `GET /api/pull-requests/:id/review-packet`: owner/admin markdown review packet export, plan gated.
+
+## AI Review Notes
+
+- AI review jobs are created idempotently by organization, repository, pull request number, and head SHA.
+- Repository AI review settings are disabled by default. Missing or disabled settings cause the worker to skip rather than post output.
+- Missing OpenRouter credentials block jobs with a user-actionable status rather than failing the job.
+- GitHub AI output is gated by the existing GitHub comments entitlement and sanitizes AI-authored markdown before publishing.
+- Review packets include AI review status and output summaries, but do not expose raw GitHub provider ids.
 
 ## Rate Limits
 

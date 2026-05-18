@@ -47,6 +47,7 @@ Expected success response for `/api/jobs/retention`:
 
 - `/api/health` is public liveness only and should return `{ "status": "ok" }`.
 - `/api/diagnostics` is owner/admin-only and should be used for dependency readiness, webhook job state, and retention warnings.
+- AI review diagnostics should show queued, active, blocked, failed, and stale review job counts.
 - GitHub settings should show the result of manual sync, stale backfill, retry, and installation callback errors.
 - Password reset and sign-up verification should send through the configured transactional email provider.
 
@@ -68,7 +69,7 @@ Set alerts for:
 1. Check `/api/diagnostics` as a workspace owner/admin.
 2. Review failed GitHub webhook deliveries in `/settings/github`.
 3. Trigger "Retry failed webhooks" from GitHub settings or call `/api/jobs/github-webhooks`.
-4. If AI review jobs are stale, call `/api/jobs/pr-reviews` and inspect blocked or failed counts.
+4. If AI review jobs are stale, call `/api/jobs/pr-reviews` and inspect blocked or failed counts. Blocked jobs usually mean missing OpenRouter credentials, disabled repository AI settings, unavailable diffs, or a plan/output entitlement mismatch.
 5. Confirm recent deploy version via logs using `APP_VERSION` or `VERCEL_GIT_COMMIT_SHA`.
 6. If billing state is stale, check Paddle webhook delivery status and replay from Paddle if needed.
 7. If account recovery fails, verify `EMAIL_FROM`, `RESEND_API_KEY`, and provider delivery logs.
@@ -84,3 +85,10 @@ The retention job removes:
 - Audit export records older than 30 days.
 
 Billing identifiers and usage records remain available for billing support unless a future data deletion workflow removes them explicitly.
+
+## AI Review Operations
+
+- OpenRouter keys are organization-scoped and encrypted before storage. Rotate `AI_PROVIDER_ENCRYPTION_KEY` only with a credential migration plan.
+- Repository AI review settings are disabled by default. Enable them per repository after key verification succeeds in `/settings/ai`.
+- The worker currently validates queueing, credentials, settings, diffs, and response guardrails. Real model execution is not enabled yet, so guardrail-passing jobs are skipped with an explanatory status.
+- AI-authored GitHub markdown is sanitized before publishing to neutralize mentions and hidden comment markers.
