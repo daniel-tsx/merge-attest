@@ -142,6 +142,24 @@ enum ApprovalDecision {
   not_required
 }
 
+enum AiReviewStatus {
+  queued
+  in_progress
+  blocked
+  skipped
+  completed
+  failed
+}
+
+enum AiReviewProvider {
+  openrouter
+}
+
+enum AiReviewDepth {
+  standard
+  deep
+}
+
 enum AuditEventType {
   repository_connected
   pr_synced
@@ -174,6 +192,7 @@ model User {
   acceptedInvites      OrganizationInvite[] @relation("OrganizationInvitesAccepted")
   auditExports         AuditExport[]
   apiKeys              ApiKey[]
+  aiProviderCredentials AiProviderCredential[]
   sessions             Session[]
   accounts             Account[]
 }
@@ -244,18 +263,21 @@ model Organization {
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt
 
-  members           OrganizationMember[]
-  repositories      Repository[]
-  pullRequests      PullRequest[]
-  activity          AgentActivity[]
-  auditEvents       AuditEvent[]
-  plans             Plan[]
-  usageRecords      UsageRecord[]
-  apiKeys           ApiKey[]
-  webhookDeliveries GitHubWebhookDelivery[]
-  paddleWebhookEvents PaddleWebhookEvent[]
-  invites           OrganizationInvite[]
-  auditExports      AuditExport[]
+  members                  OrganizationMember[]
+  repositories             Repository[]
+  pullRequests             PullRequest[]
+  activity                 AgentActivity[]
+  auditEvents              AuditEvent[]
+  plans                    Plan[]
+  usageRecords             UsageRecord[]
+  apiKeys                  ApiKey[]
+  aiProviderCredentials    AiProviderCredential[]
+  aiReviewJobs             AiReviewJob[]
+  repositoryReviewSettings RepositoryReviewSettings[]
+  webhookDeliveries        GitHubWebhookDelivery[]
+  paddleWebhookEvents      PaddleWebhookEvent[]
+  invites                  OrganizationInvite[]
+  auditExports             AuditExport[]
 }
 
 model OrganizationMember {
@@ -315,11 +337,13 @@ model Repository {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  pullRequests PullRequest[]
-  rules        RepoRule[]
-  activity     AgentActivity[]
-  auditEvents  AuditEvent[]
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pullRequests   PullRequest[]
+  rules          RepoRule[]
+  activity       AgentActivity[]
+  auditEvents    AuditEvent[]
+  aiReviewJobs   AiReviewJob[]
+  reviewSettings RepositoryReviewSettings?
 
   @@unique([organizationId, githubRepositoryId])
   @@index([organizationId])
@@ -367,6 +391,7 @@ model PullRequest {
   comments         PullRequestComment[]
   activity         AgentActivity[]
   auditEvents      AuditEvent[]
+  aiReviewJobs     AiReviewJob[]
 
   @@unique([repositoryId, number])
   @@unique([repositoryId, githubPullRequestId])
@@ -483,6 +508,81 @@ model PullRequestComment {
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 
   @@index([pullRequestId, createdAt])
+}
+
+model AiProviderCredential {
+  id             String           @id @default(cuid())
+  provider       AiReviewProvider @default(openrouter)
+  encryptedKey   String
+  lastVerifiedAt DateTime?
+  userId         String?
+  organizationId String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+model AiReviewJob {
+  id                   String           @id @default(cuid())
+  reviewKey            String           @unique
+  provider             AiReviewProvider @default(openrouter)
+  model                String?
+  status               AiReviewStatus   @default(queued)
+  statusDetail         String?
+  githubDeliveryId     String?
+  queueJobId           String?
+  githubReviewId       String?
+  githubManagedCommentId String?
+  githubCheckRunId     String?
+  attemptCount         Int              @default(0)
+  commentsCount        Int              @default(0)
+  skippedCommentsCount Int              @default(0)
+  errorMessage         String?
+  startedAt            DateTime?
+  completedAt          DateTime?
+  organizationId       String
+  repositoryId         String
+  pullRequestId        String
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  pullRequest  PullRequest  @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([repositoryId, status])
+  @@index([pullRequestId])
+  @@index([status, createdAt])
+  @@index([githubDeliveryId])
+}
+
+model RepositoryReviewSettings {
+  id                    String        @id @default(cuid())
+  aiReviewsEnabled      Boolean       @default(false)
+  reviewDepth           AiReviewDepth @default(standard)
+  minimumSeverity       Severity      @default(medium)
+  model                 String?
+  ignoredPaths          Json          @default("[]")
+  stackTags             Json          @default("[]")
+  publishInlineComments Boolean       @default(true)
+  publishManagedComment Boolean       @default(true)
+  publishCheckRun       Boolean       @default(true)
+  organizationId        String
+  repositoryId          String        @unique
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model AgentActivity {

@@ -97,6 +97,7 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
 
   if (prisma) {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    const staleAiReviewCutoff = new Date(Date.now() - 60 * 60 * 1000)
     const [queued, failed, staleProcessedDeliveries, staleAuditExports] =
       await Promise.all([
         prisma.gitHubWebhookDelivery.count({
@@ -122,6 +123,42 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
           : 'Webhook job queue is healthy.',
       metadata: { queued, failed },
     })
+
+    const [
+      aiQueued,
+      aiActive,
+      aiBlocked,
+      aiFailed,
+      staleAiReviewJobs,
+    ] = await Promise.all([
+      prisma.aiReviewJob.count({ where: { status: 'queued' } }),
+      prisma.aiReviewJob.count({ where: { status: 'in_progress' } }),
+      prisma.aiReviewJob.count({ where: { status: 'blocked' } }),
+      prisma.aiReviewJob.count({ where: { status: 'failed' } }),
+      prisma.aiReviewJob.count({
+        where: {
+          status: { in: ['queued', 'in_progress'] },
+          updatedAt: { lt: staleAiReviewCutoff },
+        },
+      }),
+    ])
+    checks.push({
+      name: 'ai_review_jobs',
+      status:
+        aiFailed > 0 || staleAiReviewJobs > 0 ? 'warning' : 'ok',
+      message:
+        aiFailed > 0 || staleAiReviewJobs > 0
+          ? 'AI review jobs need attention.'
+          : 'AI review job lifecycle is healthy.',
+      metadata: {
+        queued: aiQueued,
+        active: aiActive,
+        blocked: aiBlocked,
+        failed: aiFailed,
+        stale: staleAiReviewJobs,
+      },
+    })
+
     checks.push({
       name: 'retention',
       status:

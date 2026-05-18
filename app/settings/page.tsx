@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import {
   ArrowUpRight,
   Bell,
+  BrainCircuit,
   Database,
   GitPullRequest,
   KeyRound,
@@ -20,6 +21,7 @@ import {
   listRepositories,
   listTeamMembers,
 } from '@/lib/data/app-data'
+import { getOrganizationOpenRouterCredential } from '@/lib/ai/credentials'
 import { githubConfigured } from '@/lib/github'
 import { getPrCheckUsage } from '@/lib/usage'
 import { formatNumber } from '@/lib/utils'
@@ -42,11 +44,18 @@ export default function SettingsPage() {
 
 async function SettingsOverview() {
   const organization = await getCurrentOrganization()
-  const [members, repositories, prCheckUsage, apiKeyCount] = await Promise.all([
+  const [
+    members,
+    repositories,
+    prCheckUsage,
+    apiKeyCount,
+    openRouterCredential,
+  ] = await Promise.all([
     listTeamMembers(organization.id),
     listRepositories(organization.id),
     getPrCheckUsage(organization.id),
     getApiKeyCount(organization.id),
+    getOrganizationOpenRouterCredential(organization.id),
   ])
   const displayedUsage =
     organization.dataMode === 'live'
@@ -73,6 +82,13 @@ async function SettingsOverview() {
         : githubConfigured()
           ? 'Ready to install'
           : 'Not configured',
+    },
+    {
+      href: '/settings/ai',
+      label: 'AI reviews',
+      icon: BrainCircuit,
+      description: 'OpenRouter provider key and review queue readiness.',
+      value: openRouterCredential ? 'OpenRouter connected' : 'Not configured',
     },
     {
       href: '/settings/billing',

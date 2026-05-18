@@ -119,6 +119,30 @@ export async function getGitHubPullRequest(repository: {
   return response.data
 }
 
+export async function getGitHubPullRequestDiff(repository: {
+  owner: string
+  name: string
+  pullNumber: number
+  installationId: string
+}): Promise<string | null> {
+  const octokit = getInstallationOctokit(repository.installationId)
+  if (!octokit) return null
+
+  const response = (await octokit.request(
+    'GET /repos/{owner}/{repo}/pulls/{pull_number}',
+    {
+      owner: repository.owner,
+      repo: repository.name,
+      pull_number: repository.pullNumber,
+      headers: {
+        accept: 'application/vnd.github.v3.diff',
+      },
+    },
+  )) as { data: unknown }
+
+  return typeof response.data === 'string' ? response.data : null
+}
+
 export async function listGitHubPullRequestFiles(repository: {
   owner: string
   name: string
@@ -220,6 +244,54 @@ export async function postPullRequestComment(
   }
 }
 
+export type PullRequestReviewCommentInput = {
+  path: string
+  line: number
+  side: 'RIGHT'
+  body: string
+}
+
+export async function postPullRequestReview(
+  pr: Pick<PullRequest, 'number' | 'repositoryName'> & {
+    owner?: string
+    installationId?: string
+    headSha?: string | null
+  },
+  body: string,
+  comments: PullRequestReviewCommentInput[],
+) {
+  if (!comments.length) {
+    return {
+      mode: 'skipped' as const,
+      message: 'No inline review comments to publish.',
+    }
+  }
+
+  const octokit = getInstallationOctokit(pr.installationId)
+  if (!octokit || !pr.owner || !pr.headSha) {
+    return {
+      mode: 'demo' as const,
+      message: `Mock GitHub review for ${pr.repositoryName}#${pr.number}.`,
+    }
+  }
+
+  const response = await octokit.rest.pulls.createReview({
+    owner: pr.owner,
+    repo: pr.repositoryName,
+    pull_number: pr.number,
+    commit_id: pr.headSha,
+    body,
+    event: 'COMMENT',
+    comments,
+  })
+
+  return {
+    mode: 'live' as const,
+    reviewId: String(response.data.id),
+    message: 'GitHub review posted.',
+  }
+}
+
 export function getAgentGateCheckConclusion(input: {
   approvalStatus: ApprovalStatus
   riskLevel: RiskLevel
@@ -248,6 +320,15 @@ export function getAgentGateCheckConclusion(input: {
 
   return 'neutral' as const
 }
+
+export type GitHubCheckConclusion =
+  | 'success'
+  | 'failure'
+  | 'neutral'
+  | 'cancelled'
+  | 'skipped'
+  | 'timed_out'
+  | 'action_required'
 
 export async function publishAgentGateCheckRun(
   pr: Pick<
@@ -326,6 +407,75 @@ export async function publishAgentGateCheckRun(
     checkRunId: String(response.data.id),
     conclusion,
     message: 'AgentGate check run created.',
+  }
+}
+
+export async function publishAiReviewCheckRun(
+  pr: Pick<PullRequest, 'number' | 'repositoryName'> & {
+    owner?: string
+    installationId?: string
+    headSha?: string | null
+    checkRunId?: string | null
+  },
+  output: {
+    title: string
+    summary: string
+    conclusion: GitHubCheckConclusion
+  },
+) {
+  const octokit = getInstallationOctokit(pr.installationId)
+  if (!octokit || !pr.owner || !pr.headSha) {
+    return {
+      mode: 'demo' as const,
+      message: `Mock AgentGate AI review check run for ${pr.repositoryName}#${pr.number}.`,
+    }
+  }
+
+  const checkRunId = pr.checkRunId ? Number(pr.checkRunId) : null
+  const payload = {
+    name: 'AgentGate AI Review',
+    status: 'completed' as const,
+    conclusion: output.conclusion,
+    output: {
+      title: output.title,
+      summary: output.summary,
+    },
+  }
+
+  if (checkRunId && Number.isFinite(checkRunId)) {
+    try {
+      const response = await octokit.rest.checks.update({
+        owner: pr.owner,
+        repo: pr.repositoryName,
+        check_run_id: checkRunId,
+        ...payload,
+      })
+
+      return {
+        mode: 'live' as const,
+        action: 'updated' as const,
+        checkRunId: String(response.data.id),
+        conclusion: output.conclusion,
+        message: 'AgentGate AI review check run updated.',
+      }
+    } catch (error) {
+      if (!isGitHubNotFoundError(error)) throw error
+    }
+  }
+
+  const response = await octokit.rest.checks.create({
+    owner: pr.owner,
+    repo: pr.repositoryName,
+    head_sha: pr.headSha,
+    ...payload,
+  })
+
+  return {
+    mode: 'live' as const,
+    action: 'created' as const,
+    checkRunId: String(response.data.id),
+    conclusion: output.conclusion,
+    message: 'AgentGate AI review check run created.',
   }
 }
 

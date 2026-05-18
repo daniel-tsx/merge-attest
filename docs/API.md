@@ -6,7 +6,9 @@ AgentGate exposes a small set of operational and integration endpoints.
 
 - `GET /api/health`: public liveness check. It returns only `{ "status": "ok" }`.
 - `GET /api/diagnostics`: owner/admin diagnostic payload with plan limits, repository count, PR check usage, and recent webhook failures.
+- `POST /api/ai/openrouter/test`: owner/admin OpenRouter key verifier. Returns validity and model count without returning the submitted key.
 - `POST /api/jobs/github-webhooks`: bearer-authenticated job runner for queued GitHub webhook deliveries. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
+- `POST /api/jobs/pr-reviews`: bearer-authenticated job runner for queued AI pull request reviews. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 - `POST /api/jobs/retention`: bearer-authenticated retention cleanup runner. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 
 ## Webhooks

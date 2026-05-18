@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import {
   AlertTriangle,
+  Bot,
   CheckCircle2,
   Download,
   FileWarning,
@@ -18,6 +19,7 @@ import { addReviewNote, assignReviewer } from '@/app/pull-requests/actions'
 import { PageHeader } from '@/components/app/page-header'
 import { RiskScoreRing } from '@/components/app/risk-score'
 import {
+  AiReviewBadge,
   ApprovalBadge,
   CiBadge,
   RiskBadge,
@@ -45,7 +47,12 @@ import {
   listAuditEvents,
 } from '@/lib/data/app-data'
 import { getPlanEntitlements } from '@/lib/entitlements'
-import { buildPullRequestTimeline } from '@/lib/reporting'
+import {
+  buildPullRequestTimeline,
+  getAiReviewBlockedAction,
+  getAiReviewStatusDetail,
+  getLatestAiReviewJob,
+} from '@/lib/reporting'
 import { canRecordApproval } from '@/lib/collaboration'
 import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate, formatNumber } from '@/lib/utils'
@@ -102,6 +109,9 @@ export default async function PullRequestDetailPage({
   )
   const canRecord = approvalsAvailable && canRecordApproval(organization.role)
   const entitlements = getPlanEntitlements(organization.planKey)
+  const latestAiReview = getLatestAiReviewJob(pr)
+  const latestAiReviewDetail = getAiReviewStatusDetail(latestAiReview)
+  const latestAiReviewAction = getAiReviewBlockedAction(latestAiReview)
   const feedbackMessages = [
     assignmentStatus === 'assigned'
       ? { text: 'Reviewer assignment updated.', tone: 'success' as const }
@@ -266,6 +276,59 @@ export default async function PullRequestDetailPage({
               Updated {formatDate(pr.updatedAt)}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card
+        className={
+          latestAiReview?.status === 'blocked' ||
+          latestAiReview?.status === 'failed'
+            ? 'border-attention-border bg-attention-soft/30'
+            : undefined
+        }
+      >
+        <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-surface text-accent ring-1 ring-border">
+              <Bot className="size-4" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="font-semibold text-foreground">
+                  AI review
+                </div>
+                <AiReviewBadge status={latestAiReview?.status} />
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {latestAiReviewDetail}
+              </p>
+              {latestAiReviewAction ? (
+                <p className="mt-1 text-xs font-medium text-attention">
+                  {latestAiReviewAction}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {latestAiReview ? (
+            <div className="grid min-w-52 grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+                  Comments
+                </div>
+                <div className="mt-1 font-semibold tabular-nums text-foreground">
+                  {latestAiReview.commentsCount}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle-foreground">
+                  Filtered
+                </div>
+                <div className="mt-1 font-semibold tabular-nums text-foreground">
+                  {latestAiReview.skippedCommentsCount}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -481,6 +544,48 @@ export default async function PullRequestDetailPage({
                 </div>
               </div>
               <ApprovalActions prId={pr.id} canRecord={canRecord} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>AI review output</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {pr.aiReviewJobs.length ? (
+                pr.aiReviewJobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="rounded-control border border-border bg-surface-muted/30 p-3 text-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <AiReviewBadge status={job.status} />
+                      <span className="text-xs text-subtle-foreground">
+                        {formatDate(job.updatedAt)}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-muted-foreground">
+                      {getAiReviewStatusDetail(job)}
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-subtle-foreground">
+                      <span>{job.commentsCount} comments</span>
+                      <span>{job.skippedCommentsCount} filtered</span>
+                    </div>
+                    {job.model ? (
+                      <div className="mt-2 truncate font-mono text-[11px] text-subtle-foreground">
+                        {job.model}
+                      </div>
+                    ) : null}
+                  </div>
+                ))
+              ) : (
+                <EmptyState
+                  icon={Bot}
+                  title="No AI review job"
+                  description="AI review status will appear after this repository has AI reviews enabled and the PR is synced."
+                  className="py-6"
+                />
+              )}
             </CardContent>
           </Card>
 

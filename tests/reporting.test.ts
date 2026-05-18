@@ -75,6 +75,22 @@ const pullRequest: PullRequest = {
       createdAt: '2026-05-01T09:00:00.000Z',
     },
   ],
+  aiReviewJobs: [
+    {
+      id: 'ai-review-1',
+      status: 'completed',
+      statusDetail: 'AI review completed.',
+      model: 'openai/gpt-5.1',
+      githubReviewId: 'review-1',
+      githubManagedCommentId: 'comment-1',
+      githubCheckRunId: 'check-1',
+      commentsCount: 2,
+      skippedCommentsCount: 1,
+      createdAt: '2026-05-01T10:30:00.000Z',
+      updatedAt: '2026-05-01T10:35:00.000Z',
+      completedAt: '2026-05-01T10:35:00.000Z',
+    },
+  ],
 }
 
 describe('reporting metrics', () => {
@@ -92,6 +108,11 @@ describe('reporting metrics', () => {
     expect(metrics.repositoryRiskProfiles[0]).toMatchObject({
       repositoryName: 'billing-api',
       averageRiskScore: 82,
+    })
+    expect(metrics.aiReviews).toMatchObject({
+      completed: 1,
+      commentsPosted: 2,
+      commentsFiltered: 1,
     })
   })
 })
@@ -132,12 +153,16 @@ describe('pull request review timeline', () => {
 
     expect(timeline.map((item) => item.source)).toContain('approval')
     expect(timeline.map((item) => item.source)).toContain('comment')
+    expect(timeline.map((item) => item.source)).toContain('ai_review')
     expect(timeline.map((item) => item.source)).toContain('audit')
     expect(timeline.at(-1)?.title).toBe('Pull request merged')
 
     const packet = serializeIncidentReviewPacket({ pullRequest, timeline })
 
     expect(packet).toContain('AgentGate Review Packet')
+    expect(packet).toContain('## AI Review')
+    expect(packet).toContain('GitHub inline review: published')
+    expect(packet).not.toContain('review-1')
     expect(packet).toContain('Billing security review')
     expect(packet).toContain('Payment webhook changed without enough tests.')
   })

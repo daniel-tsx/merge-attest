@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Bell,
+  BrainCircuit,
   Database,
   GitPullRequest,
   KeyRound,
@@ -37,6 +38,12 @@ const items: Array<{
     label: 'GitHub app',
     icon: GitPullRequest,
     description: 'Installation and webhooks',
+  },
+  {
+    href: '/settings/ai',
+    label: 'AI reviews',
+    icon: BrainCircuit,
+    description: 'Review provider access',
   },
   {
     href: '/settings/billing',

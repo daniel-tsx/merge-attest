@@ -7,6 +7,7 @@ Use this checklist before running AgentGate for customer work.
 - `DATABASE_URL` points at a managed PostgreSQL database with backups.
 - `BETTER_AUTH_SECRET` is unique, strong, and not shared with local development.
 - `BETTER_AUTH_URL` matches the production application URL.
+- `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, AgentGate derives encryption from `BETTER_AUTH_SECRET`.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
 - `GITHUB_WEBHOOK_SECRET` is configured in both AgentGate and the GitHub App.
 - Paddle API key, webhook secret, customer portal URL, and Starter/Team/Growth price IDs are configured before enabling production billing.
@@ -20,6 +21,7 @@ Use this checklist before running AgentGate for customer work.
 - `GET /api/health` returns `{ "status": "ok" }` without exposing dependency details.
 - `GET /api/diagnostics` works for owners/admins and shows database, GitHub, Paddle, email, and job queue status.
 - Scheduled calls to `/api/jobs/github-webhooks` and `/api/jobs/retention` succeed with the job runner bearer token.
+- OpenRouter key verification from `/settings/ai` succeeds before enabling AI review jobs for pilot workspaces.
 - Password reset from `/forgot-password` sends an email and `/reset-password` accepts the token once.
 - New production sign-ups receive verification email before workspace access.
 - Webhook delivery retries are healthy with no unexpected failed jobs.

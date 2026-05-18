@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import type {
+  AiReviewStatus,
   ApprovalStatus,
   CiStatus,
   RiskLevel,
@@ -57,6 +58,33 @@ export function ApprovalBadge({ status }: { status: ApprovalStatus }) {
         : status === 'pending'
           ? 'yellow'
           : 'slate'
+  return (
+    <Badge tone={tone} withDot>
+      {status.replaceAll('_', ' ')}
+    </Badge>
+  )
+}
+
+export function AiReviewBadge({ status }: { status?: AiReviewStatus }) {
+  if (!status) {
+    return (
+      <Badge tone="slate" withDot>
+        not queued
+      </Badge>
+    )
+  }
+
+  const tone =
+    status === 'completed'
+      ? 'green'
+      : status === 'failed'
+        ? 'red'
+        : status === 'blocked'
+          ? 'orange'
+          : status === 'skipped'
+            ? 'slate'
+            : 'blue'
+
   return (
     <Badge tone={tone} withDot>
       {status.replaceAll('_', ' ')}

@@ -122,6 +122,24 @@ describe('Prisma data mappers', () => {
           author: { name: 'Owen Reed', email: 'owen@example.com' },
         },
       ],
+      aiReviewJobs: [
+        {
+          id: 'ai-review-1',
+          status: 'blocked',
+          statusDetail: 'OpenRouter credentials are not configured yet.',
+          model: null,
+          githubReviewId: null,
+          githubManagedCommentId: null,
+          githubCheckRunId: null,
+          commentsCount: 0,
+          skippedCommentsCount: 0,
+          errorMessage: null,
+          startedAt: date,
+          completedAt: date,
+          createdAt: date,
+          updatedAt: date,
+        },
+      ],
     })
 
     expect(result.repositoryName).toBe('agent-gate')
@@ -134,6 +152,7 @@ describe('Prisma data mappers', () => {
     expect(result.assignedReviewer?.name).toBe('Maya Chen')
     expect(result.approvals[0].reviewer).toBe('Maya Chen')
     expect(result.comments[0].author).toBe('Owen Reed')
+    expect(result.aiReviewJobs[0].status).toBe('blocked')
   })
 
   it('maps webhook delivery diagnostics for GitHub settings', () => {

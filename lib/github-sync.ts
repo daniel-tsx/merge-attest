@@ -11,6 +11,7 @@ import {
 } from '@/lib/github'
 import { canConsume, getPlanEntitlements } from '@/lib/entitlements'
 import { getPrismaClient } from '@/lib/prisma'
+import { enqueueAiReviewJob } from '@/lib/jobs/pr-review-lifecycle'
 import {
   getCurrentUsagePeriod,
   getPrCheckUsage,
@@ -244,6 +245,7 @@ async function syncGitHubPullRequestRecord(input: {
   owner: string
   name: string
   pullRequest: GitHubPullRequest
+  githubDeliveryId?: string | null
 }) {
   const prisma = getPrismaClient()
   if (!prisma) return false
@@ -466,6 +468,15 @@ async function syncGitHubPullRequestRecord(input: {
     },
   })
 
+  await enqueueAiReviewJob({
+    organizationId: input.organizationId,
+    repositoryId: input.repositoryId,
+    pullRequestId: savedPullRequest.id,
+    pullNumber: input.pullRequest.number,
+    headSha: input.pullRequest.head.sha,
+    githubDeliveryId: input.githubDeliveryId,
+  })
+
   const recordedUsage = await recordPrChecks(
     input.organizationId,
     1,
@@ -570,6 +581,7 @@ export async function syncGitHubPullRequest(input: {
   owner: string
   name: string
   pullNumber: number
+  githubDeliveryId?: string | null
 }) {
   const pullRequest = (await getGitHubPullRequest({
     owner: input.owner,

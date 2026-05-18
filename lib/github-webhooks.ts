@@ -279,6 +279,7 @@ async function processPullRequestWebhook(input: {
   organizationId: string
   installationId: string
   action?: string
+  deliveryId?: string | null
   payload: GitHubWebhookPayload
 }) {
   if (!input.payload.repository || !input.payload.pull_request?.number) {
@@ -323,6 +324,7 @@ async function processPullRequestWebhook(input: {
     owner: repository.owner,
     name: repository.name,
     pullNumber: input.payload.pull_request.number,
+    githubDeliveryId: input.deliveryId,
   })
 
   return {
@@ -734,6 +736,7 @@ export async function processGitHubWebhookDelivery(input: {
         organizationId: organization.id,
         installationId,
         action,
+        deliveryId: input.deliveryId,
         payload,
       })
     } else if (input.event === 'pull_request_review') {

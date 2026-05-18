@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/app/page-header'
 import { TableSkeleton } from '@/components/app/page-loading'
 import { PullRequestFilters } from '@/app/pull-requests/filters'
 import {
+  AiReviewBadge,
   ApprovalBadge,
   CiBadge,
   RiskBadge,
@@ -22,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { getCurrentOrganization, listPullRequests } from '@/lib/data/app-data'
+import { getLatestAiReviewJob } from '@/lib/reporting'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { pullRequestSearchParamsCache } from './search-params'
 
@@ -78,6 +80,7 @@ async function PullRequestTable({ searchParams }: PageProps) {
               <TableHead>Tests</TableHead>
               <TableHead>CI</TableHead>
               <TableHead>Approval</TableHead>
+              <TableHead>AI review</TableHead>
               <TableHead>Diff</TableHead>
               <TableHead>Updated</TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -124,6 +127,9 @@ async function PullRequestTable({ searchParams }: PageProps) {
                 </TableCell>
                 <TableCell>
                   <ApprovalBadge status={item.approvalStatus} />
+                </TableCell>
+                <TableCell>
+                  <AiReviewBadge status={getLatestAiReviewJob(item)?.status} />
                 </TableCell>
                 <TableCell className="font-mono text-xs">
                   <span className="text-success-strong">

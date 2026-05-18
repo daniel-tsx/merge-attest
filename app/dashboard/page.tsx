@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   GitPullRequest,
   ListChecks,
+  MessageSquareText,
   ShieldAlert,
   TestTube2,
 } from 'lucide-react'
@@ -78,6 +79,7 @@ async function DashboardContent() {
       )
     : 0
   const reportingMetrics = buildReportingMetrics(pullRequests)
+  const aiReviewMetrics = reportingMetrics.aiReviews
   const metrics = {
     repositoriesConnected: repositories.length,
     aiPrsThisWeek: pullRequests.filter((item) => item.aiAssisted).length,
@@ -157,6 +159,33 @@ async function DashboardContent() {
     },
   ]
 
+  const aiReviewCards = [
+    {
+      label: 'AI reviews completed',
+      value: aiReviewMetrics.completed,
+      description: 'Finished review jobs',
+      tone: 'success' as const,
+    },
+    {
+      label: 'AI reviews blocked',
+      value: aiReviewMetrics.blocked,
+      description: 'Needs configuration or plan action',
+      tone: aiReviewMetrics.blocked > 0 ? ('warning' as const) : ('neutral' as const),
+    },
+    {
+      label: 'AI reviews failed',
+      value: aiReviewMetrics.failed,
+      description: 'Provider or worker failures',
+      tone: aiReviewMetrics.failed > 0 ? ('danger' as const) : ('neutral' as const),
+    },
+    {
+      label: 'AI comments',
+      value: aiReviewMetrics.commentsPosted,
+      description: `${formatNumber(aiReviewMetrics.commentsFiltered)} filtered`,
+      tone: 'neutral' as const,
+    },
+  ]
+
   return (
     <div className="space-y-8">
       <OnboardingChecklist status={onboardingStatus} />
@@ -183,6 +212,18 @@ async function DashboardContent() {
               value={formatNumber(metric.value)}
               description={metric.description}
               icon={metric.icon}
+            />
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {aiReviewCards.map((metric) => (
+            <MetricCard
+              key={metric.label}
+              label={metric.label}
+              value={formatNumber(metric.value)}
+              description={metric.description}
+              icon={MessageSquareText}
+              tone={metric.tone}
             />
           ))}
         </div>

@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/app/empty-state'
 import { MetricCard } from '@/components/app/metric-card'
 import { PageHeader } from '@/components/app/page-header'
 import {
+  AiReviewBadge,
   ApprovalBadge,
   CiBadge,
   RiskBadge,
@@ -39,6 +40,7 @@ import {
   listAuditEvents,
 } from '@/lib/data/app-data'
 import { formatDate, formatNumber } from '@/lib/utils'
+import { getLatestAiReviewJob } from '@/lib/reporting'
 
 type LoadedRepository = NonNullable<Awaited<ReturnType<typeof getRepository>>>
 
@@ -85,6 +87,12 @@ export default async function RepositoryDetailPage({
               <a href={`/repositories/${repository.id}/rules`}>
                 <ShieldCheck aria-hidden="true" />
                 Rules
+              </a>
+            </Button>
+            <Button asChild variant="secondary">
+              <a href={`/repositories/${repository.id}/ai`}>
+                <SettingsIcon aria-hidden="true" />
+                AI settings
               </a>
             </Button>
           </>
@@ -225,6 +233,7 @@ async function RepositoryInsights({
                     <TableHead>Risk</TableHead>
                     <TableHead>Tests</TableHead>
                     <TableHead>CI</TableHead>
+                    <TableHead>AI</TableHead>
                     <TableHead>Approval</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -250,6 +259,11 @@ async function RepositoryInsights({
                       </TableCell>
                       <TableCell>
                         <CiBadge status={pr.ciStatus} />
+                      </TableCell>
+                      <TableCell>
+                        <AiReviewBadge
+                          status={getLatestAiReviewJob(pr)?.status}
+                        />
                       </TableCell>
                       <TableCell>
                         <ApprovalBadge status={pr.approvalStatus} />

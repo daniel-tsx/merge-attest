@@ -1,4 +1,9 @@
-import type { ActivityEvent, AuditEvent, PullRequest } from '@/lib/types'
+import type {
+  ActivityEvent,
+  AiReviewJobSummary,
+  AuditEvent,
+  PullRequest,
+} from '@/lib/types'
 
 export type ReportingMetrics = {
   riskyPullRequestVolume: number
@@ -11,14 +16,61 @@ export type ReportingMetrics = {
     averageRiskScore: number
     riskyPullRequests: number
   }>
+  aiReviews: {
+    queued: number
+    inProgress: number
+    blocked: number
+    skipped: number
+    completed: number
+    failed: number
+    commentsPosted: number
+    commentsFiltered: number
+  }
 }
 
 export type ReviewTimelineItem = {
   id: string
   timestamp: string
-  source: 'pull_request' | 'audit' | 'activity' | 'approval' | 'comment'
+  source:
+    | 'pull_request'
+    | 'audit'
+    | 'activity'
+    | 'approval'
+    | 'comment'
+    | 'ai_review'
   title: string
   detail?: string
+}
+
+export function getLatestAiReviewJob(pullRequest: PullRequest) {
+  return pullRequest.aiReviewJobs[0]
+}
+
+export function getAiReviewStatusDetail(job?: AiReviewJobSummary) {
+  if (!job) return 'AI review has not been queued for this pull request.'
+  return job.statusDetail ?? job.errorMessage ?? `AI review ${job.status}.`
+}
+
+export function getAiReviewBlockedAction(job?: AiReviewJobSummary) {
+  const detail = getAiReviewStatusDetail(job).toLowerCase()
+
+  if (detail.includes('openrouter') || detail.includes('credential')) {
+    return 'Connect or verify an OpenRouter key under AI settings.'
+  }
+  if (detail.includes('billing') || detail.includes('entitled')) {
+    return 'Check billing status or plan entitlement before retrying.'
+  }
+  if (detail.includes('limit') || detail.includes('usage')) {
+    return 'Review usage limits before running more AI reviews.'
+  }
+  if (detail.includes('disabled')) {
+    return 'Enable AI reviews in this repository settings page.'
+  }
+  if (detail.includes('no reviewable diff') || detail.includes('empty')) {
+    return 'No action is needed unless ignored path settings are too broad.'
+  }
+
+  return undefined
 }
 
 function hoursBetween(start: string, end: string) {
@@ -97,7 +149,36 @@ export function buildReportingMetrics(
         riskyPullRequests: bucket.riskyPullRequests,
       }))
       .sort((left, right) => right.averageRiskScore - left.averageRiskScore),
+    aiReviews: buildAiReviewMetrics(pullRequests),
   }
+}
+
+export function buildAiReviewMetrics(pullRequests: PullRequest[]) {
+  const metrics = {
+    queued: 0,
+    inProgress: 0,
+    blocked: 0,
+    skipped: 0,
+    completed: 0,
+    failed: 0,
+    commentsPosted: 0,
+    commentsFiltered: 0,
+  }
+
+  for (const pullRequest of pullRequests) {
+    for (const job of pullRequest.aiReviewJobs) {
+      if (job.status === 'queued') metrics.queued += 1
+      if (job.status === 'in_progress') metrics.inProgress += 1
+      if (job.status === 'blocked') metrics.blocked += 1
+      if (job.status === 'skipped') metrics.skipped += 1
+      if (job.status === 'completed') metrics.completed += 1
+      if (job.status === 'failed') metrics.failed += 1
+      metrics.commentsPosted += job.commentsCount
+      metrics.commentsFiltered += job.skippedCommentsCount
+    }
+  }
+
+  return metrics
 }
 
 export function buildPullRequestTimeline(input: {
@@ -140,6 +221,26 @@ export function buildPullRequestTimeline(input: {
       source: 'comment',
       title: `${comment.author} added an internal review note`,
       detail: comment.body,
+    })
+  }
+
+  for (const job of pullRequest.aiReviewJobs) {
+    items.push({
+      id: job.id,
+      timestamp: job.completedAt ?? job.startedAt ?? job.createdAt,
+      source: 'ai_review',
+      title: `AI review ${job.status.replaceAll('_', ' ')}`,
+      detail: [
+        job.statusDetail ?? job.errorMessage,
+        job.commentsCount
+          ? `${job.commentsCount} comments prepared`
+          : undefined,
+        job.skippedCommentsCount
+          ? `${job.skippedCommentsCount} comments filtered`
+          : undefined,
+      ]
+        .filter(Boolean)
+        .join(' · '),
     })
   }
 
@@ -193,6 +294,24 @@ export function serializeIncidentReviewPacket(input: {
     `Risk: ${pullRequest.riskScore} (${pullRequest.riskLevel})`,
     `Approval: ${pullRequest.approvalStatus.replaceAll('_', ' ')}`,
     `Assigned reviewer: ${pullRequest.assignedReviewer?.name ?? 'Unassigned'}`,
+    '',
+    '## AI Review',
+    ...(pullRequest.aiReviewJobs.length
+      ? pullRequest.aiReviewJobs.map((job) =>
+          [
+            `- Status: ${job.status.replaceAll('_', ' ')}`,
+            job.statusDetail ? `  Detail: ${job.statusDetail}` : undefined,
+            job.model ? `  Model: ${job.model}` : undefined,
+            `  Comments posted: ${job.commentsCount}`,
+            `  Comments filtered: ${job.skippedCommentsCount}`,
+            `  GitHub inline review: ${job.githubReviewId ? 'published' : 'not published'}`,
+            `  GitHub summary comment: ${job.githubManagedCommentId ? 'published' : 'not published'}`,
+            `  GitHub check run: ${job.githubCheckRunId ? 'published' : 'not published'}`,
+          ]
+            .filter(Boolean)
+            .join('\n'),
+        )
+      : ['- No AI review job recorded']),
     '',
     '## Rule Violations',
     ...(pullRequest.ruleViolations.length

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   getAgentGateCheckConclusion,
+  postPullRequestReview,
+  publishAiReviewCheckRun,
   postPullRequestComment,
   publishAgentGateCheckRun,
 } from '../lib/github'
@@ -65,6 +67,45 @@ describe('GitHub comment helper', () => {
 
     expect(result).toMatchObject({
       mode: 'demo',
+    })
+  })
+
+  it('returns demo mode for AI review checks without installation credentials', async () => {
+    const result = await publishAiReviewCheckRun(
+      {
+        number: 42,
+        repositoryName: 'agent-gate',
+        owner: 'northstar',
+        headSha: 'abc123',
+        checkRunId: '123',
+      },
+      {
+        title: 'AgentGate AI review found no findings',
+        summary: 'AI review completed.',
+        conclusion: 'success',
+      },
+    )
+
+    expect(result).toMatchObject({
+      mode: 'demo',
+    })
+  })
+
+  it('skips empty inline review batches', async () => {
+    const result = await postPullRequestReview(
+      {
+        number: 42,
+        repositoryName: 'agent-gate',
+        owner: 'northstar',
+        headSha: 'abc123',
+      },
+      'AgentGate AI review inline findings.',
+      [],
+    )
+
+    expect(result).toEqual({
+      mode: 'skipped',
+      message: 'No inline review comments to publish.',
     })
   })
 })

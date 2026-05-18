@@ -7,6 +7,14 @@ export type ApprovalStatus =
   | 'approved'
   | 'rejected'
   | 'risk_accepted'
+export type AiReviewStatus =
+  | 'queued'
+  | 'in_progress'
+  | 'blocked'
+  | 'skipped'
+  | 'completed'
+  | 'failed'
+export type AiReviewDepth = 'standard' | 'deep'
 export type AgentSource =
   | 'cursor'
   | 'codex'
@@ -85,6 +93,7 @@ export type PullRequest = {
   ruleViolations: RuleViolation[]
   approvals: Approval[]
   comments: PullRequestComment[]
+  aiReviewJobs: AiReviewJobSummary[]
 }
 
 export type TestGapResult = {
@@ -129,6 +138,22 @@ export type RepoRule = {
   updatedAt: string
 }
 
+export type RepositoryReviewSettings = {
+  id: string
+  repositoryId: string
+  aiReviewsEnabled: boolean
+  reviewDepth: AiReviewDepth
+  minimumSeverity: Severity
+  model?: string
+  ignoredPaths: string[]
+  stackTags: string[]
+  publishInlineComments: boolean
+  publishManagedComment: boolean
+  publishCheckRun: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export type RuleViolation = {
   id: string
   ruleName: string
@@ -158,6 +183,23 @@ export type PullRequestComment = {
   author: string
   body: string
   createdAt: string
+}
+
+export type AiReviewJobSummary = {
+  id: string
+  status: AiReviewStatus
+  statusDetail?: string
+  model?: string
+  githubReviewId?: string
+  githubManagedCommentId?: string
+  githubCheckRunId?: string
+  commentsCount: number
+  skippedCommentsCount: number
+  errorMessage?: string
+  startedAt?: string
+  completedAt?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export type ActivityEvent = {

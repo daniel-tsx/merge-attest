@@ -122,6 +122,8 @@ This avoids double charging and duplicate comments across webhook replays, manua
 
 Goal: one PR head SHA creates one durable review lifecycle record.
 
+Status: implemented on 2026-05-18 with DB-backed `AiReviewJob` lifecycle records, deterministic queue job ids, sync-time enqueueing, a protected `/api/jobs/pr-reviews` runner, and diagnostics for queued, active, blocked, failed, and stale review jobs. The runner currently blocks queued jobs with an OpenRouter credential message until Phase 2 adds BYOK credential storage.
+
 Tasks:
 
 - Add AI review status types and transition helpers.
@@ -143,6 +145,8 @@ Verification:
 
 Goal: let organizations or users connect an OpenRouter key without exposing it in the UI or logs.
 
+Status: implemented on 2026-05-18 for organization-level BYOK. AgentGate stores encrypted OpenRouter credentials, verifies keys against OpenRouter, exposes save/verify/replace/delete controls under `/settings/ai`, records audit events, and keeps deleted or missing keys as blocked review jobs. Early pilot precedence is organization key only; user fallback is intentionally deferred.
+
 Tasks:
 
 - Add encrypted OpenRouter key storage.
@@ -160,6 +164,8 @@ Verification:
 ## Phase 3: Diff Filtering And AI Response Guardrails
 
 Goal: only send useful diffs and only post comments on valid changed lines.
+
+Status: implemented on 2026-05-18 for the worker guardrail boundary. AgentGate can fetch GitHub PR diffs, parse unified hunks into added commentable lines, filter ignored, generated, lockfile, vendored, binary, oversized, and empty-file diffs, and validate AI response comments through a strict Zod schema before any GitHub posting path exists. Repository-level ignored path settings remain a Phase 5 UI/data-model task; the Phase 3 filtering helper already accepts ignored path patterns for that integration.
 
 Tasks:
 
@@ -183,6 +189,8 @@ Verification:
 
 Goal: make GitHub feedback useful, idempotent, and plan-gated.
 
+Status: implemented on 2026-05-18 for the publishing boundary. AgentGate now has AI-specific GitHub output helpers for inline PR reviews, managed summary comments, and advisory check runs, stores provider ids on `AiReviewJob`, gates publishing through the existing GitHub comments entitlement, and prevents duplicate inline review posting when a job already has a GitHub review id. The worker still waits for real AI model execution before calling this output boundary.
+
 Tasks:
 
 - Add repository settings for inline comments, managed summary comment, and check run publishing.
@@ -203,6 +211,8 @@ Verification:
 
 Goal: allow teams to tune AI review noise without weakening governance signals.
 
+Status: implemented on 2026-05-18 with dedicated `RepositoryReviewSettings`, repository-scoped AI settings under `/repositories/[id]/ai`, owner/admin mutation checks, audit events for changes, disabled-by-default enqueue behavior, worker skip handling for disabled repositories, ignored path filtering, model persistence on processed jobs, and output toggles ready for the Phase 4 publisher.
+
 Tasks:
 
 - Add review settings section to repository rules/settings.
@@ -222,6 +232,8 @@ Verification:
 
 Goal: make AI reviews feel native to AgentGate, not bolted on.
 
+Status: implemented on 2026-05-18 with AI review status in pull request lists, repository pull request tables, pull request detail pages, review timeline entries, blocked/skipped/failed callouts, dashboard AI review metrics, and AI review output included in Growth/Enterprise review packets. Audit exports continue to export audit events, including AI settings/output events when those events are recorded.
+
 Tasks:
 
 - Add AI review status to pull request list and detail pages.
@@ -239,6 +251,8 @@ Verification:
 ## Phase 7: Cutover From Merge Mate
 
 Goal: avoid running two overlapping products.
+
+Status: intentionally out of scope. The AgentGate adoption work is wrapped at Phase 6; no Merge Mate cutover/archive work is required for this project.
 
 Tasks:
 

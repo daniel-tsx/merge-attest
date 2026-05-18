@@ -13,6 +13,10 @@ import {
   users as demoUsers,
 } from '@/lib/demo-data'
 import { isDatabaseConfigured, isProduction } from '@/lib/env'
+import {
+  getDefaultRepositoryReviewSettings,
+  stringListFromJson,
+} from '@/lib/ai/settings'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import {
   getReviewSlaStatus,
@@ -30,6 +34,7 @@ import type {
   PullRequest,
   PullRequestFileInput,
   Repository,
+  RepositoryReviewSettings,
   RepoRule,
   RiskSignal,
 } from '@/lib/types'
@@ -95,6 +100,22 @@ type RuleRow = {
   agentSource: string | null
   minimumRiskLevel: string | null
   codeOwnerHint: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+type RepositoryReviewSettingsRow = {
+  id: string
+  repositoryId: string
+  aiReviewsEnabled: boolean
+  reviewDepth: string
+  minimumSeverity: string
+  model: string | null
+  ignoredPaths: unknown
+  stackTags: unknown
+  publishInlineComments: boolean
+  publishManagedComment: boolean
+  publishCheckRun: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -200,6 +221,22 @@ type PullRequestRow = {
     body: string
     createdAt: Date
     author: { name: string; email: string } | null
+  }>
+  aiReviewJobs?: Array<{
+    id: string
+    status: string
+    statusDetail: string | null
+    model: string | null
+    githubReviewId: string | null
+    githubManagedCommentId?: string | null
+    githubCheckRunId?: string | null
+    commentsCount: number
+    skippedCommentsCount: number
+    errorMessage: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
   }>
 }
 
@@ -732,6 +769,27 @@ export function mapRepoRule(row: RuleRow): RepoRule {
   }
 }
 
+export function mapRepositoryReviewSettings(
+  row: RepositoryReviewSettingsRow,
+): RepositoryReviewSettings {
+  return {
+    id: row.id,
+    repositoryId: row.repositoryId,
+    aiReviewsEnabled: row.aiReviewsEnabled,
+    reviewDepth: row.reviewDepth as RepositoryReviewSettings['reviewDepth'],
+    minimumSeverity:
+      row.minimumSeverity as RepositoryReviewSettings['minimumSeverity'],
+    model: row.model ?? undefined,
+    ignoredPaths: stringListFromJson(row.ignoredPaths),
+    stackTags: stringListFromJson(row.stackTags),
+    publishInlineComments: row.publishInlineComments,
+    publishManagedComment: row.publishManagedComment,
+    publishCheckRun: row.publishCheckRun,
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
+  }
+}
+
 export function mapTeamMember(row: TeamMemberRow): TeamMember {
   return {
     id: row.id,
@@ -857,6 +915,22 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
       body: comment.body,
       createdAt: toIso(comment.createdAt),
     })),
+    aiReviewJobs: (row.aiReviewJobs ?? []).map((job) => ({
+      id: job.id,
+      status: job.status as PullRequest['aiReviewJobs'][number]['status'],
+      statusDetail: job.statusDetail ?? undefined,
+      model: job.model ?? undefined,
+      githubReviewId: job.githubReviewId ?? undefined,
+      githubManagedCommentId: job.githubManagedCommentId ?? undefined,
+      githubCheckRunId: job.githubCheckRunId ?? undefined,
+      commentsCount: job.commentsCount,
+      skippedCommentsCount: job.skippedCommentsCount,
+      errorMessage: job.errorMessage ?? undefined,
+      startedAt: job.startedAt ? toIso(job.startedAt) : undefined,
+      completedAt: job.completedAt ? toIso(job.completedAt) : undefined,
+      createdAt: toIso(job.createdAt),
+      updatedAt: toIso(job.updatedAt),
+    })),
   }
 }
 
@@ -923,7 +997,7 @@ export function mapGitHubWebhookDiagnostic(
   }
 }
 
-const pullRequestInclude = {
+const pullRequestBaseInclude = {
   repository: true,
   assignedReviewer: true,
   files: true,
@@ -934,6 +1008,22 @@ const pullRequestInclude = {
   comments: {
     include: { author: true },
     orderBy: { createdAt: 'desc' as const },
+  },
+}
+
+const pullRequestListInclude = {
+  ...pullRequestBaseInclude,
+  aiReviewJobs: {
+    orderBy: { createdAt: 'desc' as const },
+    take: 1,
+  },
+}
+
+const pullRequestDetailInclude = {
+  ...pullRequestBaseInclude,
+  aiReviewJobs: {
+    orderBy: { createdAt: 'desc' as const },
+    take: 5,
   },
 }
 
@@ -981,6 +1071,24 @@ export async function getRepositoryRules(
     },
     () => getDemoRepositoryRules(repositoryId),
     'repository rules',
+  )
+}
+
+export async function getRepositoryReviewSettings(
+  organizationId: string,
+  repositoryId: string,
+) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const row = await client.repositoryReviewSettings.findFirst({
+        where: { organizationId, repositoryId },
+      })
+      return row
+        ? mapRepositoryReviewSettings(row)
+        : getDefaultRepositoryReviewSettings(repositoryId)
+    },
+    () => getDefaultRepositoryReviewSettings(repositoryId),
+    'repository AI review settings',
   )
 }
 
@@ -1051,7 +1159,7 @@ export async function listPullRequests(
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId },
-        include: pullRequestInclude,
+        include: pullRequestListInclude,
         orderBy: { updatedAt: 'desc' },
       })
       return applyPullRequestFilters(rows.map(mapPullRequest), filters)
@@ -1069,7 +1177,7 @@ export async function getRepositoryPullRequests(
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId, repositoryId },
-        include: pullRequestInclude,
+        include: pullRequestListInclude,
         orderBy: { updatedAt: 'desc' },
       })
       return rows.map(mapPullRequest)
@@ -1084,7 +1192,7 @@ export async function getPullRequest(organizationId: string, id: string) {
     async (client) => {
       const row = await client.pullRequest.findFirst({
         where: { id, organizationId },
-        include: pullRequestInclude,
+        include: pullRequestDetailInclude,
       })
       return row ? mapPullRequest(row) : null
     },
@@ -1120,7 +1228,7 @@ export async function getDashboardTrendData(organizationId: string) {
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId },
-        include: pullRequestInclude,
+        include: pullRequestListInclude,
         orderBy: { updatedAt: 'desc' },
       })
       const pullRequests = rows.map(mapPullRequest)

@@ -538,6 +538,37 @@ export const pullRequests: PullRequest[] = prInputs.map((input, index) => {
     ruleViolations: [],
     approvals: [],
     comments: [],
+    aiReviewJobs: [
+      {
+        id: `ai-review-${input.repositoryId}-${input.number}`,
+        status:
+          index % 5 === 0
+            ? 'blocked'
+            : index % 4 === 0
+              ? 'skipped'
+              : index % 3 === 0
+                ? 'failed'
+                : 'completed',
+        statusDetail:
+          index % 5 === 0
+            ? 'OpenRouter credentials are not configured yet.'
+            : index % 4 === 0
+              ? 'No reviewable diff remained after filtering.'
+              : index % 3 === 0
+                ? 'AI review job failed before provider execution.'
+                : 'AI review completed.',
+        model: 'openai/gpt-5.1',
+        githubReviewId: index % 2 === 0 ? `review-${index}` : undefined,
+        githubManagedCommentId:
+          index % 2 === 0 ? `comment-${index}` : undefined,
+        githubCheckRunId: index % 2 === 0 ? `check-${index}` : undefined,
+        commentsCount: index % 3,
+        skippedCommentsCount: index % 2,
+        createdAt: `2026-04-${String(22 + (index % 8)).padStart(2, '0')}T14:20:00.000Z`,
+        updatedAt: `2026-04-${String(22 + (index % 8)).padStart(2, '0')}T14:25:00.000Z`,
+        completedAt: `2026-04-${String(22 + (index % 8)).padStart(2, '0')}T14:25:00.000Z`,
+      },
+    ],
   }
   const rules = repoRules.filter(
     (ruleItem) => ruleItem.repositoryId === input.repositoryId,
