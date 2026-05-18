@@ -4,7 +4,7 @@ Last updated: 2026-05-01
 
 ## 1. Executive Summary
 
-AgentGate is currently a strong MVP for a SaaS control center that helps engineering teams manage risk from AI-assisted pull requests. The product already has a clear narrative, polished demo surfaces, deterministic risk scoring, test gap detection, rule evaluation, a multi-tenant Prisma schema, and integration boundaries for GitHub, Better Auth, and Paddle.
+AgentGate is currently a strong MVP for a SaaS control center that helps engineering teams manage risk from AI-assisted pull requests. The product already has a clear narrative, polished demo surfaces, deterministic risk scoring, test gap detection, rule evaluation, a multi-tenant Prisma schema, and integration boundaries for GitHub, Better Auth, and Lemon Squeezy.
 
 The main gap is that the app is not yet a real system of record. Most pages read from `lib/demo-data.ts`, approvals are stored in browser `localStorage`, GitHub webhooks acknowledge events without persistence, billing is mock-mode only, and the app does not yet enforce authentication, organization scoping, plans, usage, or production security controls.
 
@@ -83,7 +83,7 @@ Current implemented strengths:
 - Seed script with realistic demo data.
 - GitHub App service boundary in `lib/github.ts`.
 - Better Auth integration boundary in `lib/auth.ts`.
-- Paddle billing boundary in `lib/billing.ts`.
+- Lemon Squeezy billing boundary in `lib/billing.ts`.
 - Plan definitions and basic feature gate helper in `lib/plans.ts`.
 
 ### 3.2 MVP Limitations
@@ -297,8 +297,8 @@ Metered usage should include:
 
 Success criteria:
 
-- Paddle checkout creates or updates subscriptions.
-- Paddle webhooks update organization plan state.
+- Lemon Squeezy checkout creates or updates subscriptions.
+- Lemon Squeezy webhooks update organization plan state.
 - API and UI enforce plan limits.
 - Usage records are generated from real PR processing.
 
@@ -314,7 +314,7 @@ Recommended layers:
 - `lib/data/`: Prisma-backed query and mutation functions.
 - `lib/github/`: GitHub App auth, webhook parsing, API calls, comment/check-run helpers.
 - `lib/auth/`: session helpers, role checks, organization context.
-- `lib/billing/`: Paddle client, checkout, webhook handling, entitlement sync.
+- `lib/billing/`: Lemon Squeezy client, checkout, webhook handling, entitlement sync.
 - `lib/jobs/`: background job definitions and processors.
 - `tests/`: unit, integration, and route tests.
 
@@ -438,7 +438,7 @@ Production observability should include:
 - Error tracking with release version and environment.
 - Metrics for webhook volume, job failures, sync latency, GitHub API errors, PR checks, approvals, and billing events.
 - Admin-only health or diagnostics page.
-- Alerting for high webhook failure rates, queue backlog, Paddle webhook failures, and database errors.
+- Alerting for high webhook failure rates, queue backlog, Lemon Squeezy webhook failures, and database errors.
 
 Success criteria:
 
@@ -455,7 +455,7 @@ Security requirements:
 - CSRF-safe mutations.
 - Session and role checks on every mutation.
 - Organization scoping in every query.
-- Secure storage and rotation path for GitHub private key and Paddle secrets.
+- Secure storage and rotation path for GitHub private key and Lemon Squeezy secrets.
 - Rate limits for public routes and webhook routes.
 - Security headers.
 - Input validation with Zod or similar on route handlers and server actions.
@@ -464,7 +464,7 @@ Security requirements:
 Success criteria:
 
 - A deployed app cannot be used anonymously to access or mutate customer data.
-- GitHub and Paddle webhook authenticity is verified.
+- GitHub and Lemon Squeezy webhook authenticity is verified.
 - Security-sensitive actions are auditable.
 
 ## 7. Business Model Plan
@@ -657,8 +657,8 @@ Enable self-serve paid usage.
 
 Deliverables:
 
-- Paddle checkout session route.
-- Paddle webhook route with signature verification.
+- Lemon Squeezy checkout session route.
+- Lemon Squeezy webhook route with signature verification.
 - Customer and subscription mapping.
 - Organization plan state updates.
 - Usage metering for PR checks.
@@ -669,7 +669,7 @@ Deliverables:
 Verification:
 
 - Checkout upgrades an organization.
-- Paddle subscription changes update organization entitlements.
+- Lemon Squeezy subscription changes update organization entitlements.
 - Over-limit actions are blocked or prompt upgrade.
 - Usage page reflects real metered activity.
 
@@ -797,7 +797,7 @@ Needed improvements:
 
 First implementation target:
 
-- Paddle checkout and webhook subscription sync.
+- Lemon Squeezy checkout and webhook subscription sync.
 
 ### 9.6 Testing
 
@@ -878,7 +878,7 @@ The first implementation sequence should be:
 6. Add webhook dispatch and idempotent PR processing.
 7. Persist approvals and audit events.
 8. Add GitHub comments or check runs.
-9. Add Paddle checkout and subscription webhook handling.
+9. Add Lemon Squeezy checkout and subscription webhook handling.
 10. Enforce plans and usage limits.
 11. Add self-serve onboarding polish.
 12. Add export, notifications, and advanced controls after customer validation.
@@ -905,7 +905,7 @@ In scope:
 
 Out of scope:
 
-- Paddle billing.
+- Lemon Squeezy billing.
 - Hard merge blocking.
 - Slack notifications.
 - Enterprise SSO.
@@ -942,8 +942,8 @@ Before inviting pilot customers:
 
 Before charging customers:
 
-- Paddle checkout is live.
-- Paddle webhooks are verified and idempotent.
+- Lemon Squeezy checkout is live.
+- Lemon Squeezy webhooks are verified and idempotent.
 - Organization plan state updates from subscription events.
 - Plan gates are enforced server-side.
 - Usage records are generated from real PR processing.
@@ -1039,7 +1039,7 @@ Then:
 - Add webhook idempotency.
 - Add job queue or job table.
 - Add GitHub comments.
-- Add Paddle checkout.
+- Add Lemon Squeezy checkout.
 - Add plan enforcement.
 - Add usage metering.
 - Add audit export.

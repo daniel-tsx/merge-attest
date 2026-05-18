@@ -1,28 +1,71 @@
 import { describe, expect, it, vi } from 'vitest'
 
 describe('billing helpers', () => {
-  it('builds Paddle customer portal URLs from configuration', async () => {
-    vi.stubEnv(
-      'PADDLE_CUSTOMER_PORTAL_URL',
-      'https://billing.example.test/portal',
+  it('reports Lemon Squeezy customer portal access from billing ids', async () => {
+    const { hasLemonSqueezyCustomerPortalAccess } = await import(
+      '../lib/billing'
     )
-    const { getPaddleCustomerPortalUrl } = await import('../lib/billing')
 
-    expect(getPaddleCustomerPortalUrl('ctm_123')).toBe(
-      'https://billing.example.test/portal?customer_id=ctm_123',
-    )
-    expect(getPaddleCustomerPortalUrl(null)).toBeNull()
-
-    vi.unstubAllEnvs()
+    expect(
+      hasLemonSqueezyCustomerPortalAccess({ customerId: '123' }),
+    ).toBe(true)
+    expect(hasLemonSqueezyCustomerPortalAccess({})).toBe(false)
   })
 
   it('does not report mock billing mode in production', async () => {
     vi.stubEnv('NODE_ENV', 'production')
-    vi.stubEnv('PADDLE_API_KEY', '')
+    vi.stubEnv('LEMON_SQUEEZY_API_KEY', '')
+    vi.stubEnv('LEMON_SQUEEZY_STORE_ID', '')
     const { getBillingMode } = await import('../lib/billing')
 
     expect(getBillingMode()).toBe('unconfigured')
 
+    vi.unstubAllEnvs()
+  })
+
+  it('builds billing return URLs from trusted app configuration', async () => {
+    vi.stubEnv('BETTER_AUTH_URL', 'https://app.example.test')
+    const { getBillingReturnUrl } = await import('../lib/billing')
+
+    expect(getBillingReturnUrl()).toBe(
+      'https://app.example.test/settings/billing',
+    )
+
+    vi.unstubAllEnvs()
+  })
+
+  it('creates Lemon Squeezy checkout sessions without trusting request hosts', async () => {
+    vi.stubEnv('LEMON_SQUEEZY_API_KEY', 'api-key')
+    vi.stubEnv('LEMON_SQUEEZY_STORE_ID', '111')
+    vi.stubEnv('LEMON_SQUEEZY_TEAM_VARIANT_ID', '222')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: { attributes: { url: 'https://checkout.example.test' } },
+      }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { createCheckoutSession } = await import('../lib/billing')
+
+    await expect(
+      createCheckoutSession({
+        organizationId: 'org_123',
+        planKey: 'team',
+        customerEmail: 'owner@example.test',
+        customerName: 'Owner',
+        returnUrl: 'https://app.example.test/settings/billing',
+      }),
+    ).resolves.toBe('https://checkout.example.test')
+
+    const [, init] = fetchMock.mock.calls[0]
+    const payload = JSON.parse(String(init.body))
+    expect(payload.data.attributes.checkout_data.custom).toEqual({
+      organizationId: 'org_123',
+      planKey: 'team',
+    })
+    expect(payload.data.relationships.variant.data.id).toBe('222')
+
+    vi.unstubAllGlobals()
     vi.unstubAllEnvs()
   })
 

@@ -22,7 +22,6 @@
     "@better-auth/prisma-adapter": "^1.6.11",
     "@hookform/resolvers": "^5.2.2",
     "@octokit/auth-app": "^8.2.0",
-    "@paddle/paddle-node-sdk": "^3.8.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-avatar": "^1.1.11",

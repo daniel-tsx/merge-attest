@@ -278,17 +278,17 @@ const prInputs: Array<{
   pr(
     'repo-billing',
     191,
-    'Add Paddle webhook signature check',
+    'Add Lemon Squeezy webhook signature check',
     'codex-bot',
-    'agent/paddle-webhook',
+    'agent/lemon-squeezy-webhook',
     'open',
     true,
     'codex',
     'pending',
     [
-      file('app/api/paddle/webhook/route.ts', 91, 5),
-      file('lib/billing/paddle.ts', 42, 7),
-      file('tests/integration/paddle-webhook.test.ts', 81, 0),
+      file('app/api/lemon-squeezy/webhook/route.ts', 91, 5),
+      file('lib/lemon-squeezy-webhooks.ts', 42, 7),
+      file('tests/lemon-squeezy-webhooks.test.ts', 81, 0),
     ],
   ),
   pr(

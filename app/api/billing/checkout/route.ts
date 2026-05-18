@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import {
-  createCheckoutTransaction,
+  createCheckoutSession,
+  getBillingReturnUrl,
   getBillingMode,
   isPaidPlan,
 } from '@/lib/billing'
@@ -34,7 +35,10 @@ export async function POST(request: Request) {
 
   if (getBillingMode() === 'unconfigured') {
     return NextResponse.json(
-      { error: 'Paddle must be configured before production checkout.' },
+      {
+        error:
+          'Lemon Squeezy must be configured before production checkout.',
+      },
       { status: 503 },
     )
   }
@@ -46,23 +50,21 @@ export async function POST(request: Request) {
   }
 
   if (planKey === organization.planKey) {
-    return NextResponse.redirect(new URL('/settings/billing', request.url), {
+    return NextResponse.redirect(getBillingReturnUrl(), {
       status: 303,
     })
   }
 
-  const existingOrganization = await prisma.organization.findUnique({
-    where: { id: organization.id },
-    select: { paddleCustomerId: true },
-  })
-  const transaction = await createCheckoutTransaction({
+  const checkoutUrl = await createCheckoutSession({
     organizationId: organization.id,
     planKey,
-    customerId: existingOrganization?.paddleCustomerId,
+    customerEmail: organization.userEmail,
+    customerName: organization.userName,
+    returnUrl: getBillingReturnUrl(),
   })
 
-  if (!transaction?.checkout?.url) {
-    const url = new URL('/settings/billing', request.url)
+  if (!checkoutUrl) {
+    const url = new URL(getBillingReturnUrl())
     url.searchParams.set('billing', 'checkout_unavailable')
     return NextResponse.redirect(url, { status: 303 })
   }
@@ -92,5 +94,5 @@ export async function POST(request: Request) {
     },
   })
 
-  return NextResponse.redirect(transaction.checkout.url, { status: 303 })
+  return NextResponse.redirect(checkoutUrl, { status: 303 })
 }

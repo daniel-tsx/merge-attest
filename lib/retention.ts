@@ -12,7 +12,7 @@ export async function cleanupOperationalData(now = new Date()) {
     return {
       auditEventsDeleted: 0,
       webhookDeliveriesDeleted: 0,
-      paddleEventsDeleted: 0,
+      billingEventsDeleted: 0,
       auditExportsDeleted: 0,
     }
   }
@@ -37,14 +37,14 @@ export async function cleanupOperationalData(now = new Date()) {
     auditEventsDeleted += result.count
   }
 
-  const [webhookDeliveries, paddleEvents, auditExports] = await Promise.all([
+  const [webhookDeliveries, billingEvents, auditExports] = await Promise.all([
     prisma.gitHubWebhookDelivery.deleteMany({
       where: {
         status: { in: ['processed', 'ignored'] },
         createdAt: { lt: getRetentionCutoff(30, now) },
       },
     }),
-    prisma.paddleWebhookEvent.deleteMany({
+    prisma.billingWebhookEvent.deleteMany({
       where: {
         status: { in: ['processed', 'ignored'] },
         createdAt: { lt: getRetentionCutoff(365, now) },
@@ -58,7 +58,7 @@ export async function cleanupOperationalData(now = new Date()) {
   return {
     auditEventsDeleted,
     webhookDeliveriesDeleted: webhookDeliveries.count,
-    paddleEventsDeleted: paddleEvents.count,
+    billingEventsDeleted: billingEvents.count,
     auditExportsDeleted: auditExports.count,
   }
 }

@@ -11,7 +11,7 @@ AgentGate is a SaaS control center for engineering teams using AI coding agents.
 - Better Auth with Prisma-backed user, account, session, and verification tables
 - Octokit GitHub App service boundary
 - OpenRouter BYOK AI review provider boundary
-- Paddle billing service boundary
+- Lemon Squeezy billing service boundary
 - React Hook Form and Zod dependencies for validated forms
 - Recharts dashboards
 - Vitest unit tests
@@ -25,11 +25,11 @@ pnpm db:generate
 pnpm dev
 ```
 
-The app runs with seeded demo data in the UI when GitHub, Paddle, and PostgreSQL credentials are missing. Production deployments should use real PostgreSQL, Better Auth, GitHub App, Paddle, transactional email, and support credentials.
+The app runs with seeded demo data in the UI when GitHub, Lemon Squeezy, and PostgreSQL credentials are missing. Production deployments should use real PostgreSQL, Better Auth, GitHub App, Lemon Squeezy, transactional email, and support credentials.
 
 ## Production Safety
 
-Production deployments must provide database, Better Auth, GitHub App, Paddle, job runner, transactional email, and support environment variables. Local development still supports demo mode, but production fails closed for missing launch-critical configuration.
+Production deployments must provide database, Better Auth, GitHub App, Lemon Squeezy, job runner, transactional email, and support environment variables. Local development still supports demo mode, but production fails closed for missing launch-critical configuration.
 
 Authenticated app access is available through `/sign-up` and `/sign-in`. Password reset is available through `/forgot-password` and `/reset-password`, and production sign-up requires transactional email for verification. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
 
@@ -41,7 +41,9 @@ Approval decisions on pull request detail pages are persisted through `/api/pull
 
 Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. GitHub sync records monthly `pr_checks` usage, stops processing new checks or repositories when the current plan limit is reached, and only publishes GitHub check runs for plans with GitHub output enabled.
 
-Paddle checkout starts at `/api/billing/checkout` when `PADDLE_API_KEY` and the relevant `PADDLE_*_PRICE_ID` variables are configured. Paddle webhooks are accepted at `/api/paddle/webhook`, verified with `PADDLE_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
+Lemon Squeezy checkout starts at `/api/billing/checkout` when `LEMON_SQUEEZY_API_KEY`, `LEMON_SQUEEZY_STORE_ID`, and the relevant `LEMON_SQUEEZY_*_VARIANT_ID` variables are configured. Lemon Squeezy webhooks are accepted at `/api/lemon-squeezy/webhook`, verified with `LEMON_SQUEEZY_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
+
+The Lemon Squeezy migration intentionally starts new Lemon Squeezy customer and subscription fields empty rather than reusing old Paddle identifiers. If a database has live Paddle subscribers, migrate those customers and subscriptions through Lemon Squeezy first, then backfill the resulting Lemon Squeezy ids before relying on customer portal access or webhook-only entitlement sync.
 
 The dashboard includes a first-run onboarding checklist that guides new organizations from workspace creation to GitHub installation, repository sync, and first pull request review. Repository empty states point users to the next required setup action.
 
@@ -63,6 +65,8 @@ pnpm db:seed
 If you do not have local Postgres installed, create a database first and update `.env` with its connection string.
 
 The initial Prisma migration is committed under `prisma/migrations`, along with the Better Auth session/account migration. Server-side repository and pull request pages read through an organization-scoped Prisma data layer when `DATABASE_URL` is available. In local development, failed or missing database connections fall back to demo data so the MVP UI remains usable; production deployments require a working `DATABASE_URL`.
+
+For existing deployments, apply migrations with `pnpm prisma migrate deploy`. The `20260518173000_lemon_squeezy_billing` migration removes the legacy Paddle billing columns and webhook table, adds Lemon Squeezy billing identifiers, and creates the provider-neutral `BillingWebhookEvent` table used for webhook idempotency.
 
 ## Verification
 
@@ -110,9 +114,9 @@ pnpm build
 - `lib/ai/credentials.ts`, `lib/ai/openrouter.ts`, `lib/ai/settings.ts`, and `lib/ai/review.ts`: encrypted OpenRouter BYOK storage, key verification, repository AI review settings, and AI response validation.
 - `lib/github/diff.ts` and `lib/github/output.ts`: PR diff filtering, changed-line validation support, managed AI review comments, inline review publishing, and advisory check-run output.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
-- `lib/billing.ts` and `lib/plans.ts`: Paddle client boundary and plan metadata.
+- `lib/billing.ts` and `lib/plans.ts`: Lemon Squeezy checkout/customer portal boundary and plan metadata.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
-- `lib/paddle-webhooks.ts`: Paddle webhook verification helpers and subscription-to-plan mapping.
+- `lib/lemon-squeezy-webhooks.ts`: Lemon Squeezy webhook verification helpers and subscription-to-plan mapping.
 - `lib/onboarding.ts`: self-serve setup checklist state for dashboard onboarding.
 - `lib/audit-export.ts`: compliance-oriented audit retention windows and CSV serialization.
 - `prisma/schema.prisma`: multi-tenant schema where business entities belong to an organization.

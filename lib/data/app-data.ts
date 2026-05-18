@@ -58,9 +58,9 @@ export type OrganizationContext = {
   planKey: PlanKey
   githubInstallationId: string | null
   billingStatus: BillingStatus
-  paddleCustomerId: string | null
-  paddleSubscriptionId: string | null
-  paddleSubscriptionStatus: string | null
+  lemonSqueezyCustomerId: string | null
+  lemonSqueezySubscriptionId: string | null
+  lemonSqueezySubscriptionStatus: string | null
   trialEndsAt?: string
   cancellationEffectiveAt?: string
   failedPaymentAt?: string
@@ -633,9 +633,9 @@ function mapOrganization(
     planKey: string
     githubInstallationId: string | null
     billingStatus?: string
-    paddleCustomerId?: string | null
-    paddleSubscriptionId?: string | null
-    paddleSubscriptionStatus?: string | null
+    lemonSqueezyCustomerId?: string | null
+    lemonSqueezySubscriptionId?: string | null
+    lemonSqueezySubscriptionStatus?: string | null
     trialEndsAt?: Date | null
     cancellationEffectiveAt?: Date | null
     failedPaymentAt?: Date | null
@@ -650,9 +650,9 @@ function mapOrganization(
       planKey: demoOrganization.planKey,
       githubInstallationId: 'demo-installation',
       billingStatus: 'active',
-      paddleCustomerId: null,
-      paddleSubscriptionId: null,
-      paddleSubscriptionStatus: null,
+      lemonSqueezyCustomerId: null,
+      lemonSqueezySubscriptionId: null,
+      lemonSqueezySubscriptionStatus: null,
       role: 'owner',
       dataMode: 'demo',
     }
@@ -665,9 +665,10 @@ function mapOrganization(
     planKey: row.planKey as PlanKey,
     githubInstallationId: row.githubInstallationId,
     billingStatus: (row.billingStatus ?? 'active') as BillingStatus,
-    paddleCustomerId: row.paddleCustomerId ?? null,
-    paddleSubscriptionId: row.paddleSubscriptionId ?? null,
-    paddleSubscriptionStatus: row.paddleSubscriptionStatus ?? null,
+    lemonSqueezyCustomerId: row.lemonSqueezyCustomerId ?? null,
+    lemonSqueezySubscriptionId: row.lemonSqueezySubscriptionId ?? null,
+    lemonSqueezySubscriptionStatus:
+      row.lemonSqueezySubscriptionStatus ?? null,
     trialEndsAt: row.trialEndsAt ? toIso(row.trialEndsAt) : undefined,
     cancellationEffectiveAt: row.cancellationEffectiveAt
       ? toIso(row.cancellationEffectiveAt)
@@ -692,9 +693,12 @@ export const getCurrentOrganization = cache(
         planKey: sessionOrganization.planKey,
         githubInstallationId: sessionOrganization.githubInstallationId,
         billingStatus: sessionOrganization.billingStatus,
-        paddleCustomerId: sessionOrganization.paddleCustomerId,
-        paddleSubscriptionId: sessionOrganization.paddleSubscriptionId,
-        paddleSubscriptionStatus: sessionOrganization.paddleSubscriptionStatus,
+        lemonSqueezyCustomerId:
+          sessionOrganization.lemonSqueezyCustomerId,
+        lemonSqueezySubscriptionId:
+          sessionOrganization.lemonSqueezySubscriptionId,
+        lemonSqueezySubscriptionStatus:
+          sessionOrganization.lemonSqueezySubscriptionStatus,
         trialEndsAt: sessionOrganization.trialEndsAt
           ? toIso(sessionOrganization.trialEndsAt)
           : undefined,

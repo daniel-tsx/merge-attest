@@ -6,7 +6,7 @@ Last reviewed: 2026-05-02
 
 AgentGate should become a GitHub-native operating layer for teams that ship AI-assisted code. The product should help a team connect repositories, detect risky AI-generated or AI-assisted pull requests, request the right review, record decisions, and prove what happened later through audit and reporting.
 
-The current project is past a pure MVP. It already has real application foundations: authenticated workspaces, organization-scoped data access, Prisma-backed models, GitHub App boundaries, webhook handling, approval persistence, plan entitlements, usage metering, Paddle checkout/webhook boundaries, onboarding states, and audit export. The next phase should focus on replacing the remaining demo surfaces, making GitHub processing production-grade, and adding collaboration features that make the product feel like a real business workflow rather than a dashboard demo.
+The current project is past a pure MVP. It already has real application foundations: authenticated workspaces, organization-scoped data access, Prisma-backed models, GitHub App boundaries, webhook handling, approval persistence, plan entitlements, usage metering, Lemon Squeezy checkout/webhook boundaries, onboarding states, and audit export. The next phase should focus on replacing the remaining demo surfaces, making GitHub processing production-grade, and adding collaboration features that make the product feel like a real business workflow rather than a dashboard demo.
 
 ## 2. Current Baseline
 
@@ -22,7 +22,7 @@ Implemented strengths:
 - Deterministic risk scoring, test-gap detection, and repository rule evaluation.
 - Persisted approval decisions with role checks, plan checks, audit events, and optional GitHub comments.
 - Plan entitlements and usage metering for repository limits, monthly PR checks, approval workflows, GitHub comments, custom rules, and audit export.
-- Paddle checkout and subscription webhook processing boundaries.
+- Lemon Squeezy checkout and subscription webhook processing boundaries.
 - Dashboard onboarding checklist, repository empty states, billing/usage/settings pages, and audit CSV export.
 - Focused Vitest coverage for at least audit export behavior, with existing test scaffolding for domain logic.
 
@@ -182,7 +182,7 @@ Make the product self-serve and commercially believable.
 
 Deliverables:
 
-- Add Paddle customer portal links for invoices, payment method, cancellation, and plan changes.
+- Add Lemon Squeezy customer portal links for invoices, payment method, cancellation, and plan changes.
 - Add trial state, upgrade prompts, downgrade handling, cancellation state, and failed payment state.
 - Show plan limits and remaining usage in context where users hit limits.
 - Add plan comparison with clear feature gating for approvals, comments, custom rules, and exports.
@@ -192,7 +192,7 @@ Deliverables:
 
 Verification:
 
-- Checkout upgrades an organization and Paddle webhooks update plan state.
+- Checkout upgrades an organization and Lemon Squeezy webhooks update plan state.
 - Users see clear upgrade paths when limits block an action.
 - Billing state is never purely mock-mode in production.
 
@@ -206,7 +206,7 @@ Deliverables:
 
 - Add structured logging for auth, GitHub, approval, billing, and job workflows.
 - Add error tracking with release/environment context.
-- Add health and diagnostics endpoints for database, GitHub, Paddle, and job processing.
+- Add health and diagnostics endpoints for database, GitHub, Lemon Squeezy, and job processing.
 - Add rate limits for public, auth, webhook, and mutation routes.
 - Add security headers and production deployment checklist.
 - Add customer data retention policy, privacy notes, and support contact docs.

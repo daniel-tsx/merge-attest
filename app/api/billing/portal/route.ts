@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
-import { getPaddleCustomerPortalUrl } from '@/lib/billing'
+import {
+  getBillingReturnUrl,
+  getLemonSqueezyCustomerPortalUrl,
+} from '@/lib/billing'
 import { canManageBilling } from '@/lib/collaboration'
 
-export async function POST(request: Request) {
+export async function POST() {
   const organization = await ensureCurrentUserOrganization()
 
   if (!organization) {
@@ -20,9 +23,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const portalUrl = getPaddleCustomerPortalUrl(organization.paddleCustomerId)
+  const portalUrl = await getLemonSqueezyCustomerPortalUrl({
+    customerId: organization.lemonSqueezyCustomerId,
+    subscriptionId: organization.lemonSqueezySubscriptionId,
+  })
   if (!portalUrl) {
-    const url = new URL('/settings/billing', request.url)
+    const url = new URL(getBillingReturnUrl())
     url.searchParams.set('billing', 'portal_unavailable')
     return NextResponse.redirect(url, { status: 303 })
   }

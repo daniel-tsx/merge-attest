@@ -10,8 +10,8 @@ import {
   getBillingCallout,
   getBillingMode,
   getBillingStatusLabel,
-  getPaddleCustomerPortalUrl,
-  getPaddlePriceId,
+  getLemonSqueezyVariantId,
+  hasLemonSqueezyCustomerPortalAccess,
   isPaidPlan,
 } from '@/lib/billing'
 import { canManageBilling } from '@/lib/collaboration'
@@ -20,9 +20,9 @@ import { cn } from '@/lib/utils'
 
 const billingMessages: Record<string, string> = {
   checkout_unavailable:
-    'Checkout is unavailable. Configure Paddle API keys and price IDs.',
+    'Checkout is unavailable. Configure Lemon Squeezy API keys and variant IDs.',
   portal_unavailable:
-    'Customer portal is unavailable. Configure Paddle portal URL and customer ID.',
+    'Customer portal is unavailable. Complete Lemon Squeezy checkout before opening the portal.',
 }
 
 function readParam(
@@ -45,18 +45,25 @@ export default async function BillingSettingsPage({
   const billingMessage = readParam(params, 'billing')
   const billingMode = getBillingMode()
   const canManage = canManageBilling(organization.role)
-  const portalUrl = getPaddleCustomerPortalUrl(organization.paddleCustomerId)
+  const hasPortalAccess = hasLemonSqueezyCustomerPortalAccess({
+    customerId: organization.lemonSqueezyCustomerId,
+    subscriptionId: organization.lemonSqueezySubscriptionId,
+  })
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Workspace"
         title="Billing"
-        description={`Plan gates are enforced server-side. Paddle billing mode: ${billingMode}.`}
+        description={`Plan gates are enforced server-side. Lemon Squeezy billing mode: ${billingMode}.`}
         actions={
           canManage ? (
             <form action="/api/billing/portal" method="post">
-              <Button variant="secondary" type="submit" disabled={!portalUrl}>
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={!hasPortalAccess}
+              >
                 <ExternalLink aria-hidden="true" />
                 Manage billing portal
               </Button>
@@ -248,7 +255,7 @@ export default async function BillingSettingsPage({
                   </Button>
                 ) : isPaidPlan(plan.key) &&
                   billingMode === 'live' &&
-                  getPaddlePriceId(plan.key) &&
+                  getLemonSqueezyVariantId(plan.key) &&
                   canManage ? (
                   <form action="/api/billing/checkout" method="post">
                     <input type="hidden" name="planKey" value={plan.key} />
@@ -261,7 +268,7 @@ export default async function BillingSettingsPage({
                     {!canManage
                       ? 'Owner-only checkout'
                       : isPaidPlan(plan.key)
-                        ? 'Configure Paddle price'
+                        ? 'Configure Lemon Squeezy variant'
                         : 'Contact sales'}
                   </Button>
                 )}

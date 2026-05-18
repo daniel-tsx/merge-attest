@@ -1,50 +1,74 @@
-import { Environment, Paddle } from '@paddle/paddle-node-sdk'
-import { isProduction } from '@/lib/env'
+import { getBetterAuthUrl, isProduction } from '@/lib/env'
 import { plans } from '@/lib/plans'
 import type { BillingStatus, PlanKey } from '@/lib/types'
 
 const paidPlanPriceEnv: Partial<Record<PlanKey, string>> = {
-  starter: 'PADDLE_STARTER_PRICE_ID',
-  team: 'PADDLE_TEAM_PRICE_ID',
-  growth: 'PADDLE_GROWTH_PRICE_ID',
+  starter: 'LEMON_SQUEEZY_STARTER_VARIANT_ID',
+  team: 'LEMON_SQUEEZY_TEAM_VARIANT_ID',
+  growth: 'LEMON_SQUEEZY_GROWTH_VARIANT_ID',
 }
 
-export function getPaddleClient() {
-  if (!process.env.PADDLE_API_KEY) return null
+const lemonSqueezyApiUrl = 'https://api.lemonsqueezy.com/v1'
 
-  return new Paddle(process.env.PADDLE_API_KEY, {
-    environment:
-      process.env.PADDLE_ENVIRONMENT === 'production'
-        ? Environment.production
-        : Environment.sandbox,
-  })
+function getEnv(name: string) {
+  return process.env[name]?.trim() || null
+}
+
+function getLemonSqueezyApiKey() {
+  return getEnv('LEMON_SQUEEZY_API_KEY')
+}
+
+function getLemonSqueezyStoreId() {
+  return getEnv('LEMON_SQUEEZY_STORE_ID')
+}
+
+function isLemonSqueezyConfigured() {
+  return Boolean(getLemonSqueezyApiKey() && getLemonSqueezyStoreId())
 }
 
 export function getBillingMode() {
-  if (getPaddleClient()) return 'live'
+  if (isLemonSqueezyConfigured()) return 'live'
   return isProduction() ? 'unconfigured' : 'mock'
 }
 
-export function getPaddleWebhookSecret() {
-  return process.env.PADDLE_WEBHOOK_SECRET?.trim() || null
+export function getLemonSqueezyWebhookSecret() {
+  return getEnv('LEMON_SQUEEZY_WEBHOOK_SECRET')
 }
 
 export function isPaidPlan(planKey: PlanKey) {
   return planKey === 'starter' || planKey === 'team' || planKey === 'growth'
 }
 
-export function getPaddlePriceId(planKey: PlanKey) {
+export function getLemonSqueezyVariantId(planKey: PlanKey) {
   const envKey = paidPlanPriceEnv[planKey]
-  return envKey ? process.env[envKey]?.trim() || null : null
+  return envKey ? getEnv(envKey) : null
 }
 
-export function getPaddleCustomerPortalUrl(customerId?: string | null) {
-  const baseUrl = process.env.PADDLE_CUSTOMER_PORTAL_URL?.trim()
-  if (!baseUrl || !customerId) return null
+export function hasLemonSqueezyCustomerPortalAccess(input: {
+  customerId?: string | null
+  subscriptionId?: string | null
+}) {
+  return Boolean(input.subscriptionId || input.customerId)
+}
 
-  const url = new URL(baseUrl)
-  url.searchParams.set('customer_id', customerId)
-  return url.toString()
+async function lemonSqueezyRequest(path: string) {
+  const apiKey = getLemonSqueezyApiKey()
+  if (!apiKey) return null
+
+  const response = await fetch(`${lemonSqueezyApiUrl}${path}`, {
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/vnd.api+json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    signal: AbortSignal.timeout(10_000),
+  })
+
+  return response.ok ? response.json() : null
+}
+
+export function getBillingReturnUrl(path = '/settings/billing') {
+  return new URL(path, getBetterAuthUrl()).toString()
 }
 
 export function getBillingStatusLabel(status: BillingStatus) {
@@ -86,38 +110,111 @@ export function getBillingCallout(input: {
   return 'Subscription active'
 }
 
-export function getPlanKeyForPaddlePriceId(
-  priceId: string | null | undefined,
+export function getPlanKeyForLemonSqueezyVariantId(
+  variantId: string | null | undefined,
 ): PlanKey | null {
-  if (!priceId) return null
+  if (!variantId) return null
 
   for (const [planKey, envKey] of Object.entries(paidPlanPriceEnv) as Array<
     [PlanKey, string]
   >) {
-    if (process.env[envKey]?.trim() === priceId) return planKey
+    if (getEnv(envKey) === variantId) return planKey
   }
 
   return null
 }
 
-export async function createCheckoutTransaction(input: {
+export async function createCheckoutSession(input: {
   organizationId: string
   planKey: PlanKey
-  customerId?: string | null
+  customerEmail?: string | null
+  customerName?: string | null
+  returnUrl?: string
 }) {
-  const paddle = getPaddleClient()
-  const priceId = getPaddlePriceId(input.planKey)
+  const apiKey = getLemonSqueezyApiKey()
+  const storeId = getLemonSqueezyStoreId()
+  const variantId = getLemonSqueezyVariantId(input.planKey)
 
-  if (!paddle || !priceId) return null
+  if (!apiKey || !storeId || !variantId) return null
 
-  return paddle.transactions.create({
-    items: [{ priceId, quantity: 1 }],
-    customerId: input.customerId ?? undefined,
-    customData: {
-      organizationId: input.organizationId,
-      planKey: input.planKey,
+  const variantNumber = Number(variantId)
+  if (!Number.isInteger(variantNumber) || variantNumber <= 0) return null
+
+  const response = await fetch(`${lemonSqueezyApiUrl}/checkouts`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/vnd.api+json',
+      'Content-Type': 'application/vnd.api+json',
+      Authorization: `Bearer ${apiKey}`,
     },
+    signal: AbortSignal.timeout(10_000),
+    body: JSON.stringify({
+      data: {
+        type: 'checkouts',
+        attributes: {
+          checkout_data: {
+            email: input.customerEmail ?? undefined,
+            name: input.customerName ?? undefined,
+            custom: {
+              organizationId: input.organizationId,
+              planKey: input.planKey,
+            },
+          },
+          product_options: {
+            enabled_variants: [variantNumber],
+            redirect_url: input.returnUrl,
+          },
+        },
+        relationships: {
+          store: {
+            data: {
+              type: 'stores',
+              id: storeId,
+            },
+          },
+          variant: {
+            data: {
+              type: 'variants',
+              id: variantId,
+            },
+          },
+        },
+      },
+    }),
   })
+
+  if (!response.ok) return null
+
+  const body = (await response.json()) as {
+    data?: { attributes?: { url?: string } }
+  }
+  return body.data?.attributes?.url ?? null
+}
+
+export async function getLemonSqueezyCustomerPortalUrl(input: {
+  customerId?: string | null
+  subscriptionId?: string | null
+}) {
+  if (input.subscriptionId) {
+    const subscription = (await lemonSqueezyRequest(
+      `/subscriptions/${input.subscriptionId}`,
+    )) as { data?: { attributes?: { urls?: { customer_portal?: string } } } }
+
+    const portalUrl = subscription?.data?.attributes?.urls?.customer_portal
+    if (portalUrl) return portalUrl
+  }
+
+  if (input.customerId) {
+    const customer = (await lemonSqueezyRequest(
+      `/customers/${input.customerId}`,
+    )) as { data?: { attributes?: { urls?: { customer_portal?: string } } } }
+
+    const portalUrl = customer?.data?.attributes?.urls?.customer_portal
+    if (portalUrl) return portalUrl
+  }
+
+  return null
 }
 
 export { plans }

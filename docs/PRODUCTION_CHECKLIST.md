@@ -10,7 +10,7 @@ Use this checklist before running AgentGate for customer work.
 - `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, AgentGate derives encryption from `BETTER_AUTH_SECRET`.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
 - `GITHUB_WEBHOOK_SECRET` is configured in both AgentGate and the GitHub App.
-- Paddle API key, webhook secret, customer portal URL, and Starter/Team/Growth price IDs are configured before enabling production billing.
+- Lemon Squeezy API key, store ID, webhook secret, and Starter/Team/Growth variant IDs are configured before enabling production billing.
 - `EMAIL_FROM` and `RESEND_API_KEY` are configured before enabling email verification and password reset delivery.
 - `JOB_RUNNER_SECRET` is configured before enabling scheduled operational job endpoints.
 - `SUPPORT_EMAIL` is configured before publishing support contact details.
@@ -19,7 +19,7 @@ Use this checklist before running AgentGate for customer work.
 ## Runtime Checks
 
 - `GET /api/health` returns `{ "status": "ok" }` without exposing dependency details.
-- `GET /api/diagnostics` works for owners/admins and shows database, GitHub, Paddle, email, and job queue status.
+- `GET /api/diagnostics` works for owners/admins and shows database, GitHub, Lemon Squeezy, email, and job queue status.
 - Scheduled calls to `/api/jobs/github-webhooks`, `/api/jobs/pr-reviews`, and `/api/jobs/retention` succeed with the job runner bearer token.
 - OpenRouter key verification from `/settings/ai` succeeds before enabling AI review jobs for pilot workspaces.
 - Repository AI review settings remain disabled until a pilot repository has confirmed OpenRouter credentials, expected ignored-path rules, and agreed output toggles.
@@ -33,6 +33,7 @@ Use this checklist before running AgentGate for customer work.
 
 - CI passes lint, typecheck, tests, dependency audit, and production build.
 - Database migrations have been applied.
+- Existing Paddle subscribers, if any, have been migrated through Lemon Squeezy and their new Lemon Squeezy customer/subscription ids have been reconciled before enabling paid access.
 - Audit export retention matches the active customer plan.
 - Billing mode is `live` in production, not `mock` or `unconfigured`.
 - Transactional email mode is `live` in production, not `mock` or `unconfigured`.

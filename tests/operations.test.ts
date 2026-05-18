@@ -147,7 +147,11 @@ describe('diagnostics', () => {
     expect(
       summarizeDiagnostics([
         { name: 'database', status: 'ok', message: 'ok' },
-        { name: 'paddle', status: 'warning', message: 'not configured' },
+        {
+          name: 'lemon_squeezy',
+          status: 'warning',
+          message: 'not configured',
+        },
       ]),
     ).toBe('warning')
     expect(

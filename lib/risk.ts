@@ -15,7 +15,7 @@ const TEST_FILE_PATTERN =
   /(^|\/)(tests?|__tests__|e2e|specs?)\/|(\.|-)(test|spec|e2e)\.[tj]sx?$/i
 const AUTH_PATTERN = /(auth|session|permission|policy|acl|rbac|middleware)/i
 const BILLING_PATTERN =
-  /(billing|invoice|subscription|stripe|paddle|payment|checkout)/i
+  /(billing|invoice|subscription|stripe|lemonsqueezy|lemon-squeezy|payment|checkout)/i
 const MIGRATION_PATTERN = /(prisma\/migrations|migrations\/|schema\.prisma)/i
 const INFRA_PATTERN =
   /(^|\/)(Dockerfile|docker-compose|\.github\/workflows|terraform|infra|k8s|helm|vercel\.json|next\.config|env)/i
@@ -24,7 +24,7 @@ const DEP_PATTERN =
 const API_PATTERN =
   /(app\/api|pages\/api|routes?\/|openapi|schema|trpc|graphql)/i
 const SECURITY_PACKAGE_PATTERN =
-  /(auth|jsonwebtoken|jose|bcrypt|oauth|passport|saml|openid|helmet|csrf|stripe|paddle)/i
+  /(auth|jsonwebtoken|jose|bcrypt|oauth|passport|saml|openid|helmet|csrf|stripe|lemonsqueezy|lemon-squeezy)/i
 
 function pathsMatching(files: PullRequestFileInput[], pattern: RegExp) {
   return files

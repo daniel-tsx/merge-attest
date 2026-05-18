@@ -16,9 +16,9 @@ export type SessionOrganization = {
   githubInstallationId: string | null
   role: 'owner' | 'admin' | 'member' | 'viewer'
   billingStatus: BillingStatus
-  paddleCustomerId: string | null
-  paddleSubscriptionId: string | null
-  paddleSubscriptionStatus: string | null
+  lemonSqueezyCustomerId: string | null
+  lemonSqueezySubscriptionId: string | null
+  lemonSqueezySubscriptionStatus: string | null
   trialEndsAt: Date | null
   cancellationEffectiveAt: Date | null
   failedPaymentAt: Date | null
@@ -77,11 +77,12 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
       role: existingMembership.role,
       billingStatus: existingMembership.organization
         .billingStatus as BillingStatus,
-      paddleCustomerId: existingMembership.organization.paddleCustomerId,
-      paddleSubscriptionId:
-        existingMembership.organization.paddleSubscriptionId,
-      paddleSubscriptionStatus:
-        existingMembership.organization.paddleSubscriptionStatus,
+      lemonSqueezyCustomerId:
+        existingMembership.organization.lemonSqueezyCustomerId,
+      lemonSqueezySubscriptionId:
+        existingMembership.organization.lemonSqueezySubscriptionId,
+      lemonSqueezySubscriptionStatus:
+        existingMembership.organization.lemonSqueezySubscriptionStatus,
       trialEndsAt: existingMembership.organization.trialEndsAt,
       cancellationEffectiveAt:
         existingMembership.organization.cancellationEffectiveAt,
@@ -117,9 +118,9 @@ export async function ensureCurrentUserOrganization(): Promise<SessionOrganizati
     githubInstallationId: organization.githubInstallationId,
     role: 'owner',
     billingStatus: organization.billingStatus as BillingStatus,
-    paddleCustomerId: organization.paddleCustomerId,
-    paddleSubscriptionId: organization.paddleSubscriptionId,
-    paddleSubscriptionStatus: organization.paddleSubscriptionStatus,
+    lemonSqueezyCustomerId: organization.lemonSqueezyCustomerId,
+    lemonSqueezySubscriptionId: organization.lemonSqueezySubscriptionId,
+    lemonSqueezySubscriptionStatus: organization.lemonSqueezySubscriptionStatus,
     trialEndsAt: organization.trialEndsAt,
     cancellationEffectiveAt: organization.cancellationEffectiveAt,
     failedPaymentAt: organization.failedPaymentAt,

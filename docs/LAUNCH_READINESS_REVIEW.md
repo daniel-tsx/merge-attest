@@ -6,11 +6,11 @@ Implementation status: Phase 0 and Phase 1 fixes have been applied. Phase 2 has 
 
 ## Executive Summary
 
-AgentGate has moved beyond a static MVP. The current codebase includes Better Auth sign-in/sign-up, Prisma-backed multi-tenant models, organization-scoped read paths, GitHub App sync/webhook boundaries, persisted approvals, audit exports, Paddle checkout/webhook boundaries, plan entitlements, usage metering, and production-oriented docs.
+AgentGate has moved beyond a static MVP. The current codebase includes Better Auth sign-in/sign-up, Prisma-backed multi-tenant models, organization-scoped read paths, GitHub App sync/webhook boundaries, persisted approvals, audit exports, Lemon Squeezy checkout/webhook boundaries, plan entitlements, usage metering, and production-oriented docs.
 
 The project is not ready for a public paid launch yet. It may be suitable for internal demos or a tightly controlled private pilot after the P0 security issues below are fixed. The biggest blockers are invite acceptance security, GitHub installation trust, missing CSRF protection, open redirect risk in auth callback handling, non-durable production controls, and operational gaps around observability, retention, billing lifecycle, and incident response.
 
-Launch recommendation: **do not launch publicly until P0 and P1 items are addressed and verified in staging with real GitHub, PostgreSQL, Better Auth, and Paddle credentials.**
+Launch recommendation: **do not launch publicly until P0 and P1 items are addressed and verified in staging with real GitHub, PostgreSQL, Better Auth, and Lemon Squeezy credentials.**
 
 ## Quality Checks Run
 
@@ -32,14 +32,14 @@ Build also warns that the Next.js `middleware` file convention is deprecated and
 Reviewed:
 
 - Product docs: `README.md`, `docs/README.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTIZATION_PLAN.md`, `docs/ENHANCEMENT_PLAN.md`, `docs/API.md`, `docs/PRIVACY_RETENTION_SUPPORT.md`, and `docs/ENTERPRISE_PLACEHOLDERS.md`.
-- Security-sensitive modules: auth, middleware, rate limiting, security headers, GitHub webhooks/sync, Paddle webhooks, billing, diagnostics, team invites, approvals, audit exports, Prisma schema, and app data access.
+- Security-sensitive modules: auth, middleware, rate limiting, security headers, GitHub webhooks/sync, Lemon Squeezy webhooks, billing, diagnostics, team invites, approvals, audit exports, Prisma schema, and app data access.
 - Product readiness surfaces: onboarding, dashboard, GitHub settings, billing, usage, team management, audit export, tests, build, and dependency audit.
 
 Not reviewed:
 
 - A live staging deployment.
 - Browser-based UX flows against a running app.
-- Real GitHub App, Paddle, email, or production database credentials.
+- Real GitHub App, Lemon Squeezy, email, or production database credentials.
 - Infrastructure provider settings such as Vercel project config, database backups, DNS, WAF, or secret rotation.
 
 ## P0 Security Blockers
@@ -307,23 +307,24 @@ Fix plan:
 - Show billable usage events in diagnostics.
 - Add tests for duplicate delivery, manual resync, new commit SHA, and monthly boundary behavior.
 
-### 15. Paddle Webhooks Are Not Idempotent By Event Id
+### 15. Lemon Squeezy Webhooks Are Not Idempotent By Event Id
+
+Status: Fixed by adding the provider-neutral `BillingWebhookEvent` table and processing dedupe in `lib/lemon-squeezy-webhooks.ts`.
 
 Evidence:
 
-- `lib/paddle-webhooks.ts` processes subscription events and writes audit events.
-- There is no persisted Paddle event id table or dedupe check.
+- `lib/lemon-squeezy-webhooks.ts` processes subscription events and writes audit events.
+- `BillingWebhookEvent` records delivery id, event name, status, organization id, and processed timestamp.
 
 Impact:
 
-Repeated Paddle webhook delivery can duplicate audit events and may apply stale subscription data. Billing lifecycle code must be idempotent before charging customers.
+Repeated Lemon Squeezy webhook delivery is now ignored after successful processing. The remaining launch risk is out-of-order subscription state changes, which should be covered in staging lifecycle tests before charging customers.
 
 Fix plan:
 
-- Add a `PaddleWebhookEvent` or generic `ExternalWebhookDelivery` table.
-- Store `eventId`, event type, status, processed timestamp, and errors.
-- Ignore already processed event ids.
-- Add tests for replayed events and out-of-order subscription changes.
+- Keep `BillingWebhookEvent` retention at 365 days for processed or ignored events.
+- Add staging replay tests for duplicate deliveries.
+- Add tests for out-of-order subscription changes.
 
 ### 16. Billing And Plan Copy Are Inconsistent
 
@@ -418,7 +419,7 @@ Fix plan:
 - Replace placeholder support contact with a monitored mailbox.
 - Add response targets for billing, security, and operational incidents.
 - Publish privacy/terms and a basic data deletion/export process.
-- Document subprocessors: hosting, database, GitHub, Paddle, email provider, observability provider.
+- Document subprocessors: hosting, database, GitHub, Lemon Squeezy, email provider, observability provider.
 
 ## P2 Readiness Improvements
 
@@ -460,13 +461,13 @@ Tasks:
 1. Move webhook processing to a durable queue or scheduled worker.
 2. Make approval status derivation resilient to PR resync and new head SHAs.
 3. Fix usage metering semantics and dedupe billable checks.
-4. Add Paddle webhook idempotency.
+4. Verify Lemon Squeezy webhook idempotency and out-of-order lifecycle handling in staging.
 5. Add production observability, alerting, and support diagnostics.
 6. Add retention cleanup for webhook payloads and audit data.
 
 Verification:
 
-- Replay duplicate GitHub and Paddle webhooks in staging.
+- Replay duplicate GitHub and Lemon Squeezy webhooks in staging.
 - Confirm approved PRs preserve state across same-SHA resyncs and require reapproval after new commits.
 - Confirm failed jobs retry and alert.
 - Confirm audit retention removes or archives data according to plan.
@@ -486,7 +487,7 @@ Tasks:
 
 Verification:
 
-- Run a staging checkout and subscription lifecycle test with Paddle sandbox.
+- Run a staging checkout and subscription lifecycle test with Lemon Squeezy sandbox.
 - Verify free, starter, team, growth, and enterprise plan gates.
 - Complete a restore drill from a database backup.
 - Run launch smoke tests against a production-like environment.
@@ -507,7 +508,7 @@ Required before private pilot:
 Required before public paid launch:
 
 - P1 product readiness blockers complete.
-- Paddle checkout, portal, and webhook lifecycle tested in sandbox and live mode.
+- Lemon Squeezy checkout, portal, and webhook lifecycle tested in sandbox and live mode.
 - Plan entitlements match UI/docs/pricing.
 - Audit retention cleanup implemented and documented.
 - Email verification and password recovery enabled.
@@ -524,7 +525,7 @@ Required before public paid launch:
 4. Fix GitHub installation state and ownership verification.
 5. Enforce production env validation and no production demo fallback.
 6. Resolve approval-state overwrite on PR resync.
-7. Make usage and Paddle webhooks idempotent.
+7. Make usage and Lemon Squeezy webhooks idempotent.
 8. Add durable job processing and observability.
 9. Align billing/plan docs and gates.
 10. Add E2E launch smoke tests.

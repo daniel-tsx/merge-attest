@@ -33,7 +33,7 @@ Avoid adopting these Merge Mate traits unless a later decision requires them:
 
 ## Assumptions
 
-- AgentGate continues to use Next.js, Prisma, Better Auth, Paddle, and the existing organization model.
+- AgentGate continues to use Next.js, Prisma, Better Auth, Lemon Squeezy, and the existing organization model.
 - GitHub remains the first and only provider for this adoption phase.
 - AI review is advisory at first. Hard blocking should come later through GitHub check runs and customer-configured policy.
 - AgentGate keeps deterministic risk scoring, test-gap detection, and rule evaluation as the source of trust. AI comments complement these signals, not replace them.

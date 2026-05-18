@@ -14,12 +14,12 @@ AgentGate exposes a small set of operational and integration endpoints.
 ## Webhooks
 
 - `POST /api/github/webhook`: GitHub webhook receiver. Requires a valid GitHub signature in production.
-- `POST /api/paddle/webhook`: Paddle webhook receiver. Requires Paddle webhook verification.
+- `POST /api/lemon-squeezy/webhook`: Lemon Squeezy webhook receiver. Requires Lemon Squeezy webhook verification.
 
 ## Billing
 
 - `POST /api/billing/checkout`: owner-only checkout entry point for paid plans.
-- `POST /api/billing/portal`: owner-only Paddle customer portal redirect.
+- `POST /api/billing/portal`: owner-only Lemon Squeezy customer portal redirect.
 
 ## Account Recovery
 
