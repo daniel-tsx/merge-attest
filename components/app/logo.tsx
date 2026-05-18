@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils'
 
-const SHIELD_PATH = 'M5 6.5 L16 3 L27 6.5 L27 15.5 Q27 23 16 29 Q5 23 5 15.5 Z'
-const BOLT_PATH =
-  'M18.2 8.5 L10.5 18.4 L15 18.4 L13.8 23.5 L21.5 13.6 L17 13.6 Z'
+// "A" monogram: splayed legs read as a gateway arch,
+// the accent crossbar is the scan beam crossing the gate.
+const LEGS_PATH = 'M7 26.5 L16 5.5 L25 26.5'
+const CROSSBAR_PATH = 'M10.6 18.1 H21.4'
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -11,15 +12,11 @@ export function LogoMark({ className }: { className?: string }) {
       aria-hidden="true"
       className={cn('size-5', className)}
       fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <path d={SHIELD_PATH} fill="currentColor" opacity="0.16" />
-      <path
-        d={SHIELD_PATH}
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d={BOLT_PATH} className="fill-accent" />
+      <path d={CROSSBAR_PATH} className="stroke-accent" strokeWidth="3" />
+      <path d={LEGS_PATH} stroke="currentColor" strokeWidth="3" />
     </svg>
   )
 }

@@ -31,7 +31,13 @@ const haloClass: Record<GateScanTone, string> = {
   muted: 'bg-surface-muted',
 }
 
-const SHIELD_PATH = 'M24 44s16-8 16-20V10l-16-6-16 6v14c0 12 16 20 16 20z'
+// "A" gate monogram, matching the product logo (LogoMark).
+const GATE_LEGS = 'M10.5 39.75 L24 8.25 L37.5 39.75'
+const GATE_CROSSBAR = 'M15.9 27.15 H32.1'
+const GATE_OPENING = 'M24 8.25 L37.5 39.75 L10.5 39.75 Z'
+const FISSURE_PATH = 'M25 14 L20.5 23 L26.5 30 L21 39'
+const QUESTION_PATH =
+  'M21.4 30.5a2.8 2.8 0 1 1 5 2.1c-1.05 1.05-2.5 1.6-2.5 3.45'
 
 export function GateScan({
   size = 'md',
@@ -70,13 +76,13 @@ export function GateScan({
         className={cn('relative h-3/5 w-3/5', toneClass[tone])}
         fill="none"
         stroke="currentColor"
-        strokeWidth={2.25}
+        strokeWidth={2.6}
         strokeLinecap="round"
         strokeLinejoin="round"
       >
         <defs>
           <clipPath id={clipId}>
-            <path d={SHIELD_PATH} />
+            <path d={GATE_OPENING} />
           </clipPath>
           <linearGradient id={beamId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
@@ -84,8 +90,6 @@ export function GateScan({
             <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
           </linearGradient>
         </defs>
-
-        <path d={SHIELD_PATH} />
 
         {state === 'scan' && (
           <g clipPath={`url(#${clipId})`}>
@@ -98,30 +102,18 @@ export function GateScan({
               stroke="none"
               className="motion-safe:animate-gate-scan motion-reduce:hidden"
             />
-            <line
-              x1={6}
-              y1={24}
-              x2={42}
-              y2={24}
-              stroke="currentColor"
-              strokeWidth={1}
-              strokeOpacity={0.25}
-              className="motion-reduce:hidden"
-            />
           </g>
         )}
 
-        {state === 'fissure' && (
-          <path d="M18 14 L25 23 L20 29 L28 38" strokeLinecap="round" />
-        )}
+        <path d={GATE_LEGS} />
+        <path d={GATE_CROSSBAR} />
+
+        {state === 'fissure' && <path d={FISSURE_PATH} />}
 
         {state === 'question' && (
           <>
-            <path
-              d="M20 20a4 4 0 1 1 5.5 3.7c-.9.5-1.5 1.4-1.5 2.4v1"
-              strokeLinecap="round"
-            />
-            <circle cx={24} cy={32} r={1.1} fill="currentColor" stroke="none" />
+            <path d={QUESTION_PATH} />
+            <circle cx={24} cy={38.6} r={1.2} fill="currentColor" stroke="none" />
           </>
         )}
       </svg>
