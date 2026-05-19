@@ -8,7 +8,7 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-card border border-border bg-surface shadow-card',
+        'rounded-card border border-border bg-surface-elevated shadow-card',
         className,
       )}
       {...props}
@@ -23,7 +23,7 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        'flex flex-col gap-1 border-b border-border px-5 py-4',
+        'flex flex-col gap-1 border-b border-border bg-surface-muted/35 px-5 py-4',
         className,
       )}
       {...props}
@@ -38,7 +38,7 @@ export function CardTitle({
   return (
     <h2
       className={cn(
-        'text-sm font-semibold leading-tight tracking-tight text-foreground',
+        'text-sm font-semibold leading-tight text-foreground',
         className,
       )}
       {...props}
@@ -52,7 +52,7 @@ export function CardDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn('text-xs text-muted-foreground', className)}
+      className={cn('text-xs leading-5 text-muted-foreground', className)}
       {...props}
     />
   )
@@ -72,7 +72,7 @@ export function CardFooter({
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 border-t border-border bg-surface-muted/40 px-5 py-3 text-xs text-muted-foreground',
+        'flex items-center justify-between gap-3 border-t border-border bg-surface-muted/50 px-5 py-3 text-xs text-muted-foreground',
         className,
       )}
       {...props}

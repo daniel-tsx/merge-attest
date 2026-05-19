@@ -115,24 +115,18 @@ function NavLink({
       aria-current={active ? 'page' : undefined}
       onClick={onNavigate}
       className={cn(
-        'group relative flex min-h-10 items-center gap-3 rounded-control px-2.5 py-2 text-sm font-medium transition-colors',
+        'group flex min-h-10 items-center gap-3 rounded-control px-2.5 py-2 text-sm font-medium transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring',
         active
-          ? 'bg-surface-subtle text-foreground'
+          ? 'border border-border bg-surface-elevated text-foreground shadow-card'
           : 'text-muted-foreground hover:bg-surface-hover hover:text-foreground',
       )}
     >
-      {active ? (
-        <span
-          aria-hidden="true"
-          className="absolute -left-3 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-pill bg-accent"
-        />
-      ) : null}
       <span
         className={cn(
           'flex size-7 shrink-0 items-center justify-center rounded-control transition-colors',
           active
-            ? 'bg-accent text-accent-foreground shadow-card'
+            ? 'bg-primary text-primary-foreground'
             : 'text-subtle-foreground group-hover:text-foreground',
         )}
       >
@@ -189,7 +183,7 @@ function WorkspaceCard({
   dataMode: 'live' | 'demo'
 }) {
   return (
-    <div className="rounded-card border border-border bg-surface p-3 shadow-card">
+    <div className="rounded-card border border-border bg-surface-elevated p-3 shadow-card">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
@@ -199,8 +193,11 @@ function WorkspaceCard({
             {organizationName}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface-subtle px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          <StatusDot tone={dataMode === 'live' ? 'green' : 'blue'} pulse={dataMode === 'live'} />
+        <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          <StatusDot
+            tone={dataMode === 'live' ? 'green' : 'blue'}
+            pulse={dataMode === 'live'}
+          />
           {dataMode === 'live' ? 'Live' : 'Demo'}
         </div>
       </div>
@@ -212,7 +209,7 @@ function WorkspaceCard({
       </div>
       <Link
         href="/settings/github"
-        className="mt-3 inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        className="mt-3 inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-control border border-border bg-surface px-3 text-xs font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
       >
         <KeyRound className="size-3.5" aria-hidden="true" />
         Configure GitHub App
@@ -261,9 +258,9 @@ export function AppShell({
         Skip to main content
       </a>
 
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface-muted/55 lg:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground shadow-card">
+          <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
             <LogoMark className="size-4" />
           </div>
           <div className="min-w-0">
@@ -271,7 +268,7 @@ export function AppShell({
               AgentGate
             </div>
             <div className="-mt-0.5 text-[11px] text-subtle-foreground">
-              AI Code Governance
+              Pull request control
             </div>
           </div>
         </div>
@@ -290,7 +287,7 @@ export function AppShell({
       </aside>
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/70 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/88 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/78 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
               <Dialog.Trigger asChild>
@@ -375,10 +372,7 @@ export function AppShell({
             <Badge tone={dataMode === 'live' ? 'green' : 'blue'} withDot>
               {dataMode === 'live' ? 'live data' : 'demo data'}
             </Badge>
-            <Badge
-              tone="slate"
-              className="hidden capitalize sm:inline-flex"
-            >
+            <Badge tone="slate" className="hidden capitalize sm:inline-flex">
               {planKey}
             </Badge>
           </div>

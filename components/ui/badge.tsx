@@ -3,12 +3,9 @@ import { cn } from '@/lib/utils'
 
 type BadgeTone = 'slate' | 'green' | 'yellow' | 'orange' | 'red' | 'blue'
 
-const tones: Record<
-  BadgeTone,
-  { surface: string; dot: string }
-> = {
+const tones: Record<BadgeTone, { surface: string; dot: string }> = {
   slate: {
-    surface: 'border-border bg-surface-subtle text-muted-foreground',
+    surface: 'border-border bg-surface text-muted-foreground',
     dot: 'bg-subtle-foreground',
   },
   green: {
@@ -47,7 +44,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-pill border px-2 py-0.5 text-xs font-medium leading-5 capitalize tracking-tight',
+        'inline-flex items-center gap-1.5 rounded-pill border px-2 py-0.5 text-[11px] font-medium leading-5 capitalize tracking-tight',
         styles.surface,
         className,
       )}

@@ -4,25 +4,25 @@ import { cn } from '@/lib/utils'
 
 type MetricTone = 'neutral' | 'accent' | 'danger' | 'warning' | 'success'
 
-const toneStyles: Record<MetricTone, { ring: string; icon: string }> = {
+const toneStyles: Record<MetricTone, { indicator: string; icon: string }> = {
   neutral: {
-    ring: 'before:bg-border',
+    indicator: 'bg-border',
     icon: 'bg-surface-subtle text-subtle-foreground',
   },
   accent: {
-    ring: 'before:bg-accent',
+    indicator: 'bg-accent',
     icon: 'bg-accent-soft text-accent',
   },
   danger: {
-    ring: 'before:bg-danger',
+    indicator: 'bg-danger',
     icon: 'bg-danger-soft text-danger',
   },
   warning: {
-    ring: 'before:bg-attention',
+    indicator: 'bg-attention',
     icon: 'bg-attention-soft text-attention',
   },
   success: {
-    ring: 'before:bg-success',
+    indicator: 'bg-success',
     icon: 'bg-success-soft text-success-strong',
   },
 }
@@ -48,17 +48,21 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-card border border-border bg-surface p-4 shadow-card transition-shadow hover:shadow-card-hover',
-        'before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] before:rounded-l-card',
-        styles.ring,
+        'group rounded-card border border-border bg-surface-elevated p-4 shadow-card transition-[border-color,box-shadow] hover:border-border-strong hover:shadow-card-hover',
         className,
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
-            {label}
-          </p>
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className={cn('size-1.5 rounded-full', styles.indicator)}
+            />
+            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground">
+              {label}
+            </p>
+          </div>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
             {value}
           </p>

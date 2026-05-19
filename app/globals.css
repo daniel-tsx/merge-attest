@@ -1,78 +1,75 @@
 @import 'tailwindcss';
 
 :root {
-  /* Surfaces — warm-cool neutral system */
-  --background: #f6f7f9;
-  --foreground: #0b1220;
-  --surface: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface-muted: #f3f4f7;
-  --surface-subtle: #eef0f4;
-  --surface-hover: #f3f4f7;
-  --surface-pressed: #e8eaef;
+  /* Surfaces — Linear-inspired operational neutrals */
+  --background: oklch(0.973 0.004 264);
+  --foreground: oklch(0.155 0.013 264);
+  --surface: oklch(0.992 0.002 264);
+  --surface-elevated: oklch(0.998 0.001 264);
+  --surface-muted: oklch(0.956 0.005 264);
+  --surface-subtle: oklch(0.931 0.007 264);
+  --surface-hover: oklch(0.944 0.006 264);
+  --surface-pressed: oklch(0.902 0.009 264);
 
   /* Borders */
-  --border: #e4e7ec;
-  --border-strong: #cdd2da;
-  --border-subtle: #eef0f4;
-  --divider: #eef0f4;
+  --border: oklch(0.873 0.012 264);
+  --border-strong: oklch(0.765 0.018 264);
+  --border-subtle: oklch(0.923 0.008 264);
+  --divider: oklch(0.912 0.009 264);
 
   /* Text */
-  --muted: #f3f4f7;
-  --muted-foreground: #4b5565;
-  --subtle-foreground: #6b7280;
+  --muted: oklch(0.956 0.005 264);
+  --muted-foreground: oklch(0.435 0.026 264);
+  --subtle-foreground: oklch(0.57 0.026 264);
 
-  /* Primary — deep indigo-charcoal */
-  --primary: #0b1220;
-  --primary-hover: #1c2434;
-  --primary-foreground: #ffffff;
+  /* Primary — near-black product chrome */
+  --primary: oklch(0.155 0.013 264);
+  --primary-hover: oklch(0.22 0.018 264);
+  --primary-foreground: oklch(0.985 0.004 264);
 
-  /* Accent — refined cobalt */
-  --accent: #2d50e6;
-  --accent-hover: #233fc1;
-  --accent-soft: #eef2ff;
-  --accent-foreground: #ffffff;
-  --accent-ring: #c5d0fb;
+  /* Accent — restrained Linear indigo */
+  --accent: oklch(0.555 0.16 278);
+  --accent-hover: oklch(0.615 0.17 278);
+  --accent-soft: oklch(0.944 0.026 278);
+  --accent-foreground: oklch(0.985 0.004 264);
+  --accent-ring: oklch(0.78 0.085 278);
 
-  /* Status — calm but distinct */
-  --success: #047857;
-  --success-strong: #065f46;
-  --success-soft: #ecfdf5;
-  --success-border: #a7f3d0;
-  --warning: #92580b;
-  --warning-soft: #fffbeb;
-  --warning-border: #fde68a;
-  --attention: #b4470a;
-  --attention-soft: #fff3e8;
-  --attention-border: #fed7aa;
-  --danger: #c4233c;
-  --danger-hover: #9f1c30;
-  --danger-soft: #fef2f4;
-  --danger-border: #fecdd3;
-  --danger-foreground: #ffffff;
-  --info: #1e44d6;
-  --info-soft: #eef2ff;
-  --info-border: #c7d0fb;
+  /* Status — clear but not candy-colored */
+  --success: oklch(0.475 0.115 160);
+  --success-strong: oklch(0.365 0.1 160);
+  --success-soft: oklch(0.948 0.03 160);
+  --success-border: oklch(0.785 0.07 160);
+  --warning: oklch(0.535 0.11 78);
+  --warning-soft: oklch(0.956 0.035 85);
+  --warning-border: oklch(0.82 0.075 82);
+  --attention: oklch(0.545 0.145 45);
+  --attention-soft: oklch(0.95 0.035 55);
+  --attention-border: oklch(0.785 0.08 55);
+  --danger: oklch(0.505 0.17 25);
+  --danger-hover: oklch(0.435 0.155 25);
+  --danger-soft: oklch(0.948 0.025 20);
+  --danger-border: oklch(0.79 0.075 20);
+  --danger-foreground: oklch(0.985 0.004 264);
+  --info: oklch(0.515 0.15 258);
+  --info-soft: oklch(0.944 0.026 258);
+  --info-border: oklch(0.78 0.08 258);
 
   /* Interaction */
-  --focus: #2d50e6;
-  --focus-ring: #c5d0fb;
+  --focus: oklch(0.555 0.16 278);
+  --focus-ring: oklch(0.78 0.085 278);
 
-  /* Elevation — softer, more layered */
-  --shadow-card:
-    0 1px 1px rgb(15 23 42 / 0.04),
-    0 1px 2px rgb(15 23 42 / 0.06);
+  /* Elevation — flat by default, raised only when useful */
+  --shadow-card: 0 1px 0 rgb(15 18 24 / 0.04), 0 0 0 1px rgb(15 18 24 / 0.02);
   --shadow-card-hover:
-    0 4px 12px -4px rgb(15 23 42 / 0.12),
-    0 1px 2px rgb(15 23 42 / 0.06);
+    0 1px 0 rgb(15 18 24 / 0.05), 0 8px 24px -18px rgb(15 18 24 / 0.26),
+    0 0 0 1px rgb(15 18 24 / 0.025);
   --shadow-overlay:
-    0 24px 48px -16px rgb(15 23 42 / 0.22),
-    0 8px 24px -12px rgb(15 23 42 / 0.18);
-  --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+    0 24px 64px -28px rgb(8 9 10 / 0.36), 0 8px 24px -18px rgb(8 9 10 / 0.24);
+  --shadow-inset: inset 0 1px 0 0 rgb(255 255 255 / 0.6);
 
   /* Shape */
-  --radius-control: 0.5rem;
-  --radius-card: 0.875rem;
+  --radius-control: 0.375rem;
+  --radius-card: 0.5rem;
   --radius-pill: 9999px;
 }
 

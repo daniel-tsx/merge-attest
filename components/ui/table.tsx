@@ -23,7 +23,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        'border-b border-border bg-surface-muted/60 text-[11px] font-medium uppercase tracking-wider text-subtle-foreground',
+        'border-b border-border bg-surface-muted/70 text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground',
         className,
       )}
       {...props}
@@ -47,7 +47,7 @@ export function TableRow({
   return (
     <tr
       className={cn(
-        'transition-colors hover:bg-surface-hover/60 data-[state=selected]:bg-accent-soft',
+        'transition-colors hover:bg-surface-hover data-[state=selected]:bg-accent-soft',
         className,
       )}
       {...props}
@@ -62,7 +62,7 @@ export function TableHead({
   return (
     <th
       className={cn(
-        'h-10 px-4 text-left font-medium first:pl-5 last:pr-5',
+        'h-9 px-4 text-left font-medium first:pl-5 last:pr-5',
         className,
       )}
       {...props}
@@ -77,7 +77,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        'px-4 py-3 align-middle text-sm text-muted-foreground first:pl-5 last:pr-5',
+        'px-4 py-2.5 align-middle text-sm text-muted-foreground first:pl-5 last:pr-5',
         className,
       )}
       {...props}

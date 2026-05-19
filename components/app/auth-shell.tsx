@@ -53,14 +53,14 @@ export function AuthShell({
         <div className="relative max-w-md space-y-6">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/60">
-              AI Code Governance
+              Pull Request Control
             </p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight">
-              The control center for AI-assisted pull requests.
+              The control center for high-risk pull requests.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-primary-foreground/70">
               Score risky changes, enforce rules, and capture every approval —
-              before AI-generated code reaches production.
+              before agent-authored code reaches production.
             </p>
           </div>
           <ul className="space-y-4">
@@ -107,7 +107,7 @@ export function AuthShell({
               {description}
             </p>
           </div>
-          <div className="rounded-card border border-border bg-surface p-6 shadow-card">
+          <div className="rounded-card border border-border bg-surface-elevated p-6 shadow-card">
             {children}
           </div>
           {footer ? (

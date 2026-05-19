@@ -19,11 +19,11 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'rounded-card border border-dashed border-border bg-surface-muted/40 px-6 py-10 text-center',
+        'rounded-card border border-dashed border-border bg-surface-muted/45 px-6 py-10 text-center',
         className,
       )}
     >
-      <div className="mx-auto flex size-11 items-center justify-center rounded-control border border-border bg-surface text-subtle-foreground shadow-card">
+      <div className="mx-auto flex size-10 items-center justify-center rounded-control border border-border bg-surface-elevated text-subtle-foreground">
         <Icon className="size-5" aria-hidden="true" />
       </div>
       <h2 className="mt-4 text-sm font-semibold tracking-tight text-foreground">

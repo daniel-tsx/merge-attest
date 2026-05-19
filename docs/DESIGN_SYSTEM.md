@@ -1,10 +1,18 @@
 # AgentGate Design System Notes
 
-Last reviewed: 2026-05-02
+Last reviewed: 2026-05-19
 
 ## Purpose
 
-This document records the current UI foundation for AgentGate. The goal is a restrained, high-trust SaaS interface that feels precise, readable, and professional without adding decorative effects that do not support the workflow.
+This document records the current UI foundation for AgentGate. The goal is a Linear-influenced operational interface: precise, compact, security-minded, and built for scanning pull request risk, approvals, policies, and audit evidence. Notion-style clarity is useful for docs and settings copy, but the product UI should feel closer to an engineering control room than a friendly workspace editor.
+
+## Direction
+
+- Primary reference: Linear-style product UI, with restrained color, crisp borders, compact controls, and sparse elevation.
+- Secondary reference: Notion-style readability for educational copy, empty states, and long-form settings sections.
+- Product tone: operational, exact, and governance-oriented.
+- Avoid generic AI-product cues: decorative pills, colorful agent badges, purple gradients, oversized abstract cards, and labels that merely say "AI".
+- Make deterministic controls feel primary. Advisory AI review is a supporting layer, not the visual center of the product.
 
 ## Token Source
 
@@ -20,6 +28,15 @@ Token groups:
 - Interaction: `focus` and `focus-ring`.
 - Shape/elevation: `radius-control`, `radius-card`, `shadow-card`, and `shadow-card-hover`.
 
+Current token strategy:
+
+- Use cool near-white surfaces rather than warm cream.
+- Use near-black product chrome for primary actions and shell identity.
+- Use indigo only for selected states, focus, and high-priority accent actions.
+- Keep semantic status colors clear but muted enough for dense tables.
+- Keep shadows extremely shallow; borders carry most structure.
+- Use `rounded-control` for 6px control radius and `rounded-card` for 8px cards.
+
 ## Component Rules
 
 - Prefer semantic token utilities such as `bg-surface`, `text-foreground`, `border-border`, `ring-focus-ring`, and `shadow-card`.
@@ -29,6 +46,9 @@ Token groups:
 - Use visible `focus-visible` rings on interactive controls.
 - Use disabled semantics and clear disabled styling for controls.
 - Keep motion subtle, token-aligned, and covered by the global reduced-motion rule.
+- Prefer flat bordered containers over shadow-heavy cards.
+- Avoid colored side stripes on cards, metrics, alerts, and list items. Use a dot, icon, badge, or full border state instead.
+- Use cards only for repeated items, framed tools, modals, and data panels. Do not turn every page section into a floating card.
 
 ## Status Tones
 
@@ -40,6 +60,8 @@ Current badge tone mapping:
 - `orange`: elevated attention, high risk, or needs review.
 - `red`: danger, critical risk, failure, or rejection.
 - `blue`: informational state, demo/live mode, or setup guidance.
+
+Badges are metadata, not decoration. Keep them small, text-first, and close to the content they qualify.
 
 ## Future Primitive Guidance
 
@@ -62,6 +84,8 @@ The app shell lives in `components/app/app-shell.tsx`.
 - The shell includes a skip-to-content link and focuses the main region after route changes.
 - Header, sidebar, and drawer controls should keep a minimum 44px interaction target.
 - Navigation copy should describe the task outcome, not just the destination name.
+- Active navigation uses a selected row treatment and dark icon well, not a side stripe.
+- Persistent shell copy should avoid generic "AI" labels. Prefer concrete language such as "Pull request control", "Review work", or "Policy coverage".
 
 ## URL State
 
