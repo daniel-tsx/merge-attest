@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -6,45 +7,91 @@ import {
   ArrowRight,
   BadgeCheck,
   Check,
+  ChevronRight,
   FileText,
   GitPullRequest,
   ListChecks,
   ShieldAlert,
-  ShieldCheck,
   TestTube2,
 } from 'lucide-react'
-import { GateScan } from '@/components/app/gate-scan'
 import { LogoMark } from '@/components/app/logo'
-import { Badge } from '@/components/ui/badge'
+import { RiskScoreRing } from '@/components/app/risk-score'
+import { Badge, StatusDot } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getServerSession } from '@/lib/auth/session'
 import { plans } from '@/lib/plans'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: 'AgentGate — Governance for AI-generated pull requests',
+  title: 'AgentGate — AI Pull Request Governance',
   description:
-    'AgentGate scores risky AI-assisted pull requests, flags missing tests, enforces repository rules, and records every approval before code reaches production.',
+    'AgentGate gives teams deterministic risk scoring, test-gap detection, repository rules, approvals, and audit evidence for AI-assisted pull requests.',
 }
 
-const problemPoints = [
-  'AI agents open pull requests faster than any team can carefully review them.',
-  'Risky changes and missing tests slip through when review relies on reviewer attention alone.',
-  'After an incident, there is no clear record of who approved what, or why.',
+const introStyle = (index: number): CSSProperties =>
+  ({ '--intro-index': index }) as CSSProperties
+
+// Vertical position (0–1) of an element inside the scan panel, so its
+// highlight pulse fires exactly when the beam crosses it. `soft` mutes the
+// glow for plain text — it only lifts.
+const scanStyle = (pos: number, soft = false): CSSProperties =>
+  ({
+    '--scan-pos': pos,
+    ...(soft && {
+      '--scan-ring': 'transparent',
+      '--scan-inset': 'transparent',
+    }),
+  }) as CSSProperties
+
+const inspectionSignals = [
+  'diff size',
+  'sensitive paths',
+  'test coverage',
+  'dependency changes',
+  'migration files',
+  'secret patterns',
+  'API surface',
+  'lockfile drift',
 ]
 
-const features = [
+const problemPoints = [
   {
-    icon: ShieldAlert,
-    title: 'Deterministic risk scoring',
-    description:
-      'Every pull request gets a transparent risk score, so reviewers know exactly why a change is flagged — no black-box guesses.',
+    tag: 'velocity',
+    text: 'AI agents open pull requests faster than any team can carefully review them.',
   },
+  {
+    tag: 'blind spots',
+    text: 'Risky changes and missing tests slip through when review relies on reviewer attention alone.',
+  },
+  {
+    tag: 'no record',
+    text: 'After an incident, there is no clear record of who approved what, or why.',
+  },
+]
+
+const riskFactors = [
+  { label: 'Sensitive paths touched', value: 28, pct: '80%', bar: 'bg-danger' },
+  {
+    label: 'Missing test coverage',
+    value: 24,
+    pct: '64%',
+    bar: 'bg-attention',
+  },
+  { label: 'Diff size & spread', value: 20, pct: '52%', bar: 'bg-warning' },
+]
+
+const auditTrail = [
+  { label: 'PR #482 flagged high', time: '09:24' },
+  { label: 'Approved by @dana', time: '09:31' },
+  { label: 'Merged to main', time: '09:33' },
+]
+
+const compactFeatures = [
   {
     icon: TestTube2,
     title: 'Test-gap detection',
     description:
-      'Surface code paths shipped without coverage and get path-based suggestions for the tests that are missing.',
+      'Surface code paths shipped without coverage, with path-based suggestions for the tests that are missing.',
   },
   {
     icon: BadgeCheck,
@@ -56,19 +103,67 @@ const features = [
     icon: ListChecks,
     title: 'Custom repository rules',
     description:
-      'Define policies for sensitive files and high-risk patterns, then let AgentGate evaluate them on every PR.',
-  },
-  {
-    icon: FileText,
-    title: 'Audit-ready trail',
-    description:
-      'Approvals, syncs, and policy changes are captured automatically and exportable for compliance reviews.',
+      'Define policies for sensitive files and high-risk patterns, then evaluate them on every PR.',
   },
   {
     icon: GitPullRequest,
     title: 'GitHub-native',
     description:
-      'Risk, checks, and review context surface as comments and check runs right where engineers already work.',
+      'Risk, checks, and review context surface as comments and check runs where engineers already work.',
+  },
+]
+
+const governancePillars = [
+  'Deterministic risk scoring',
+  'Missing-test detection',
+  'Repository policy rules',
+  'Human approval records',
+  'Audit-ready review packets',
+  'Optional BYOK AI review',
+]
+
+const comparisonRows = [
+  {
+    capability: 'Primary job',
+    agentGate: 'Govern AI-assisted pull requests before merge',
+    coderabbit: 'Generate AI review comments and developer follow-ups',
+    copilot: 'Assist coding and run GitHub-hosted code review',
+    others: 'Accelerate PR review, stacking, or code quality workflows',
+  },
+  {
+    capability: 'Trust model',
+    agentGate: 'Deterministic signals first, advisory AI second',
+    coderabbit: 'AI reviewer output is the main product surface',
+    copilot: 'Model-selected review output inside GitHub',
+    others: 'AI review and workflow automation vary by product',
+  },
+  {
+    capability: 'Governance controls',
+    agentGate: 'Rules, approvals, risk status, and audit trail together',
+    coderabbit: 'Enterprise audit logging and RBAC on higher tiers',
+    copilot: 'Uses GitHub platform permissions and billing controls',
+    others: 'Team controls depend on plan and platform focus',
+  },
+  {
+    capability: 'Test and policy gaps',
+    agentGate: 'Flags missing tests and sensitive repository changes',
+    coderabbit: 'Focuses on review, fixes, linters, and SAST integrations',
+    copilot: 'Focuses on code review assistance',
+    others: 'Usually focused on review quality or PR workflow speed',
+  },
+  {
+    capability: 'AI provider control',
+    agentGate: 'OpenRouter BYOK boundary for organization-owned keys',
+    coderabbit: 'Vendor-managed AI review service',
+    copilot: 'GitHub-managed model routing',
+    others: 'Vendor-managed model access, with enterprise options',
+  },
+  {
+    capability: 'Pricing shape',
+    agentGate: 'Workspace plans from $19/mo, not per-developer seats',
+    coderabbit: '$24 or $48 per developer/mo when billed annually',
+    copilot: '$10 or $39 per user/mo, with usage changes for reviews',
+    others: 'Commonly $30 to $40 per user/mo on team plans',
   },
 ]
 
@@ -95,7 +190,73 @@ const steps = [
   },
 ]
 
+const queueRows = [
+  {
+    id: '#479',
+    title: 'Bump dependency lockfile',
+    meta: 'agent:dependabot · +12 −12',
+    risk: 'Low',
+    tone: 'green' as const,
+    bar: 'bg-success',
+    pct: '16%',
+    scanPos: 0.749,
+  },
+  {
+    id: '#477',
+    title: 'Refactor auth session store',
+    meta: 'agent:claude-code · +96 −140',
+    risk: 'Medium',
+    tone: 'yellow' as const,
+    bar: 'bg-warning',
+    pct: '48%',
+    scanPos: 0.917,
+  },
+]
+
 const popularPlan = 'team'
+
+const cardHover =
+  'transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-card-hover'
+
+const featureIconBox =
+  'flex size-10 shrink-0 items-center justify-center rounded-control bg-accent-soft text-accent ring-1 ring-accent-ring transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-foreground'
+
+function SectionIndex({
+  index,
+  label,
+  dark = false,
+}: {
+  index: string
+  label: string
+  dark?: boolean
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className={cn(
+          'font-mono text-xs font-semibold',
+          dark ? 'text-primary-foreground' : 'text-accent',
+        )}
+      >
+        {index}
+      </span>
+      <span
+        className={cn(
+          'h-px w-8',
+          dark ? 'bg-primary-foreground/25' : 'bg-border-strong',
+        )}
+      />
+      <span
+        className={cn(
+          'font-mono text-[11px] uppercase tracking-[0.2em]',
+          dark ? 'text-primary-foreground/55' : 'text-subtle-foreground',
+        )}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
 
 export default async function Home() {
   const session = await getServerSession()
@@ -114,8 +275,17 @@ export default async function Home() {
             </span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#features" className="transition-colors hover:text-foreground">
+            <a
+              href="#features"
+              className="transition-colors hover:text-foreground"
+            >
               Features
+            </a>
+            <a
+              href="#comparison"
+              className="transition-colors hover:text-foreground"
+            >
+              Compare
             </a>
             <a
               href="#how-it-works"
@@ -123,7 +293,10 @@ export default async function Home() {
             >
               How it works
             </a>
-            <a href="#pricing" className="transition-colors hover:text-foreground">
+            <a
+              href="#pricing"
+              className="transition-colors hover:text-foreground"
+            >
               Pricing
             </a>
           </nav>
@@ -146,107 +319,194 @@ export default async function Home() {
       <main className="flex-1">
         <section className="relative overflow-hidden border-b border-border">
           <div className="bg-dot-grid pointer-events-none absolute inset-0 opacity-60" />
-          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-28">
-            <div className="mx-auto max-w-3xl text-center">
-              <span className="inline-flex items-center gap-1.5 rounded-pill border border-accent-ring bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
-                <ShieldCheck className="size-3.5" aria-hidden="true" />
-                AI code governance
-              </span>
-              <h1 className="mt-5 text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl">
-                The control center for AI-assisted pull requests
+          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-14 lg:py-28">
+            <div className="flex flex-col">
+              <h1
+                data-intro
+                style={introStyle(0)}
+                className="text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl"
+              >
+                Govern every AI pull request
+                <br className="hidden sm:block" /> before it merges.
               </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-                AgentGate scores risky changes, flags missing tests, enforces
-                your repository rules, and records every approval — before
-                AI-generated code reaches production.
+              <p
+                data-intro
+                style={introStyle(1)}
+                className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+              >
+                AgentGate is the control layer around AI coding agents:
+                deterministic risk scoring, missing-test detection, repository
+                rules, human approvals, and audit evidence in one GitHub-native
+                workflow.
               </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild variant="accent" size="lg">
+              <div
+                data-intro
+                style={introStyle(2)}
+                className="mt-8 flex flex-col gap-3 sm:flex-row"
+              >
+                <Button asChild variant="accent" size="lg" className="group">
                   <Link href="/sign-up">
                     Start for free
-                    <ArrowRight aria-hidden="true" />
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                    />
                   </Link>
                 </Button>
                 <Button asChild variant="secondary" size="lg">
                   <a href="#how-it-works">See how it works</a>
                 </Button>
               </div>
-              <p className="mt-4 text-xs text-subtle-foreground">
-                Free plan available · No credit card required
+              <p
+                data-intro
+                style={introStyle(3)}
+                className="mt-5 font-mono text-[11px] text-subtle-foreground"
+              >
+                free plan available · no credit card required
               </p>
             </div>
 
-            <div className="mx-auto mt-14 max-w-2xl">
-              <div className="rounded-card border border-border bg-surface shadow-card-hover">
-                <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-                  <GateScan size="sm" tone="accent" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold tracking-tight text-foreground">
-                      #482 · Add retry logic to payment webhook
-                    </div>
-                    <div className="font-mono text-xs text-subtle-foreground">
-                      acme/api-gateway
+            <div data-intro style={introStyle(3)} className="relative">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 hidden translate-x-3 translate-y-3 rounded-card border border-border bg-surface-muted/50 lg:block"
+              />
+              <div className="relative overflow-hidden rounded-card border border-border bg-surface shadow-card-hover transition-transform duration-300 ease-out hover:-translate-y-1">
+                <div className="flex items-center gap-2.5 border-b border-border bg-surface-muted/60 px-4 py-3">
+                  <LogoMark className="size-4 text-foreground" />
+                  <span className="font-mono text-xs text-muted-foreground">
+                    acme/api-gateway
+                  </span>
+                  <ChevronRight
+                    className="size-3 text-subtle-foreground"
+                    aria-hidden="true"
+                  />
+                  <span className="font-mono text-xs font-medium text-foreground">
+                    review queue
+                  </span>
+                  <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] text-subtle-foreground">
+                    <StatusDot tone="green" pulse />
+                    live
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+                  >
+                    <div className="h-full w-full motion-safe:animate-landing-scan">
+                      <div className="h-0.5 w-full bg-accent/70 shadow-[0_0_12px_0_rgba(45,80,230,0.5)]" />
                     </div>
                   </div>
-                  <Badge tone="blue" withDot>
-                    Scanning
-                  </Badge>
-                </div>
-                <div className="space-y-3 px-5 py-4">
-                  <div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-muted-foreground">
-                        Risk score
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <span className="font-mono font-semibold tabular-nums text-foreground">
-                          72
-                        </span>
-                        <Badge tone="red">High</Badge>
-                      </span>
-                    </div>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-pill bg-surface-subtle">
+
+                  <div className="border-b border-border p-5">
+                    <div className="flex items-start justify-between gap-4">
                       <div
-                        className="h-full rounded-pill bg-danger"
-                        style={{ width: '72%' }}
-                      />
+                        data-scan
+                        style={scanStyle(0.173, true)}
+                        className="min-w-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Badge tone="orange" withDot>
+                            High risk
+                          </Badge>
+                          <span className="font-mono text-[11px] text-subtle-foreground">
+                            #482
+                          </span>
+                        </div>
+                        <h3 className="mt-2 text-sm font-semibold tracking-tight text-foreground">
+                          Add retry logic to payment webhook
+                        </h3>
+                        <p className="mt-1 font-mono text-[11px] text-subtle-foreground">
+                          agent:claude-code · +218 −34 · 6 files
+                        </p>
+                      </div>
+                      <div
+                        data-scan
+                        style={scanStyle(0.155)}
+                        className="inline-flex shrink-0 rounded-full"
+                      >
+                        <RiskScoreRing score={72} level="high" size={62} />
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <div className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/40 px-3 py-2.5">
-                      <TestTube2
-                        className="size-4 shrink-0 text-attention"
-                        aria-hidden="true"
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          2 test gaps
-                        </span>{' '}
-                        detected
+
+                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                      <div
+                        data-scan
+                        style={scanStyle(0.385)}
+                        className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
+                      >
+                        <TestTube2
+                          className="size-3.5 shrink-0 text-attention"
+                          aria-hidden="true"
+                        />
+                        <span className="text-[11px] text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            2 test gaps
+                          </span>{' '}
+                          detected
+                        </span>
+                      </div>
+                      <div
+                        data-scan
+                        style={scanStyle(0.385)}
+                        className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
+                      >
+                        <ListChecks
+                          className="size-3.5 shrink-0 text-danger"
+                          aria-hidden="true"
+                        />
+                        <span className="text-[11px] text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            1 rule
+                          </span>{' '}
+                          violation
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      data-scan
+                      style={scanStyle(0.537)}
+                      className="mt-3 flex items-center justify-between gap-3 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
+                    >
+                      <span className="font-mono text-[11px] text-subtle-foreground">
+                        approval required · 2 reviewers
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-control bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">
+                        <BadgeCheck className="size-3" aria-hidden="true" />
+                        Awaiting review
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/40 px-3 py-2.5">
-                      <ListChecks
-                        className="size-4 shrink-0 text-danger"
-                        aria-hidden="true"
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          1 rule
-                        </span>{' '}
-                        violation
-                      </span>
-                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between gap-3 border-t border-border bg-surface-muted/40 px-5 py-3">
-                  <span className="text-xs text-subtle-foreground">
-                    Approval required · 2 reviewers
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-control bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                    <BadgeCheck className="size-3.5" aria-hidden="true" />
-                    Awaiting review
-                  </span>
+
+                  <div className="divide-y divide-border">
+                    {queueRows.map((row) => (
+                      <div
+                        key={row.id}
+                        data-scan
+                        style={scanStyle(row.scanPos)}
+                        className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-muted/40"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-medium text-foreground">
+                            {row.title}
+                          </div>
+                          <div className="font-mono text-[10px] text-subtle-foreground">
+                            {row.id} · {row.meta}
+                          </div>
+                        </div>
+                        <div className="hidden h-1 w-14 overflow-hidden rounded-pill bg-surface-subtle sm:block">
+                          <div
+                            className={cn('h-full rounded-pill', row.bar)}
+                            style={{ width: row.pct }}
+                          />
+                        </div>
+                        <Badge tone={row.tone}>{row.risk}</Badge>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -254,72 +514,326 @@ export default async function Home() {
         </section>
 
         <section className="border-b border-border bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                The problem
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Review can&apos;t keep up with AI
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                Coding agents ship pull requests around the clock. Manual review
-                was never designed for this volume — and the gaps are where
-                production incidents start.
-              </p>
-            </div>
-            <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3">
-              {problemPoints.map((point) => (
-                <div
-                  key={point}
-                  className="flex items-start gap-3 rounded-card border border-border bg-background p-5"
-                >
-                  <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention ring-1 ring-attention-border">
-                    <AlertTriangle className="size-3.5" aria-hidden="true" />
+          <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+            <div
+              data-reveal
+              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5"
+            >
+              <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle-foreground">
+                Signals inspected / diff
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {inspectionSignals.map((signal) => (
+                  <span
+                    key={signal}
+                    className="rounded-pill border border-border bg-background px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-surface-subtle hover:text-foreground"
+                  >
+                    {signal}
                   </span>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {point}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <section id="features" className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                Features
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Everything you need to govern AI code
+        <section className="border-b border-border">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-16">
+              <div data-reveal>
+                <SectionIndex index="01" label="The problem" />
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                  Review can&apos;t keep up with AI
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                  Coding agents ship pull requests around the clock. Manual
+                  review was never designed for this volume — and the gaps are
+                  where production incidents start.
+                </p>
+              </div>
+              <div className="flex flex-col">
+                {problemPoints.map((point) => (
+                  <div
+                    key={point.tag}
+                    data-reveal
+                    className="flex items-start gap-4 border-t border-border py-5 first:border-t-0 first:pt-0"
+                  >
+                    <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention ring-1 ring-attention-border">
+                      <AlertTriangle className="size-4" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <span className="font-mono text-[11px] uppercase tracking-wider text-subtle-foreground">
+                        {point.tag}
+                      </span>
+                      <p className="mt-1 text-[15px] leading-relaxed text-foreground">
+                        {point.text}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="border-b border-border bg-surface">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <SectionIndex index="02" label="Features" />
+              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                The parts AI reviewers leave around the edges
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                From the first commit to the audit log, AgentGate gives reviewers
-                the signal they need to merge with confidence.
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                Comments are useful. Governance needs a full record: risk,
+                tests, policies, reviewers, approvals, and what changed after
+                the decision.
               </p>
             </div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature) => {
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+              <div
+                data-reveal
+                className={cn(
+                  'group flex flex-col rounded-card border border-border bg-background p-6 shadow-card sm:col-span-2 sm:p-7 lg:col-span-4',
+                  cardHover,
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={featureIconBox}>
+                    <ShieldAlert className="size-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                    Deterministic risk scoring
+                  </h3>
+                </div>
+                <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                  Every pull request gets a transparent risk score, so reviewers
+                  know exactly why a change is flagged. Advisory AI comments can
+                  add context, but they do not replace the control.
+                </p>
+                <div className="mt-5 rounded-control border border-border bg-surface p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-subtle-foreground">
+                      risk breakdown
+                    </span>
+                    <span className="font-mono text-xs text-subtle-foreground">
+                      <span className="font-semibold text-foreground">72</span>{' '}
+                      / 100
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-3">
+                    {riskFactors.map((factor) => (
+                      <div key={factor.label}>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-muted-foreground">
+                            {factor.label}
+                          </span>
+                          <span className="font-mono tabular-nums text-subtle-foreground">
+                            +{factor.value}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-subtle">
+                          <div
+                            className={cn('h-full rounded-pill', factor.bar)}
+                            style={{ width: factor.pct }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                data-reveal
+                className={cn(
+                  'group flex flex-col rounded-card border border-border bg-background p-6 shadow-card sm:col-span-2 lg:col-span-2',
+                  cardHover,
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={featureIconBox}>
+                    <FileText className="size-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                    Audit-ready trail
+                  </h3>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Approvals, syncs, and policy changes are captured
+                  automatically and exportable for compliance reviews.
+                </p>
+                <ul className="relative mt-auto space-y-3 pt-6 pl-4">
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-7 bottom-1 left-[3px] w-px bg-border"
+                  />
+                  {auditTrail.map((entry) => (
+                    <li
+                      key={entry.label}
+                      className="relative flex items-center justify-between gap-2"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="absolute -left-4 size-1.5 rounded-full bg-accent ring-2 ring-background"
+                      />
+                      <span className="text-[11px] text-muted-foreground">
+                        {entry.label}
+                      </span>
+                      <span className="font-mono text-[10px] text-subtle-foreground">
+                        {entry.time}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {compactFeatures.map((feature) => {
                 const Icon = feature.icon
                 return (
                   <div
                     key={feature.title}
-                    className="rounded-card border border-border bg-surface p-6 shadow-card transition-shadow hover:shadow-card-hover"
+                    data-reveal
+                    className={cn(
+                      'group flex items-start gap-4 rounded-card border border-border bg-background p-6 shadow-card lg:col-span-3',
+                      cardHover,
+                    )}
                   >
-                    <span className="flex size-10 items-center justify-center rounded-control bg-accent-soft text-accent ring-1 ring-accent-ring">
+                    <span className={featureIconBox}>
                       <Icon className="size-5" aria-hidden="true" />
                     </span>
-                    <h3 className="mt-4 text-sm font-semibold tracking-tight text-foreground">
-                      {feature.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                      {feature.description}
-                    </p>
+                    <div>
+                      <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                        {feature.title}
+                      </h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                        {feature.description}
+                      </p>
+                    </div>
                   </div>
                 )
               })}
+            </div>
+          </div>
+        </section>
+
+        <section id="comparison" className="border-b border-border">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-end lg:gap-14">
+                <div>
+                  <SectionIndex index="03" label="Why AgentGate" />
+                  <h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                    Built for governance, not another comment stream
+                  </h2>
+                  <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                    CodeRabbit, Copilot, Qodo, and Graphite help teams review
+                    code faster. AgentGate answers the next question: should
+                    this AI-assisted change be allowed to merge, who accepted
+                    the risk, and where is the evidence?
+                  </p>
+                </div>
+                <div className="mt-7 flex flex-wrap gap-2">
+                  {governancePillars.map((pillar) => (
+                    <span
+                      key={pillar}
+                      className="rounded-pill border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted-foreground"
+                    >
+                      {pillar}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div data-reveal className="mt-10 min-w-0">
+              <div className="overflow-hidden rounded-card border border-border bg-surface shadow-card">
+                <div className="border-b border-border bg-surface-muted/60 px-4 py-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                    <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                      Competitive frame
+                    </h3>
+                    <p className="font-mono text-[10px] text-subtle-foreground">
+                      Public pricing checked May 19, 2026
+                    </p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[880px] text-left text-xs">
+                    <caption className="sr-only">
+                      Comparison between AgentGate and AI code review tools.
+                    </caption>
+                    <thead className="bg-background text-[11px] uppercase tracking-wider text-subtle-foreground">
+                      <tr>
+                        <th
+                          scope="col"
+                          className="w-[150px] px-4 py-3 font-medium"
+                        >
+                          Capability
+                        </th>
+                        <th
+                          scope="col"
+                          className="w-[210px] px-4 py-3 font-medium text-foreground"
+                        >
+                          AgentGate
+                        </th>
+                        <th
+                          scope="col"
+                          className="w-[190px] px-4 py-3 font-medium"
+                        >
+                          CodeRabbit
+                        </th>
+                        <th
+                          scope="col"
+                          className="w-[190px] px-4 py-3 font-medium"
+                        >
+                          Copilot Review
+                        </th>
+                        <th
+                          scope="col"
+                          className="w-[190px] px-4 py-3 font-medium"
+                        >
+                          Qodo / Graphite
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {comparisonRows.map((row) => (
+                        <tr key={row.capability} className="align-top">
+                          <th
+                            scope="row"
+                            className="bg-background px-4 py-3 font-medium text-foreground"
+                          >
+                            {row.capability}
+                          </th>
+                          <td className="px-4 py-3 text-foreground">
+                            <div className="flex gap-2">
+                              <Check
+                                className="mt-0.5 size-3.5 shrink-0 text-success"
+                                aria-hidden="true"
+                              />
+                              <span>{row.agentGate}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {row.coderabbit}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {row.copilot}
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">
+                            {row.others}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <p className="mt-4 text-xs leading-relaxed text-subtle-foreground">
+                Competitor details are summarized from public pricing and
+                product pages. AgentGate pricing is workspace-based, while many
+                AI review tools price by user or developer seat.
+              </p>
             </div>
           </div>
         </section>
@@ -329,65 +843,69 @@ export default async function Home() {
           className="relative overflow-hidden border-b border-border bg-primary text-primary-foreground"
         >
           <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
-          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/55">
-                How it works
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <SectionIndex index="04" label="How it works" dark />
+              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
                 Live in minutes, governed from day one
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-primary-foreground/70">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/70">
                 Connect a repository and AgentGate starts scoring pull requests
                 immediately — no pipeline changes required.
               </p>
             </div>
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((step, index) => (
-                <div
-                  key={step.title}
-                  className="rounded-card border border-primary-foreground/10 bg-primary-foreground/5 p-6"
-                >
-                  <span className="flex size-9 items-center justify-center rounded-control bg-primary-foreground/10 font-mono text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/15">
-                    {index + 1}
-                  </span>
-                  <h3 className="mt-4 text-sm font-semibold tracking-tight text-primary-foreground">
-                    {step.title}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/65">
-                    {step.description}
-                  </p>
-                </div>
-              ))}
+
+            <div className="relative mt-14">
+              <span
+                aria-hidden="true"
+                className="absolute top-5 right-0 left-0 hidden h-px bg-primary-foreground/15 lg:block"
+              />
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+                {steps.map((step, index) => (
+                  <div key={step.title} data-reveal className="relative">
+                    <span className="relative z-10 flex size-10 items-center justify-center rounded-full border border-primary-foreground/15 bg-primary font-mono text-sm font-semibold text-primary-foreground">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <h3 className="mt-4 text-sm font-semibold tracking-tight text-primary-foreground">
+                      {step.title}
+                    </h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/65">
+                      {step.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
         <section id="pricing" className="border-b border-border bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                Pricing
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Plans that scale with your team
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <SectionIndex index="05" label="Pricing" />
+              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Predictable workspace pricing
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                Start free and upgrade as you connect more repositories. Every
-                plan includes risk scoring and test-gap detection.
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                Start free and upgrade as you connect more repositories. Teams
+                do not need a paid reviewer seat for every developer who opens a
+                pull request.
               </p>
             </div>
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {plans.map((plan) => {
                 const popular = plan.key === popularPlan
                 return (
                   <div
                     key={plan.key}
+                    data-reveal
                     className={cn(
-                      'flex flex-col rounded-card border bg-background p-5',
+                      'relative flex flex-col rounded-card border border-border bg-background p-5',
+                      cardHover,
                       popular
-                        ? 'border-accent ring-1 ring-accent-ring'
-                        : 'border-border',
+                        ? 'border-beam shadow-card-hover ring-1 ring-accent-ring'
+                        : '',
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
@@ -401,12 +919,12 @@ export default async function Home() {
                         {plan.priceMonthly}
                       </span>
                       {plan.priceMonthly !== 'Custom' ? (
-                        <span className="text-xs text-subtle-foreground">
-                          /month
+                        <span className="font-mono text-[11px] text-subtle-foreground">
+                          /mo
                         </span>
                       ) : null}
                     </div>
-                    <ul className="mt-4 space-y-1.5 border-t border-border pt-4 text-xs text-muted-foreground">
+                    <ul className="mt-4 space-y-1.5 border-t border-border pt-4 font-mono text-[11px] text-subtle-foreground">
                       <li>{plan.repositoryLimit}</li>
                       <li>{plan.prCheckLimit}</li>
                       <li>{plan.auditRetention}</li>
@@ -436,8 +954,8 @@ export default async function Home() {
                 )
               })}
             </div>
-            <p className="mt-6 text-center text-xs text-subtle-foreground">
-              All prices in USD. Enterprise plans include custom limits and
+            <p className="mt-6 font-mono text-[11px] text-subtle-foreground">
+              All prices in USD · Enterprise plans include custom limits and
               priority support.
             </p>
           </div>
@@ -445,10 +963,16 @@ export default async function Home() {
 
         <section className="border-b border-border">
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-            <div className="relative overflow-hidden rounded-card bg-primary px-6 py-14 text-center sm:px-12">
+            <div
+              data-reveal
+              className="relative overflow-hidden rounded-card border border-border bg-primary px-6 py-14 text-center sm:px-12"
+            >
               <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
               <div className="relative mx-auto max-w-xl">
-                <h2 className="text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
+                <span className="mx-auto flex size-12 items-center justify-center rounded-control bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/15">
+                  <LogoMark className="size-6 text-primary-foreground" />
+                </span>
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
                   Ship AI code with confidence
                 </h2>
                 <p className="mt-3 text-base leading-relaxed text-primary-foreground/70">
@@ -456,10 +980,13 @@ export default async function Home() {
                   pull requests in minutes.
                 </p>
                 <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild variant="accent" size="lg">
+                  <Button asChild variant="accent" size="lg" className="group">
                     <Link href="/sign-up">
                       Start for free
-                      <ArrowRight aria-hidden="true" />
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      />
                     </Link>
                   </Button>
                   <Button asChild variant="secondary" size="lg">
@@ -483,10 +1010,16 @@ export default async function Home() {
             </span>
           </div>
           <nav className="flex items-center gap-6 text-xs font-medium text-muted-foreground">
-            <a href="#features" className="transition-colors hover:text-foreground">
+            <a
+              href="#features"
+              className="transition-colors hover:text-foreground"
+            >
               Features
             </a>
-            <a href="#pricing" className="transition-colors hover:text-foreground">
+            <a
+              href="#pricing"
+              className="transition-colors hover:text-foreground"
+            >
               Pricing
             </a>
             <Link
@@ -496,7 +1029,7 @@ export default async function Home() {
               Sign in
             </Link>
           </nav>
-          <p className="text-xs text-subtle-foreground">
+          <p className="font-mono text-[11px] text-subtle-foreground">
             © {new Date().getFullYear()} AgentGate
           </p>
         </div>

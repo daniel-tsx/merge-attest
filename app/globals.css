@@ -132,6 +132,7 @@
   --animate-gate-scan: gate-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   --animate-gate-halo: gate-halo 2.4s ease-in-out infinite;
   --animate-skeleton-shimmer: skeleton-shimmer 1.8s ease-in-out infinite;
+  --animate-landing-scan: landing-scan 3.8s linear infinite;
 }
 
 @keyframes gate-scan {
@@ -173,11 +174,136 @@
   }
 }
 
+@keyframes landing-scan {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  95% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Element reacts as the scan beam crosses it (synced via per-element delay) */
+@keyframes scan-pulse {
+  0%,
+  100% {
+    transform: translateY(-3px);
+    box-shadow:
+      0 0 0 1.5px var(--scan-ring, var(--accent)),
+      inset 0 0 24px -8px
+        var(--scan-inset, color-mix(in srgb, var(--accent) 60%, transparent));
+  }
+  6%,
+  94% {
+    transform: translateY(0);
+    box-shadow:
+      0 0 0 0 transparent,
+      inset 0 0 24px -8px transparent;
+  }
+}
+
+/* Hero load-in stagger */
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll-triggered reveal */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Traveling border beam */
+@property --beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes border-beam-spin {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+.border-beam {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-intro] {
+    animation: intro-rise 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--intro-index, 0) * 90ms);
+  }
+
+  [data-scan] {
+    animation: scan-pulse 3.8s linear infinite;
+    animation-delay: calc((var(--scan-pos, 0) - 1) * 3.8s);
+  }
+
+  /* Falls back to fully visible where scroll timelines are unsupported */
+  @supports (animation-timeline: view()) {
+    [data-reveal] {
+      animation: reveal-rise both linear;
+      animation-timeline: view();
+      animation-range: entry 0% entry 78%;
+    }
+  }
+
+  .border-beam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--beam-angle),
+      transparent 270deg,
+      color-mix(in srgb, var(--accent) 40%, transparent) 332deg,
+      var(--accent) 352deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: border-beam-spin 5s linear infinite;
+  }
+}
+
 * {
   border-color: var(--border);
 }
 
 html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
   font-feature-settings:
     'cv11' 1,
     'ss01' 1,
