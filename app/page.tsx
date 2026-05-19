@@ -840,16 +840,15 @@ export default async function Home() {
 
         <section
           id="how-it-works"
-          className="relative overflow-hidden border-b border-border bg-primary text-primary-foreground"
+          className="border-b border-border bg-surface"
         >
-          <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
-          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
-              <SectionIndex index="04" label="How it works" dark />
-              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
+              <SectionIndex index="04" label="How it works" />
+              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Live in minutes, governed from day one
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-primary-foreground/70">
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
                 Connect a repository and AgentGate starts scoring pull requests
                 immediately — no pipeline changes required.
               </p>
@@ -858,18 +857,18 @@ export default async function Home() {
             <div className="relative mt-14">
               <span
                 aria-hidden="true"
-                className="absolute top-5 right-0 left-0 hidden h-px bg-primary-foreground/15 lg:block"
+                className="absolute top-5 right-0 left-0 hidden h-px bg-border lg:block"
               />
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
                 {steps.map((step, index) => (
                   <div key={step.title} data-reveal className="relative">
-                    <span className="relative z-10 flex size-10 items-center justify-center rounded-full border border-primary-foreground/15 bg-primary font-mono text-sm font-semibold text-primary-foreground">
+                    <span className="relative z-10 flex size-10 items-center justify-center rounded-full border border-border bg-surface-elevated font-mono text-sm font-semibold text-foreground shadow-card">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <h3 className="mt-4 text-sm font-semibold tracking-tight text-primary-foreground">
+                    <h3 className="mt-4 text-sm font-semibold tracking-tight text-foreground">
                       {step.title}
                     </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-primary-foreground/65">
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                       {step.description}
                     </p>
                   </div>
@@ -965,17 +964,16 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
             <div
               data-reveal
-              className="relative overflow-hidden rounded-card border border-border bg-primary px-6 py-14 text-center sm:px-12"
+              className="rounded-card border border-border bg-surface-elevated px-6 py-14 text-center shadow-card sm:px-12"
             >
-              <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
-              <div className="relative mx-auto max-w-xl">
-                <span className="mx-auto flex size-12 items-center justify-center rounded-control bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/15">
-                  <LogoMark className="size-6 text-primary-foreground" />
+              <div className="mx-auto max-w-xl">
+                <span className="mx-auto flex size-12 items-center justify-center rounded-control bg-primary text-primary-foreground">
+                  <LogoMark className="size-6" />
                 </span>
-                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   Ship AI code with confidence
                 </h2>
-                <p className="mt-3 text-base leading-relaxed text-primary-foreground/70">
+                <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                   Connect your first repository and see risk scores on your open
                   pull requests in minutes.
                 </p>
