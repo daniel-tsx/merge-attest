@@ -7,16 +7,15 @@ import {
   ArrowRight,
   BadgeCheck,
   Check,
-  ChevronRight,
   FileText,
   GitPullRequest,
   ListChecks,
   ShieldAlert,
   TestTube2,
 } from 'lucide-react'
+import { HeroScanPanel } from '@/components/app/hero-scan-panel'
 import { LogoMark } from '@/components/app/logo'
-import { RiskScoreRing } from '@/components/app/risk-score'
-import { Badge, StatusDot } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getServerSession } from '@/lib/auth/session'
 import { plans } from '@/lib/plans'
@@ -30,18 +29,6 @@ export const metadata: Metadata = {
 
 const introStyle = (index: number): CSSProperties =>
   ({ '--intro-index': index }) as CSSProperties
-
-// Vertical position (0–1) of an element inside the scan panel, so its
-// highlight pulse fires exactly when the beam crosses it. `soft` mutes the
-// glow for plain text — it only lifts.
-const scanStyle = (pos: number, soft = false): CSSProperties =>
-  ({
-    '--scan-pos': pos,
-    ...(soft && {
-      '--scan-ring': 'transparent',
-      '--scan-inset': 'transparent',
-    }),
-  }) as CSSProperties
 
 const inspectionSignals = [
   'diff size',
@@ -187,29 +174,6 @@ const steps = [
     title: 'Keep an audit trail',
     description:
       'Every decision is logged and retained, ready to export the moment compliance asks.',
-  },
-]
-
-const queueRows = [
-  {
-    id: '#479',
-    title: 'Bump dependency lockfile',
-    meta: 'agent:dependabot · +12 −12',
-    risk: 'Low',
-    tone: 'green' as const,
-    bar: 'bg-success',
-    pct: '16%',
-    scanPos: 0.749,
-  },
-  {
-    id: '#477',
-    title: 'Refactor auth session store',
-    meta: 'agent:claude-code · +96 −140',
-    risk: 'Medium',
-    tone: 'yellow' as const,
-    bar: 'bg-warning',
-    pct: '48%',
-    scanPos: 0.917,
   },
 ]
 
@@ -366,149 +330,8 @@ export default async function Home() {
               </p>
             </div>
 
-            <div data-intro style={introStyle(3)} className="relative">
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 hidden translate-x-3 translate-y-3 rounded-card border border-border bg-surface-muted/50 lg:block"
-              />
-              <div className="relative overflow-hidden rounded-card border border-border bg-surface shadow-card-hover transition-transform duration-300 ease-out hover:-translate-y-1">
-                <div className="flex items-center gap-2.5 border-b border-border bg-surface-muted/60 px-4 py-3">
-                  <LogoMark className="size-4 text-foreground" />
-                  <span className="font-mono text-xs text-muted-foreground">
-                    acme/api-gateway
-                  </span>
-                  <ChevronRight
-                    className="size-3 text-subtle-foreground"
-                    aria-hidden="true"
-                  />
-                  <span className="font-mono text-xs font-medium text-foreground">
-                    review queue
-                  </span>
-                  <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[11px] text-subtle-foreground">
-                    <StatusDot tone="green" pulse />
-                    live
-                  </span>
-                </div>
-
-                <div className="relative">
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
-                  >
-                    <div className="h-full w-full motion-safe:animate-landing-scan">
-                      <div className="h-0.5 w-full bg-accent/70 shadow-[0_0_12px_0_color-mix(in_srgb,var(--accent)_55%,transparent)]" />
-                    </div>
-                  </div>
-
-                  <div className="border-b border-border p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div
-                        data-scan
-                        style={scanStyle(0.173, true)}
-                        className="min-w-0"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Badge tone="orange" withDot>
-                            High risk
-                          </Badge>
-                          <span className="font-mono text-[11px] text-subtle-foreground">
-                            #482
-                          </span>
-                        </div>
-                        <h3 className="mt-2 text-sm font-semibold tracking-tight text-foreground">
-                          Add retry logic to payment webhook
-                        </h3>
-                        <p className="mt-1 font-mono text-[11px] text-subtle-foreground">
-                          agent:claude-code · +218 −34 · 6 files
-                        </p>
-                      </div>
-                      <div
-                        data-scan
-                        style={scanStyle(0.155)}
-                        className="inline-flex shrink-0 rounded-full"
-                      >
-                        <RiskScoreRing score={72} level="high" size={62} />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                      <div
-                        data-scan
-                        style={scanStyle(0.385)}
-                        className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
-                      >
-                        <TestTube2
-                          className="size-3.5 shrink-0 text-attention"
-                          aria-hidden="true"
-                        />
-                        <span className="text-[11px] text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            2 test gaps
-                          </span>{' '}
-                          detected
-                        </span>
-                      </div>
-                      <div
-                        data-scan
-                        style={scanStyle(0.385)}
-                        className="flex items-center gap-2 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
-                      >
-                        <ListChecks
-                          className="size-3.5 shrink-0 text-danger"
-                          aria-hidden="true"
-                        />
-                        <span className="text-[11px] text-muted-foreground">
-                          <span className="font-medium text-foreground">
-                            1 rule
-                          </span>{' '}
-                          violation
-                        </span>
-                      </div>
-                    </div>
-
-                    <div
-                      data-scan
-                      style={scanStyle(0.537)}
-                      className="mt-3 flex items-center justify-between gap-3 rounded-control border border-border bg-surface-muted/50 px-3 py-2"
-                    >
-                      <span className="font-mono text-[11px] text-subtle-foreground">
-                        approval required · 2 reviewers
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-control bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground">
-                        <BadgeCheck className="size-3" aria-hidden="true" />
-                        Awaiting review
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="divide-y divide-border">
-                    {queueRows.map((row) => (
-                      <div
-                        key={row.id}
-                        data-scan
-                        style={scanStyle(row.scanPos)}
-                        className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-surface-muted/40"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs font-medium text-foreground">
-                            {row.title}
-                          </div>
-                          <div className="font-mono text-[10px] text-subtle-foreground">
-                            {row.id} · {row.meta}
-                          </div>
-                        </div>
-                        <div className="hidden h-1 w-14 overflow-hidden rounded-pill bg-surface-subtle sm:block">
-                          <div
-                            className={cn('h-full rounded-pill', row.bar)}
-                            style={{ width: row.pct }}
-                          />
-                        </div>
-                        <Badge tone={row.tone}>{row.risk}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div data-intro style={introStyle(3)}>
+              <HeroScanPanel />
             </div>
           </div>
         </section>
