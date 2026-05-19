@@ -1,12 +1,7 @@
 import { Suspense } from 'react'
 import {
-  Activity,
   AlertTriangle,
-  Boxes,
   CheckCircle2,
-  GitPullRequest,
-  ListChecks,
-  MessageSquareText,
   ShieldAlert,
   TestTube2,
 } from 'lucide-react'
@@ -37,7 +32,7 @@ import {
 import { githubConfigured } from '@/lib/github'
 import { getOnboardingStatus } from '@/lib/onboarding'
 import { buildReportingMetrics } from '@/lib/reporting'
-import { formatDate, formatNumber } from '@/lib/utils'
+import { cn, formatDate, formatNumber } from '@/lib/utils'
 
 export default function DashboardPage() {
   return (
@@ -137,25 +132,21 @@ async function DashboardContent() {
       label: 'Repositories',
       value: metrics.repositoriesConnected,
       description: 'Connected sources',
-      icon: Boxes,
     },
     {
       label: 'AI PRs',
       value: metrics.aiPrsThisWeek,
       description: 'AI-assisted volume',
-      icon: GitPullRequest,
     },
     {
       label: 'Average risk',
       value: metrics.averageRiskScore,
       description: 'Across open PRs',
-      icon: Activity,
     },
     {
       label: 'Rule violations',
       value: metrics.ruleViolations,
       description: 'Policy signals',
-      icon: ListChecks,
     },
   ]
 
@@ -190,42 +181,32 @@ async function DashboardContent() {
     <div className="space-y-8">
       <OnboardingChecklist status={onboardingStatus} />
 
-      <section className="space-y-3">
-        <h2 className="sr-only">Key metrics</h2>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {heroMetrics.map((metric) => (
-            <MetricCard
-              key={metric.label}
-              label={metric.label}
-              value={formatNumber(metric.value)}
-              description={metric.description}
-              icon={metric.icon}
-              tone={metric.tone}
-            />
-          ))}
+      <section className="space-y-6">
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight text-foreground">
+              Operational signals
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              What needs a reviewer&apos;s attention right now.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {heroMetrics.map((metric) => (
+              <MetricCard
+                key={metric.label}
+                label={metric.label}
+                value={formatNumber(metric.value)}
+                description={metric.description}
+                icon={metric.icon}
+                tone={metric.tone}
+              />
+            ))}
+          </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {secondaryMetrics.map((metric) => (
-            <MetricCard
-              key={metric.label}
-              label={metric.label}
-              value={formatNumber(metric.value)}
-              description={metric.description}
-              icon={metric.icon}
-            />
-          ))}
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {aiReviewCards.map((metric) => (
-            <MetricCard
-              key={metric.label}
-              label={metric.label}
-              value={formatNumber(metric.value)}
-              description={metric.description}
-              icon={MessageSquareText}
-              tone={metric.tone}
-            />
-          ))}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <StatPanel title="Workspace volume" stats={secondaryMetrics} />
+          <StatPanel title="AI review activity" stats={aiReviewCards} />
         </div>
       </section>
 
@@ -494,5 +475,58 @@ async function DashboardContent() {
         </Card>
       </section>
     </div>
+  )
+}
+
+const statToneDot: Record<string, string> = {
+  neutral: 'bg-border-strong',
+  accent: 'bg-accent',
+  danger: 'bg-danger',
+  warning: 'bg-attention',
+  success: 'bg-success',
+}
+
+function StatPanel({
+  title,
+  stats,
+}: {
+  title: string
+  stats: ReadonlyArray<{
+    label: string
+    value: number
+    description: string
+    tone?: 'neutral' | 'accent' | 'danger' | 'warning' | 'success'
+  }>
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 gap-px bg-border p-px">
+        {stats.map((stat) => (
+          <div key={stat.label} className="bg-surface-elevated p-4">
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'size-1.5 rounded-full',
+                  statToneDot[stat.tone ?? 'neutral'],
+                )}
+              />
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground">
+                {stat.label}
+              </p>
+            </div>
+            <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
+              {formatNumber(stat.value)}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {stat.description}
+            </p>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   )
 }

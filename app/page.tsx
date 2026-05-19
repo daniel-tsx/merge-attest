@@ -396,7 +396,7 @@ export default async function Home() {
                     className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
                   >
                     <div className="h-full w-full motion-safe:animate-landing-scan">
-                      <div className="h-0.5 w-full bg-accent/70 shadow-[0_0_12px_0_rgba(45,80,230,0.5)]" />
+                      <div className="h-0.5 w-full bg-accent/70 shadow-[0_0_12px_0_color-mix(in_srgb,var(--accent)_55%,transparent)]" />
                     </div>
                   </div>
 
