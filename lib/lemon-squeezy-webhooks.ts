@@ -3,6 +3,7 @@ import {
   getLemonSqueezyWebhookSecret,
   getPlanKeyForLemonSqueezyVariantId,
 } from '@/lib/billing'
+import { reportError } from '@/lib/observability'
 import { getPrismaClient } from '@/lib/prisma'
 import type { BillingStatus, PlanKey } from '@/lib/types'
 
@@ -47,6 +48,8 @@ const subscriptionEvents = new Set([
 ])
 
 const processingRetryDelayMs = 5 * 60 * 1000
+
+type PrismaClient = NonNullable<ReturnType<typeof getPrismaClient>>
 
 function stringFromValue(value: unknown) {
   if (typeof value === 'string' && value) return value
@@ -142,6 +145,10 @@ export function isProcessedBillingWebhookStatus(status?: string | null) {
   return status === 'processed'
 }
 
+function isFinalBillingWebhookStatus(status?: string | null) {
+  return status === 'processed' || status === 'ignored'
+}
+
 export function verifyLemonSqueezyWebhookSignature(
   rawBody: string,
   signature: string | null,
@@ -177,22 +184,123 @@ export function unmarshalLemonSqueezyWebhook(
   )
 }
 
+async function recordIgnoredLemonSqueezyEvent(
+  prisma: PrismaClient,
+  event: LemonSqueezyEvent,
+  message: string,
+) {
+  const existingEvent = await prisma.billingWebhookEvent.findUnique({
+    where: { deliveryId: event.deliveryId },
+  })
+  if (isFinalBillingWebhookStatus(existingEvent?.status)) {
+    return {
+      processed: false,
+      duplicate: true,
+      ignored: true,
+      message: `Lemon Squeezy ${event.eventName} already ignored.`,
+    }
+  }
+  if (
+    existingEvent?.status === 'processing' &&
+    existingEvent.createdAt.getTime() > Date.now() - processingRetryDelayMs
+  ) {
+    return {
+      processed: false,
+      duplicate: true,
+      ignored: true,
+      message: `Lemon Squeezy ${event.eventName} is already processing.`,
+    }
+  }
+
+  await prisma.billingWebhookEvent.upsert({
+    where: { deliveryId: event.deliveryId },
+    update: {
+      eventName: event.eventName,
+      status: 'ignored',
+      message,
+      processedAt: new Date(),
+    },
+    create: {
+      deliveryId: event.deliveryId,
+      eventName: event.eventName,
+      status: 'ignored',
+      message,
+      processedAt: new Date(),
+    },
+  })
+
+  return { processed: false, ignored: true, message }
+}
+
+async function createBillingAuditEvent(
+  prisma: PrismaClient,
+  input: {
+    deliveryId: string
+    eventName: string
+    subscriptionId?: string
+    customerId: string | null
+    organizationId: string
+    planKey: string
+    previousPlan: string
+    billingStatus: BillingStatus
+    activationEvent?: string
+  },
+) {
+  try {
+    await prisma.auditEvent.create({
+      data: {
+        eventType: 'settings_changed',
+        actor: 'Lemon Squeezy',
+        summary: `Lemon Squeezy ${input.eventName} processed`,
+        metadata: {
+          deliveryId: input.deliveryId,
+          subscriptionId: input.subscriptionId,
+          customerId: input.customerId,
+          planKey: input.planKey,
+          previousPlan: input.previousPlan,
+          billingStatus: input.billingStatus,
+          activationEvent: input.activationEvent,
+        },
+        organizationId: input.organizationId,
+      },
+    })
+  } catch (error) {
+    reportError({
+      area: 'billing',
+      action: 'lemon_squeezy_audit_event_failed',
+      error,
+      metadata: {
+        deliveryId: input.deliveryId,
+        eventName: input.eventName,
+        organizationId: input.organizationId,
+      },
+    })
+  }
+}
+
 export async function processLemonSqueezySubscriptionEvent(
   event: LemonSqueezyEvent,
 ) {
   const prisma = getPrismaClient()
-  if (!prisma || !subscriptionEvents.has(event.eventName)) {
+  if (!prisma) {
     return { processed: false, message: 'Lemon Squeezy event ignored.' }
+  }
+  if (!subscriptionEvents.has(event.eventName)) {
+    return recordIgnoredLemonSqueezyEvent(
+      prisma,
+      event,
+      'Lemon Squeezy event ignored.',
+    )
   }
 
   const existingEvent = await prisma.billingWebhookEvent.findUnique({
     where: { deliveryId: event.deliveryId },
   })
-  if (isProcessedBillingWebhookStatus(existingEvent?.status)) {
+  if (isFinalBillingWebhookStatus(existingEvent?.status)) {
     return {
       processed: false,
       duplicate: true,
-      message: `Lemon Squeezy ${event.eventName} already processed.`,
+      message: `Lemon Squeezy ${event.eventName} already handled.`,
     }
   }
   if (
@@ -263,6 +371,26 @@ export async function processLemonSqueezySubscriptionEvent(
     event.eventName,
     attributes.status,
   )
+  if (
+    event.eventName === 'subscription_updated' &&
+    billingStatus === 'active' &&
+    organization.billingStatus === 'canceled' &&
+    organization.planKey === 'free'
+  ) {
+    const message =
+      'Ignored stale active subscription update after cancellation or expiration.'
+    await prisma.billingWebhookEvent.update({
+      where: { id: delivery.id },
+      data: {
+        status: 'ignored',
+        message,
+        organizationId: organization.id,
+        processedAt: new Date(),
+      },
+    })
+    return { processed: false, ignored: true, message }
+  }
+
   const planKey = getPlanKeyFromLemonSqueezyEvent(event)
   const isExpired =
     event.eventName === 'subscription_expired' || attributes.status === 'expired'
@@ -299,28 +427,22 @@ export async function processLemonSqueezySubscriptionEvent(
     },
   })
 
-  await prisma.auditEvent.create({
-    data: {
-      eventType: 'settings_changed',
-      actor: 'Lemon Squeezy',
-      summary: `Lemon Squeezy ${event.eventName} processed`,
-      metadata: {
-        deliveryId: event.deliveryId,
-        subscriptionId: event.data.id,
-        customerId,
-        planKey: nextPlanKey,
-        previousPlan: organization.planKey,
-        billingStatus,
-        activationEvent: isUpgrade
-          ? 'upgrade_completed'
-          : isExpired
-            ? 'subscription_expired'
-            : billingStatus === 'past_due'
-              ? 'payment_failed'
-              : undefined,
-      },
-      organizationId: organization.id,
-    },
+  await createBillingAuditEvent(prisma, {
+    deliveryId: event.deliveryId,
+    eventName: event.eventName,
+    subscriptionId: event.data.id,
+    customerId,
+    organizationId: organization.id,
+    planKey: nextPlanKey,
+    previousPlan: organization.planKey,
+    billingStatus,
+    activationEvent: isUpgrade
+      ? 'upgrade_completed'
+      : isExpired
+        ? 'subscription_expired'
+        : billingStatus === 'past_due'
+          ? 'payment_failed'
+          : undefined,
   })
 
   await prisma.billingWebhookEvent.update({
