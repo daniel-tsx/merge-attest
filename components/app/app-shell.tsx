@@ -204,13 +204,12 @@ function WorkspaceCard({
             {organizationName}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          <StatusDot
-            tone={dataMode === 'live' ? 'green' : 'blue'}
-            pulse={dataMode === 'live'}
-          />
-          {dataMode === 'live' ? 'Live' : 'Demo'}
-        </div>
+        {dataMode === 'demo' ? (
+          <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+            <StatusDot tone="blue" />
+            Demo
+          </div>
+        ) : null}
       </div>
       <Separator className="my-3" />
       <div className="flex items-center justify-between text-xs">
@@ -376,9 +375,11 @@ export function AppShell({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Badge tone={dataMode === 'live' ? 'green' : 'blue'} withDot>
-              {dataMode === 'live' ? 'live data' : 'demo data'}
-            </Badge>
+            {dataMode === 'demo' ? (
+              <Badge tone="blue" withDot>
+                demo data
+              </Badge>
+            ) : null}
             <Badge tone="slate" className="hidden capitalize sm:inline-flex">
               {planKey}
             </Badge>
