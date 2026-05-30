@@ -1,5 +1,8 @@
 # AgentGate UI/UX Improvement Plan
 
+**Status:** `shipped` / `historical` — planning doc; many items landed in `docs/features/DESIGN_SYSTEM.md`
+**Location:** `docs/archive/ui/UI_UX_IMPROVEMENT_PLAN.md`
+
 Last reviewed: 2026-05-02
 
 ## 1. Goal

@@ -1,5 +1,8 @@
 # Operations Runbook
 
+**Status:** `current`
+**Location:** `docs/operations/OPERATIONS_RUNBOOK.md`
+
 ## CI Gate
 
 Every pull request should pass:

@@ -1,5 +1,8 @@
 # Privacy, Retention, And Support
 
+**Status:** `current`
+**Location:** `docs/operations/PRIVACY_RETENTION_SUPPORT.md`
+
 ## Customer Data
 
 AgentGate stores organization membership, connected repository metadata, pull request metadata, changed file paths, risk signals, rule violations, approvals, review notes, AI review job metadata, repository AI review settings, audit events, billing identifiers, and usage records.

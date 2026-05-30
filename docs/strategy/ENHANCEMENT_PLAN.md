@@ -1,5 +1,8 @@
 # AgentGate Enhancement Plan
 
+**Status:** `current` (planning)
+**Location:** `docs/strategy/ENHANCEMENT_PLAN.md`
+
 Last reviewed: 2026-05-02
 
 ## 1. Product Goal

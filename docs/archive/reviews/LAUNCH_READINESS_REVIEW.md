@@ -1,5 +1,8 @@
 # AgentGate Launch Readiness Review
 
+**Status:** `historical` — point-in-time audit (2026-05-02); re-verify findings in code
+**Location:** `docs/archive/reviews/LAUNCH_READINESS_REVIEW.md`
+
 Review date: 2026-05-02
 
 Implementation status: Phase 0 and Phase 1 fixes have been applied. Phase 2 has started with paid-launch configuration gates, transactional account recovery, aligned plan copy, and GitHub output entitlement enforcement.
@@ -529,4 +532,3 @@ Required before public paid launch:
 8. Add durable job processing and observability.
 9. Align billing/plan docs and gates.
 10. Add E2E launch smoke tests.
-

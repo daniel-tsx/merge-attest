@@ -1,5 +1,8 @@
 # Production Checklist
 
+**Status:** `current`
+**Location:** `docs/operations/PRODUCTION_CHECKLIST.md`
+
 Use this checklist before running AgentGate for customer work.
 
 ## Required Environment

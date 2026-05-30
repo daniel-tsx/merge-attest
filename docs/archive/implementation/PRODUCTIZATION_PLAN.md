@@ -1,5 +1,8 @@
 # AgentGate Productization Plan
 
+**Status:** `superseded` — historical baseline; see `docs/strategy/ENHANCEMENT_PLAN.md` and code
+**Location:** `docs/archive/implementation/PRODUCTIZATION_PLAN.md`
+
 Last updated: 2026-05-01
 
 ## 1. Executive Summary

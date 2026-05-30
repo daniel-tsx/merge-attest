@@ -1,5 +1,8 @@
 # AgentGate Design System Notes
 
+**Status:** `current`
+**Location:** `docs/features/DESIGN_SYSTEM.md`
+
 Last reviewed: 2026-05-19
 
 ## Purpose

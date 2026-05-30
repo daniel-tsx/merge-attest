@@ -1,5 +1,8 @@
 # Merge Mate Adoption Plan
 
+**Status:** `shipped` / `historical` — largely implemented; verify remaining gaps in code
+**Location:** `docs/archive/implementation/MERGE_MATE_ADOPTION_PLAN.md`
+
 Last reviewed: 2026-05-18
 
 ## Purpose

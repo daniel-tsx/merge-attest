@@ -1,5 +1,8 @@
 # API Notes
 
+**Status:** `current`
+**Location:** `docs/features/API.md`
+
 AgentGate exposes a small set of operational and integration endpoints.
 
 ## Health And Diagnostics
