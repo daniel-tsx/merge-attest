@@ -64,11 +64,22 @@ Each phase is independently shippable after Phase 1.
   replace ad-hoc sizes in `PageHeader` and metrics. Codify spacing rhythm.
 - _Verify:_ headings/metrics consistent; no one-off sizes; diff acceptable.
 
-### Phase 3 — Primitive depth & state polish + Tooltip/Toast
-- Refine `Card`, `MetricCard`, `Section`, `Table`, `Button`, `Badge`, inputs for
-  the elevation scale + dark mode.
-- Add tokenized, dark-aware **Tooltip** and **Toast** primitives + root providers.
-- _Verify:_ primitives render in both themes; tooltip/toast accessible.
+### Phase 3 — Primitive depth & state polish + Tooltip/Toast ✅ shipped
+- Added `components/ui/tooltip.tsx` (tokenized Radix tooltip, `surface-elevated`
+  chip, dark-aware) + a single root `TooltipProvider` in the layout.
+- Added `components/ui/sonner.tsx` (Sonner `Toaster`, theme-synced via
+  `next-themes`, mapped to our tokens via Sonner CSS vars) mounted once in the
+  layout. Visual toast usage lands in Phase 6 (wired to mutations).
+- First real tooltip usage: the header theme toggle icon button.
+- Button press polish: `active:translate-y-px` for tactile feedback.
+- Card/MetricCard/Section/Table/Badge already pick up the Phase 1 elevation +
+  dark tokens (verified on the live dashboard in both themes); deeper table
+  interaction work (sort/density/sticky) stays in Phase 6.
+- _Verified:_ real dashboard in dark + light; "Change theme" tooltip renders
+  themed; toggle menu (Light/Dark/System) persists; Toaster mounted; no console
+  errors; typecheck + lint + 219 tests green.
+- _Dev note:_ self-registered `dev@agentgate.test` in the local dev DB (email
+  delivery not configured, so no verification needed) to verify in-app surfaces.
 
 ### Phase 4 — Command palette (⌘K)
 - Global palette in the app shell: fuzzy route nav, quick actions, recents;

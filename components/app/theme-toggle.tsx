@@ -11,6 +11,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 const options = [
   { value: 'light', label: 'Light', icon: Sun },
@@ -26,12 +31,17 @@ export function ThemeToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Change theme">
-          <Sun className="size-4 dark:hidden" aria-hidden="true" />
-          <Moon className="hidden size-4 dark:block" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Change theme">
+              <Sun className="size-4 dark:hidden" aria-hidden="true" />
+              <Moon className="hidden size-4 dark:block" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Change theme</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent className="min-w-36">
         <DropdownMenuLabel>Theme</DropdownMenuLabel>
         <DropdownMenuRadioGroup
