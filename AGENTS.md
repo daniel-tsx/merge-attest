@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
@@ -74,7 +74,16 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Don't use linear gradient background unless I tell you or it's a really necessary case
 - Prefer to use color on project's design system over custom color
 
-<!-- BEGIN:nextjs-agent-rules -->
+## Documentation as Working Memory
+
+Use docs as durable project memory, but verify against code before acting.
+
+- Before starting non-trivial work, read `README.md`, `docs/AGENT_START_HERE.md` if present, and any feature doc directly related to the task.
+- Treat docs as guidance, not absolute truth. If docs and code disagree, trust the code, surface the mismatch, and update the doc only if the task changes durable behavior.
+- Update docs when changing architecture, routes/APIs, environment variables, database schema, billing/auth/security behavior, testing commands, or user-visible feature behavior.
+- Do not update docs for incidental implementation details, temporary debugging, tiny refactors, or changes that are already obvious from code/tests.
+- Every new or edited doc should make its status clear: `current`, `planned`, `shipped`, `historical`, or `superseded`.
+- Prefer one current source-of-truth doc per feature. Move completed plans and stale reviews to `docs/archive/` instead of leaving them beside current operational docs.
 
 # This is NOT the Next.js you know
 
