@@ -73,11 +73,39 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Always check the latest documentation when implementing new features and upgrade packages when newer versions are available.
 - Prefer pnpm as the package manager for new projects.
-- On Windows, prefer Command Prompt (`cmd`/`cmd.exe`) for shell commands instead of PowerShell unless a task explicitly requires PowerShell.
 - Always review existing implementations in the project to ensure consistent patterns across the app.
 - Write clean code following best practices and optimize for performance.
 - Don't use linear gradient background unless I tell you or it's a really necessary case
 - Prefer to use color on project's design system over custom color
+
+## Windows shell (Command Prompt)
+
+**Prefer `cmd.exe` for all terminal commands on Windows** — not PowerShell.
+
+| Do (cmd) | Don't (PowerShell) |
+| --- | --- |
+| `cmd /c "cd /d path && pnpm test"` | `cd path; pnpm test` |
+| `set FOO=bar && command` | `$env:FOO = "bar"; command` |
+| Chain with `&&` | Chain with `;` or pipelines when unnecessary |
+
+Only use PowerShell when the user explicitly requests it.
+
+**Important:** This file guides command *syntax*. Cursor may still spawn PowerShell for the agent shell on Windows. To change that, see **Cursor shell setup** below and `.vscode/settings.json` in this repo.
+
+### Cursor shell setup (Windows)
+
+1. **Workspace** — this repo includes `.vscode/settings.json` with `terminal.integrated.automationProfile.windows` → `cmd.exe`.
+2. **User settings** — in `%APPDATA%\Cursor\User\settings.json`, add the same `automationProfile` (your `defaultProfile` alone does not control the agent):
+   ```json
+   "terminal.integrated.automationProfile.windows": {
+     "path": "C:\\Windows\\System32\\cmd.exe"
+   }
+   ```
+3. **Cursor Settings** — enable **Legacy Terminal Tool** (`Ctrl+Shift+J` → Agents; exact menu label varies by version), then restart Cursor and run **Terminal: Kill All Terminals**.
+4. **Optional user setting** (forum-reported, not official docs): `"cursor.useLegacyTerminalTool": true`
+5. **Project rule** — `.cursor/rules/windows-cmd-shell.mdc` reinforces cmd syntax every session.
+
+If commands still run in PowerShell, that is a known Cursor Windows limitation; keep using cmd-compatible syntax anyway.
 
 ## Documentation as Working Memory
 

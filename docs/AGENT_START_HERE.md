@@ -118,7 +118,7 @@ Status labels to use when editing docs: `current`, `planned`, `shipped`, `histor
 - Read this file and task-specific **current** docs before coding.
 - Trust **code** over docs; surface drift, update docs only when behavior changes durably.
 - Keep diffs surgical; do not refactor unrelated code.
-- Prefer pnpm; on Windows use `cmd` for shell commands when possible.
+- Prefer pnpm; on Windows use **Command Prompt (`cmd.exe`)** for shell commands — see `AGENTS.md` → **Windows shell** and `.cursor/rules/windows-cmd-shell.mdc`.
 - For UI or page work, read `SYSTEM_DESIGN.md` and `features/DESIGN_SYSTEM.md` before coding.
 - Do not use linear gradient backgrounds unless requested; use design tokens from `app/globals.css`.
 - Move completed plans and stale reviews to `archive/` — do not delete history.
