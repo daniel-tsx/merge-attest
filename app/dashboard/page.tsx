@@ -229,9 +229,7 @@ async function DashboardContent() {
                 key={label}
                 className="rounded-control border border-border bg-surface-muted/40 p-4"
               >
-                <div className="text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
-                  {label}
-                </div>
+                <div className="text-eyebrow text-subtle-foreground">{label}</div>
                 <div className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
                   {value}
                 </div>
@@ -514,9 +512,7 @@ function StatPanel({
                   statToneDot[stat.tone ?? 'neutral'],
                 )}
               />
-              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground">
-                {stat.label}
-              </p>
+              <p className="text-eyebrow text-subtle-foreground">{stat.label}</p>
             </div>
             <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
               {formatNumber(stat.value)}

@@ -59,10 +59,22 @@ Each phase is independently shippable after Phase 1.
   inherit the token system so they re-theme, but should be visually checked once
   credentials are available (matters most before Phases 5–6).
 
-### Phase 2 — Typographic & spacing system
-- Formalize a type scale (display / title / heading / body / caption / mono);
-  replace ad-hoc sizes in `PageHeader` and metrics. Codify spacing rhythm.
-- _Verify:_ headings/metrics consistent; no one-off sizes; diff acceptable.
+### Phase 2 — Typographic & spacing system ✅ shipped
+- Added a `--text-display` theme size (size/leading/tracking/weight bundled) for
+  page titles; `PageHeader` title now uses `text-display` instead of `text-[26px]`.
+- Added a single `@utility text-eyebrow` (11px / 500 / uppercase / 0.08em) for the
+  uppercase micro-label that previously varied (10/11/12px, 0.05/0.08/0.12em)
+  across components. Applied in `PageHeader`, `MetricCard`, `Table` header, and
+  the dashboard `StatPanel` + compliance tiles — so every page inherits the
+  consistent label through shared components.
+- **Tailwind v4 gotcha:** a plain `.text-eyebrow` author rule is dropped (name
+  collides with the `text-` utility namespace). Must use `@utility`. See memory
+  `tailwind-v4-custom-utility`.
+- Existing spacing rhythm (`space-y-6/8`, card `p-5`) was already consistent — no
+  changes needed.
+- _Verified:_ dashboard title + all eyebrows render at the formalized size in the
+  live app; typecheck + lint + 219 tests green. (PR-detail/sidebar labels still
+  use their own treatment — candidate for the Phase 9 polish pass.)
 
 ### Phase 3 — Primitive depth & state polish + Tooltip/Toast ✅ shipped
 - Added `components/ui/tooltip.tsx` (tokenized Radix tooltip, `surface-elevated`

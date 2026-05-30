@@ -220,6 +220,15 @@
   --animate-skeleton-shimmer: skeleton-shimmer 1.8s ease-in-out infinite;
 }
 
+@theme {
+  /* Typographic scale — display role for page-level titles. Size/leading/
+     tracking/weight travel with the utility so callers just use `text-display`. */
+  --text-display: 1.625rem;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+}
+
 @keyframes gate-scan {
   0% {
     transform: translateY(0);
@@ -401,6 +410,16 @@ textarea {
 /* Numerical/metric typography */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Uppercase micro-label used for eyebrows and metric/table column labels.
+   Color is left to the caller (usually text-subtle-foreground). */
+@utility text-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 @media (prefers-reduced-motion: reduce) {

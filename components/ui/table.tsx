@@ -23,7 +23,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        'border-b border-border bg-surface-muted/70 text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground',
+        'text-eyebrow border-b border-border bg-surface-muted/70 text-subtle-foreground',
         className,
       )}
       {...props}
