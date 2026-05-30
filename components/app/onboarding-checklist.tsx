@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import type { OnboardingStatus, OnboardingStep } from '@/lib/onboarding'
 
@@ -56,12 +57,11 @@ export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden h-1.5 w-32 overflow-hidden rounded-pill bg-surface-subtle md:block">
-            <div
-              className="h-full rounded-pill bg-accent transition-[width] duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <Progress
+            value={progress}
+            className="hidden h-1.5 w-32 md:block"
+            aria-label="Setup progress"
+          />
           <span className="text-xs font-medium tabular-nums text-muted-foreground">
             {completedCount}/{totalCount} complete
           </span>

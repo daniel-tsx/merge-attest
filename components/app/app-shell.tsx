@@ -3,7 +3,6 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import * as Dialog from '@radix-ui/react-dialog'
 import {
   Activity,
   BadgeCheck,
@@ -20,6 +19,17 @@ import {
 } from 'lucide-react'
 import { Badge, StatusDot } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { LogoMark } from '@/components/app/logo'
 import { cn } from '@/lib/utils'
 import type { PlanKey } from '@/lib/types'
@@ -201,7 +211,8 @@ function WorkspaceCard({
           {dataMode === 'live' ? 'Live' : 'Demo'}
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between border-t border-divider pt-3 text-xs">
+      <Separator className="my-3" />
+      <div className="flex items-center justify-between text-xs">
         <span className="text-subtle-foreground">Plan</span>
         <span className="font-medium capitalize text-foreground">
           {planKey}
@@ -289,8 +300,8 @@ export function AppShell({
       <div className="lg:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border bg-surface/88 px-4 backdrop-blur supports-[backdrop-filter]:bg-surface/78 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-              <Dialog.Trigger asChild>
+            <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+              <SheetTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
@@ -300,51 +311,46 @@ export function AppShell({
                 >
                   <Menu className="size-5" aria-hidden="true" />
                 </Button>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 z-40 bg-primary/40 backdrop-blur-sm" />
-                <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(20rem,calc(100vw-2rem))] flex-col border-r border-border bg-surface shadow-overlay">
-                  <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-5">
-                    <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
-                        <LogoMark className="size-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <Dialog.Title className="text-sm font-semibold tracking-tight">
-                          AgentGate
-                        </Dialog.Title>
-                        <Dialog.Description className="truncate text-[11px] text-subtle-foreground">
-                          {organizationName}
-                        </Dialog.Description>
-                      </div>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0">
+                <SheetHeader className="h-16">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <div className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
+                      <LogoMark className="size-4" />
                     </div>
-                    <Dialog.Close asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Close navigation menu"
-                      >
-                        <X className="size-5" aria-hidden="true" />
-                      </Button>
-                    </Dialog.Close>
+                    <div className="min-w-0">
+                      <SheetTitle>AgentGate</SheetTitle>
+                      <SheetDescription className="truncate">
+                        {organizationName}
+                      </SheetDescription>
+                    </div>
                   </div>
-                  <div className="flex-1 overflow-y-auto px-4 py-5">
-                    <Navigation
-                      pathname={pathname}
-                      onNavigate={() => setMobileNavOpen(false)}
-                    />
-                  </div>
-                  <div className="border-t border-border p-3">
-                    <WorkspaceCard
-                      organizationName={organizationName}
-                      planKey={planKey}
-                      dataMode={dataMode}
-                    />
-                  </div>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
+                  <SheetClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Close navigation menu"
+                    >
+                      <X className="size-5" aria-hidden="true" />
+                    </Button>
+                  </SheetClose>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto px-4 py-5">
+                  <Navigation
+                    pathname={pathname}
+                    onNavigate={() => setMobileNavOpen(false)}
+                  />
+                </div>
+                <SheetFooter>
+                  <WorkspaceCard
+                    organizationName={organizationName}
+                    planKey={planKey}
+                    dataMode={dataMode}
+                  />
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
 
             <div className="min-w-0">
               <nav

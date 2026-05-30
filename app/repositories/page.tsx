@@ -4,9 +4,13 @@ import Link from 'next/link'
 import {
   AlertTriangle,
   Boxes,
+  Eye,
   GitBranch,
   Lock,
+  MoreHorizontal,
   RefreshCw,
+  Settings as SettingsIcon,
+  ShieldCheck,
 } from 'lucide-react'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
@@ -16,6 +20,14 @@ import { RiskBadge } from '@/components/app/status-badge'
 import { Badge, StatusDot } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -154,6 +166,9 @@ async function RepositoriesContent({ searchParams }: PageProps) {
                       <TableHead>Usage</TableHead>
                       <TableHead>Risk</TableHead>
                       <TableHead>Last synced</TableHead>
+                      <TableHead className="text-right">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -214,6 +229,61 @@ async function RepositoriesContent({ searchParams }: PageProps) {
                         </TableCell>
                         <TableCell>
                           {formatDate(repository.lastSyncedAt)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={`Actions for ${repository.name}`}
+                              >
+                                <MoreHorizontal aria-hidden="true" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuLabel>
+                                {repository.name}
+                              </DropdownMenuLabel>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/repositories/${repository.id}`}>
+                                  <Eye aria-hidden="true" />
+                                  View repository
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  href={`/repositories/${repository.id}/rules`}
+                                >
+                                  <ShieldCheck aria-hidden="true" />
+                                  Rules
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/repositories/${repository.id}/ai`}>
+                                  <SettingsIcon aria-hidden="true" />
+                                  AI settings
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <form
+                                action={`/api/github/sync/repositories/${repository.id}`}
+                                method="post"
+                              >
+                                <input
+                                  type="hidden"
+                                  name="redirectTo"
+                                  value="/repositories"
+                                />
+                                <DropdownMenuItem asChild>
+                                  <button type="submit" className="w-full">
+                                    <RefreshCw aria-hidden="true" />
+                                    Sync now
+                                  </button>
+                                </DropdownMenuItem>
+                              </form>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}

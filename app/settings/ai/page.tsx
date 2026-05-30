@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 import { canManageSettings } from '@/lib/collaboration'
 import { getCurrentOrganization } from '@/lib/data/app-data'
 import { getOrganizationOpenRouterCredential } from '@/lib/ai/credentials'
@@ -136,7 +137,8 @@ export default async function AiSettingsPage({
                     {hasCredential ? 'Replace key' : 'Save key'}
                   </Button>
                 </form>
-                <div className="flex flex-wrap gap-2 border-t border-divider pt-4">
+                <Separator />
+                <div className="flex flex-wrap gap-2">
                   <form action={verifyStoredOpenRouterCredential}>
                     <Button
                       type="submit"

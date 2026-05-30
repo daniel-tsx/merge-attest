@@ -6,6 +6,7 @@ import { SettingsNav } from '@/components/app/settings-nav'
 import { UsageFilters } from '@/app/settings/usage/filters'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
 import {
   getPlanEntitlements,
@@ -108,12 +109,12 @@ export default async function UsageSettingsPage({
                   : `${formatNumber(remainingChecks)} remaining of ${limitLabel(entitlements.prCheckLimit, 'checks/month')}`}
               </div>
               {entitlements.prCheckLimit ? (
-                <div className="mt-3 h-2 overflow-hidden rounded-pill bg-surface-subtle">
-                  <div
-                    className={`h-full rounded-pill ${usageBarTone} transition-[width]`}
-                    style={{ width: `${Math.max(2, usagePercent)}%` }}
-                  />
-                </div>
+                <Progress
+                  value={Math.max(2, usagePercent)}
+                  indicatorClassName={usageBarTone}
+                  className="mt-3"
+                  aria-label="PR checks used this billing period"
+                />
               ) : null}
             </div>
             <div className="space-y-3">
@@ -146,12 +147,12 @@ export default async function UsageSettingsPage({
                           {formatNumber(repository.monthlyPrCheckUsage)}
                         </span>
                       </div>
-                      <div className="h-1.5 overflow-hidden rounded-pill bg-surface-subtle">
-                        <div
-                          className="h-full rounded-pill bg-foreground/70 transition-[width]"
-                          style={{ width: `${repoPercent}%` }}
-                        />
-                      </div>
+                      <Progress
+                        value={repoPercent}
+                        indicatorClassName="bg-foreground/70"
+                        className="h-1.5"
+                        aria-label={`${repository.name} share of PR checks`}
+                      />
                     </div>
                   )
                 })

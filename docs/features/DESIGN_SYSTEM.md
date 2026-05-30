@@ -3,7 +3,7 @@
 **Status:** `current`
 **Location:** `docs/features/DESIGN_SYSTEM.md`
 
-Last reviewed: 2026-05-19
+Last reviewed: 2026-05-31
 
 ## Purpose
 
@@ -68,15 +68,26 @@ Current badge tone mapping:
 
 Badges are metadata, not decoration. Keep them small, text-first, and close to the content they qualify.
 
-## Future Primitive Guidance
+## Primitive Library
 
-When adding local wrappers for Select, Tabs, Dialog, Dropdown Menu, Toast, or Tooltip:
+The primitive set is shadcn-style (Radix UI behavior + `class-variance-authority`) but wired to the tokens above, not shadcn's default palette. `components.json` makes the shadcn CLI usable; re-tokenize anything `npx shadcn add` generates (notably `accent`, which is brand indigo here, and `surface-*` / `danger` / `focus-ring` in place of `card` / `popover` / `destructive` / `ring`).
+
+**Shipped** (`components/ui/`): `Button`, `Badge`/`StatusDot`, `Card`, `Input`, `Textarea`, `Select` (native), `Table`, `Skeleton`, `Sheet`, `DropdownMenu`, `Tabs`, `Switch`, `Separator`, `Avatar`, `Progress`, `Label`.
+
+See [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) for the full primitive table and per-component usage.
+
+**Deferred on purpose:**
+
+- A richer **Radix Select** — current selects live in uncontrolled `FormData` forms where the native `<select>` (`Select`) is the correct, lowest-risk control. Radix Select's empty-string-value restriction and form-bubble indirection would add regression risk to team-role and AI-settings mutations for no user-facing gain. Keep `Select` native until a genuinely controlled, rich-content select is needed.
+- **Toast** and **Tooltip** — no `@radix-ui/react-tooltip` dependency is installed; add them as tokened primitives (plus the dependency and a single root provider) only when a real need lands.
+
+When adding any new wrapper:
 
 - Build on the same token names from `app/globals.css`.
 - Preserve Radix accessibility semantics where Radix is used.
 - Use `focus-visible:ring-2 focus-visible:ring-focus-ring`.
-- Use `bg-surface`, `border-border`, `text-foreground`, and `text-muted-foreground` before direct palette classes.
-- Ensure icon-only triggers have accessible labels.
+- Prefer `bg-surface`, `border-border`, `text-foreground`, and `text-muted-foreground` over direct palette classes.
+- Ensure icon-only triggers have accessible labels, and prefer the primitive over inline Radix in pages.
 
 ## Shell And Navigation
 

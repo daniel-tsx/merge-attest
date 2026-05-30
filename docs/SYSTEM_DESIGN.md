@@ -179,12 +179,40 @@ AgentGate UI is a **three-layer component model**. Keep new work in the correct 
 ```
 app/globals.css          ← design tokens (source of truth for color, radius, shadow)
     ↓
-components/ui/*          ← primitives (Button, Badge, Card, Table, Input…) — style only, minimal logic
+components/ui/*          ← primitives (Button, Badge, Card, Table, Sheet, DropdownMenu…) — style only, minimal logic
     ↓
 components/app/*         ← product components (PageHeader, Section, AppShell, status badges, filters)
     ↓
 app/**/page.tsx          ← route composition — data fetch + layout, almost no raw styling
 ```
+
+### Component library (`components/ui/`)
+
+Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-authority` where variants are needed — but they are wired to **AgentGate's own semantic tokens**, not shadcn's default palette. `components.json` exists so the shadcn CLI is usable, but anything produced by `npx shadcn add` must be re-tokenized before merge: this project redefines `accent` as brand indigo (stock shadcn treats `accent` as a neutral hover surface) and uses `surface-*`, `danger`, and `focus-ring` instead of `card` / `popover` / `destructive` / `ring`.
+
+| Primitive                                          | Basis              | Notes                                                          |
+| -------------------------------------------------- | ------------------ | -------------------------------------------------------------- |
+| `Button`                                           | cva + Radix Slot   | `default`, `secondary`, `ghost`, `accent`, `danger`, `outline` |
+| `Badge` / `StatusDot`                              | tokens             | domain tones (see status badges below)                         |
+| `Card` (+ Header/Title/Description/Content/Footer) | tokens             | framed data panels                                             |
+| `Input`, `Textarea`                                | tokens             | form controls with `aria-invalid` styling                      |
+| `Select`                                           | native `<select>`  | **form primitive** for uncontrolled `FormData` forms           |
+| `Table` (+ subcomponents)                          | tokens             | dense scan-and-review tables                                   |
+| `Skeleton`                                         | tokens             | shimmer / pulse loading                                        |
+| `Sheet`                                            | Radix Dialog       | side drawer (mobile navigation)                                |
+| `DropdownMenu`                                     | Radix DropdownMenu | row / overflow action menus                                    |
+| `Tabs`                                             | Radix Tabs         | tabbed panels                                                  |
+| `Switch`                                           | Radix Switch       | boolean form toggles (submits `on` when checked)               |
+| `Separator`                                        | Radix Separator    | standalone dividers                                            |
+| `Avatar` (+ Image/Fallback)                        | Radix Avatar       | identity initials                                              |
+| `Progress`                                         | Radix Progress     | usage / completion meters (`indicatorClassName` for tone)      |
+| `Label`                                            | Radix Label        | explicit control labels                                        |
+
+Primitive rules:
+
+- Prefer a `components/ui/*` primitive over inline Radix or ad-hoc markup. The mobile nav drawer uses `Sheet`, not a raw `@radix-ui/react-dialog`.
+- Keep native `<select>` (`Select`) for uncontrolled forms that submit via `FormData`. A richer Radix Select is intentionally **deferred** to avoid empty-value and form-bubble regressions in core mutation flows.
+- `Toast` and `Tooltip` are **not built yet** (no `@radix-ui/react-tooltip` dependency); add them as tokened primitives when a real need lands.
 
 ### Shell and route classes
 
@@ -241,16 +269,22 @@ Tone mapping lives in design system (`slate`, `green`, `yellow`, `orange`, `red`
 
 ### Shared UI building blocks
 
-| Need                  | Use                                                               |
-| --------------------- | ----------------------------------------------------------------- |
-| Page title block      | `PageHeader`                                                      |
-| Grouped content panel | `Section`                                                         |
-| Empty results         | `EmptyState` from `empty-state.tsx`                               |
-| Filter result count   | `ResultSummary`                                                   |
-| Shareable filters     | `UrlFilterForm` / route `filters.tsx`                             |
-| Loading               | Route `loading.tsx` + `page-loading.tsx` skeletons                |
-| Settings sub-nav      | `settings-nav.tsx`                                                |
-| Charts                | `components/charts/*` via dynamic import (Recharts client island) |
+| Need                     | Use                                                               |
+| ------------------------ | ----------------------------------------------------------------- |
+| Page title block         | `PageHeader`                                                      |
+| Grouped content panel    | `Section`                                                         |
+| Empty results            | `EmptyState` from `empty-state.tsx`                               |
+| Filter result count      | `ResultSummary`                                                   |
+| Shareable filters        | `UrlFilterForm` / route `filters.tsx`                             |
+| Loading                  | Route `loading.tsx` + `page-loading.tsx` skeletons                |
+| Settings sub-nav         | `settings-nav.tsx`                                                |
+| Side drawer / mobile nav | `Sheet`                                                           |
+| Row / overflow actions   | `DropdownMenu`                                                    |
+| Boolean toggle           | `Switch` (with `Label`)                                           |
+| Progress / usage meter   | `Progress`                                                        |
+| Identity initials        | `Avatar`                                                          |
+| Standalone divider       | `Separator`                                                       |
+| Charts                   | `components/charts/*` via dynamic import (Recharts client island) |
 
 ### UI consistency rules for agents
 

@@ -13,7 +13,9 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
   getCurrentOrganization,
@@ -101,23 +103,24 @@ function ToggleField({
   disabled?: boolean
 }) {
   return (
-    <label className="flex items-start gap-3 rounded-card border border-border bg-surface-muted/20 p-4">
-      <Input
-        type="checkbox"
+    <div className="flex items-start gap-3 rounded-card border border-border bg-surface-muted/20 p-4">
+      <Switch
+        id={name}
         name={name}
+        value="on"
         defaultChecked={defaultChecked}
         disabled={disabled}
-        className="mt-0.5 size-4 rounded border-border p-0 shadow-none"
+        className="mt-0.5"
       />
-      <span className="min-w-0">
-        <span className="block text-sm font-medium text-foreground">
+      <div className="min-w-0">
+        <Label htmlFor={name} className="block text-sm font-medium text-foreground">
           {title}
-        </span>
+        </Label>
         <span className="mt-1 block text-sm text-muted-foreground">
           {description}
         </span>
-      </span>
-    </label>
+      </div>
+    </div>
   )
 }
 

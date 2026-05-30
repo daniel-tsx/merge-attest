@@ -2,6 +2,7 @@ import { Mail, UserPlus } from 'lucide-react'
 import { EmptyState } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { SettingsNav } from '@/components/app/settings-nav'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -176,9 +177,11 @@ export default async function TeamSettingsPage({
                   <TableRow key={member.id}>
                     <TableCell className="font-medium text-foreground">
                       <div className="inline-flex items-center gap-2.5">
-                        <span className="flex size-7 items-center justify-center rounded-pill bg-surface-subtle text-[11px] font-semibold uppercase text-subtle-foreground">
-                          {member.name?.charAt(0) ?? '?'}
-                        </span>
+                        <Avatar className="size-7">
+                          <AvatarFallback>
+                            {member.name?.charAt(0) ?? '?'}
+                          </AvatarFallback>
+                        </Avatar>
                         {member.name}
                       </div>
                     </TableCell>
