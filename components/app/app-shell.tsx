@@ -31,6 +31,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { LogoMark } from '@/components/app/logo'
+import { ThemeToggle } from '@/components/app/theme-toggle'
 import { cn } from '@/lib/utils'
 import type { PlanKey } from '@/lib/types'
 
@@ -381,6 +382,7 @@ export function AppShell({
             <Badge tone="slate" className="hidden capitalize sm:inline-flex">
               {planKey}
             </Badge>
+            <ThemeToggle />
           </div>
         </header>
 

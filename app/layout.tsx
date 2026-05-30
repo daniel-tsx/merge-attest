@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { headers } from 'next/headers'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { RootShell } from '@/components/app/root-shell'
+import { ThemeProvider } from '@/components/app/theme-provider'
 import { getCurrentOrganization } from '@/lib/data/app-data'
 import './globals.css'
 
@@ -39,18 +40,26 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <NuqsAdapter>
-          <RootShell
-            organizationName={organization?.name ?? 'AgentGate'}
-            planKey={organization?.planKey ?? 'free'}
-            dataMode={organization?.dataMode ?? 'live'}
-          >
-            {children}
-          </RootShell>
-        </NuqsAdapter>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NuqsAdapter>
+            <RootShell
+              organizationName={organization?.name ?? 'AgentGate'}
+              planKey={organization?.planKey ?? 'free'}
+              dataMode={organization?.dataMode ?? 'live'}
+            >
+              {children}
+            </RootShell>
+          </NuqsAdapter>
+        </ThemeProvider>
       </body>
     </html>
   )

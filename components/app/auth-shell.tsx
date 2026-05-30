@@ -37,14 +37,14 @@ export function AuthShell({
 }) {
   return (
     <main className="min-h-screen bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex">
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-brand-surface p-10 text-brand-surface-foreground lg:flex">
         <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-primary-foreground"
+            className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-brand-surface-foreground"
           >
-            <span className="flex size-8 items-center justify-center rounded-control bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/15">
+            <span className="flex size-8 items-center justify-center rounded-control bg-brand-surface-foreground/10 text-brand-surface-foreground ring-1 ring-brand-surface-foreground/15">
               <LogoMark className="size-4" />
             </span>
             AgentGate
@@ -52,13 +52,13 @@ export function AuthShell({
         </div>
         <div className="relative max-w-md space-y-6">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/60">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-surface-foreground/60">
               Pull Request Control
             </p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight">
               The control center for high-risk pull requests.
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-primary-foreground/70">
+            <p className="mt-3 text-sm leading-relaxed text-brand-surface-foreground/70">
               Score risky changes, enforce rules, and capture every approval —
               before agent-authored code reaches production.
             </p>
@@ -68,14 +68,14 @@ export function AuthShell({
               const Icon = point.icon
               return (
                 <li key={point.title} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-control bg-primary-foreground/10 text-primary-foreground ring-1 ring-primary-foreground/10">
+                  <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-control bg-brand-surface-foreground/10 text-brand-surface-foreground ring-1 ring-brand-surface-foreground/10">
                     <Icon className="size-3.5" aria-hidden="true" />
                   </span>
                   <div>
-                    <div className="text-sm font-medium text-primary-foreground">
+                    <div className="text-sm font-medium text-brand-surface-foreground">
                       {point.title}
                     </div>
-                    <div className="mt-0.5 text-xs leading-relaxed text-primary-foreground/65">
+                    <div className="mt-0.5 text-xs leading-relaxed text-brand-surface-foreground/65">
                       {point.description}
                     </div>
                   </div>
@@ -84,8 +84,8 @@ export function AuthShell({
             })}
           </ul>
         </div>
-        <div className="relative flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-primary-foreground/45">
-          <span className="size-1 rounded-full bg-primary-foreground/40" />
+        <div className="relative flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-brand-surface-foreground/45">
+          <span className="size-1 rounded-full bg-brand-surface-foreground/40" />
           SOC 2-aligned controls · GDPR ready
         </div>
       </aside>
