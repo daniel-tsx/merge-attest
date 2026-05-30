@@ -10,9 +10,10 @@ Read this file at the start of every non-trivial session, then follow the read o
 1. `README.md` — product one-liner and quick start
 2. This file — source-of-truth map, drift warnings, verification commands
 3. Task-specific docs (pick one):
+   - System architecture and UI composition → `SYSTEM_DESIGN.md`
    - Local setup, routes, architecture → `operations/SETUP.md`
    - API endpoints → `features/API.md`
-   - UI tokens and patterns → `features/DESIGN_SYSTEM.md`
+   - UI tokens and patterns → `features/DESIGN_SYSTEM.md` (read with `SYSTEM_DESIGN.md` for UI work)
    - Production launch → `operations/PRODUCTION_CHECKLIST.md`
    - Jobs, incidents, retention → `operations/OPERATIONS_RUNBOOK.md`
    - Privacy and support → `operations/PRIVACY_RETENTION_SUPPORT.md`
@@ -92,7 +93,8 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 | Email                | `lib/email.ts`                                                                                                            | `operations/PRODUCTION_CHECKLIST.md`                  | Resend; mock in dev without keys                         |
 | Jobs & retention     | `lib/jobs/queue.ts`, `app/api/jobs/**`, `lib/retention.ts`                                                                | `operations/OPERATIONS_RUNBOOK.md`                    | Bearer `JOB_RUNNER_SECRET`                               |
 | Diagnostics          | `lib/diagnostics.ts`, `app/api/diagnostics/route.ts`                                                                      | `features/API.md`                                     | Owner/admin only                                         |
-| UI design            | `app/globals.css`, `components/ui/**`, `components/app/**`                                                                | `features/DESIGN_SYSTEM.md`                           | Tokens in CSS, not Tailwind theme file                   |
+| System architecture  | `proxy.ts`, `app/layout.tsx`, `lib/data/app-data.ts`, domain modules in `lib/`                                            | `SYSTEM_DESIGN.md`                                    | Layer model, flows, tenancy, jobs                        |
+| UI design            | `app/globals.css`, `components/ui/**`, `components/app/**`                                                                | `SYSTEM_DESIGN.md`, `features/DESIGN_SYSTEM.md`       | Architecture + tokens; read both for UI changes          |
 | Onboarding           | `lib/onboarding.ts`, `components/app/onboarding-checklist.tsx`                                                            | —                                                     | `tests/onboarding.test.ts`                               |
 
 ## Doc Status Guide
@@ -100,6 +102,7 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 | Location                  | Purpose                                       | Status               |
 | ------------------------- | --------------------------------------------- | -------------------- |
 | `AGENT_START_HERE.md`     | Session entry point                           | `current`            |
+| `SYSTEM_DESIGN.md`        | Architecture, domain flows, UI layer model    | `current`            |
 | `README.md`               | Doc index                                     | `current`            |
 | `features/`               | Feature/system reference (API, design system) | `current`            |
 | `operations/`             | Setup, production, runbooks, privacy          | `current`            |
@@ -116,6 +119,7 @@ Status labels to use when editing docs: `current`, `planned`, `shipped`, `histor
 - Trust **code** over docs; surface drift, update docs only when behavior changes durably.
 - Keep diffs surgical; do not refactor unrelated code.
 - Prefer pnpm; on Windows use `cmd` for shell commands when possible.
+- For UI or page work, read `SYSTEM_DESIGN.md` and `features/DESIGN_SYSTEM.md` before coding.
 - Do not use linear gradient backgrounds unless requested; use design tokens from `app/globals.css`.
 - Move completed plans and stale reviews to `archive/` — do not delete history.
 - Next.js 16 APIs differ from training data — check `node_modules/next/dist/docs/` when unsure.

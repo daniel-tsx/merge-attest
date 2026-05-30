@@ -18,6 +18,7 @@ pnpm dev
 | Topic                       | Doc                                                                                            |
 | --------------------------- | ---------------------------------------------------------------------------------------------- |
 | Documentation index         | [`docs/README.md`](docs/README.md)                                                             |
+| System design & UI layers   | [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md)                                               |
 | Setup, routes, architecture | [`docs/operations/SETUP.md`](docs/operations/SETUP.md)                                         |
 | API endpoints               | [`docs/features/API.md`](docs/features/API.md)                                                 |
 | UI design system            | [`docs/features/DESIGN_SYSTEM.md`](docs/features/DESIGN_SYSTEM.md)                             |

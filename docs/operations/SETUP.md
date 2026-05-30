@@ -128,6 +128,7 @@ pnpm build
 
 ## Related Docs
 
+- System design and UI layers: [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md)
 - API reference: `features/API.md`
 - Production checklist: `operations/PRODUCTION_CHECKLIST.md`
 - Active roadmap: `strategy/ENHANCEMENT_PLAN.md`

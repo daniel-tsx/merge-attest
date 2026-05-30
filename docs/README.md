@@ -8,21 +8,30 @@ AgentGate is a SaaS control center for engineering teams using AI coding agents.
 ## Start Here
 
 1. [`AGENT_START_HERE.md`](AGENT_START_HERE.md) — read every session (source-of-truth map, drift warnings, env vars, verification)
-2. [`operations/SETUP.md`](operations/SETUP.md) — local setup, routes, and architecture
-3. Task-specific docs from the folders below
+2. [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) — architecture, domain flows, and UI layer model (read before UI or structural changes)
+3. [`operations/SETUP.md`](operations/SETUP.md) — local setup, routes, and architecture
+4. Task-specific docs from the folders below
 
 Root [`README.md`](../README.md) has the quick start only.
 
 ## Folder Guide
 
-| Folder                       | Purpose                                                                     |
-| ---------------------------- | --------------------------------------------------------------------------- |
-| [`features/`](features/)     | Current feature and system reference docs                                   |
-| [`operations/`](operations/) | Setup, production, runbooks, privacy, and support                           |
-| [`strategy/`](strategy/)     | Roadmap and product direction that still guides decisions                   |
-| [`archive/`](archive/)       | Historical plans, reviews, and superseded documents — **not current truth** |
+| Folder                                 | Purpose                                                                     |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) | Cross-cutting architecture, domain flows, UI composition model              |
+| [`features/`](features/)               | Current feature and system reference docs                                   |
+| [`operations/`](operations/)           | Setup, production, runbooks, privacy, and support                           |
+| [`strategy/`](strategy/)               | Roadmap and product direction that still guides decisions                   |
+| [`archive/`](archive/)                 | Historical plans, reviews, and superseded documents — **not current truth** |
 
 ## Current Docs
+
+### Core
+
+| Doc                                          | Status    | Summary                                                        |
+| -------------------------------------------- | --------- | -------------------------------------------------------------- |
+| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)       | `current` | Architecture layers, tenancy, domain flows, UI component model |
+| [`AGENT_START_HERE.md`](AGENT_START_HERE.md) | `current` | Agent session entry point and source-of-truth map              |
 
 ### Features
 
