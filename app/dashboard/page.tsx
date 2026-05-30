@@ -6,8 +6,10 @@ import {
   TestTube2,
 } from 'lucide-react'
 import Link from 'next/link'
+import { AnimatedNumber } from '@/components/app/animated-number'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
 import { MetricCard } from '@/components/app/metric-card'
+import { MetricTrend } from '@/components/app/metric-trend'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
 import { DashboardSkeleton } from '@/components/app/page-loading'
@@ -31,7 +33,7 @@ import {
 } from '@/lib/data/app-data'
 import { githubConfigured } from '@/lib/github'
 import { getOnboardingStatus } from '@/lib/onboarding'
-import { buildReportingMetrics } from '@/lib/reporting'
+import { buildReportingMetrics, buildSignalTrends } from '@/lib/reporting'
 import { cn, formatDate, formatNumber } from '@/lib/utils'
 
 export default function DashboardPage() {
@@ -74,6 +76,7 @@ async function DashboardContent() {
       )
     : 0
   const reportingMetrics = buildReportingMetrics(pullRequests)
+  const signalTrends = buildSignalTrends(pullRequests)
   const aiReviewMetrics = reportingMetrics.aiReviews
   const metrics = {
     repositoriesConnected: repositories.length,
@@ -98,6 +101,7 @@ async function DashboardContent() {
 
   const heroMetrics = [
     {
+      key: 'pendingApprovals' as const,
       label: 'Pending approvals',
       value: metrics.pendingApprovals,
       description: 'Decisions waiting on a reviewer',
@@ -105,6 +109,7 @@ async function DashboardContent() {
       tone: metrics.pendingApprovals > 0 ? ('accent' as const) : ('neutral' as const),
     },
     {
+      key: 'highRiskPrs' as const,
       label: 'High-risk PRs',
       value: metrics.highRiskPrs,
       description: 'High or critical risk score',
@@ -112,6 +117,7 @@ async function DashboardContent() {
       tone: metrics.highRiskPrs > 0 ? ('danger' as const) : ('success' as const),
     },
     {
+      key: 'failedCi' as const,
       label: 'Failed CI checks',
       value: metrics.failedCiChecks,
       description: 'Blocking merge confidence',
@@ -119,6 +125,7 @@ async function DashboardContent() {
       tone: metrics.failedCiChecks > 0 ? ('warning' as const) : ('success' as const),
     },
     {
+      key: 'testGaps' as const,
       label: 'PRs with test gaps',
       value: metrics.prsWithTestGaps,
       description: 'Suggested test coverage',
@@ -192,16 +199,26 @@ async function DashboardContent() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {heroMetrics.map((metric) => (
-              <MetricCard
-                key={metric.label}
-                label={metric.label}
-                value={formatNumber(metric.value)}
-                description={metric.description}
-                icon={metric.icon}
-                tone={metric.tone}
-              />
-            ))}
+            {heroMetrics.map((metric) => {
+              const signal = signalTrends[metric.key]
+              return (
+                <MetricCard
+                  key={metric.label}
+                  label={metric.label}
+                  value={<AnimatedNumber value={metric.value} />}
+                  description={metric.description}
+                  icon={metric.icon}
+                  tone={metric.tone}
+                  trailing={
+                    <MetricTrend
+                      series={signal.series}
+                      trend={signal.trend}
+                      tone={metric.tone}
+                    />
+                  }
+                />
+              )
+            })}
           </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">

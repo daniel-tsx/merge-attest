@@ -98,10 +98,22 @@ Each phase is independently shippable after Phase 1.
   ⌘K / Ctrl+K + header search affordance; focus-trapped, labeled.
 - _Verify:_ opens via shortcut + click, keyboard-navigable, both themes, a11y.
 
-### Phase 5 — Dashboard as a command center
-- `MetricCard` deltas (WoW) + sparklines from already-loaded trend data (no new
-  queries); reduced-motion-safe count-up; dark-aware charts.
-- _Verify:_ deltas/sparklines correct, zero extra queries, charts themed in dark.
+### Phase 5 — Dashboard as a command center ✅ shipped
+- Added `buildSignalTrends` (`lib/reporting.ts`, unit-tested): per-signal 7-day
+  daily series (bucketed by `updatedAt`) + trend direction, derived from the
+  already-loaded PR list — no extra query.
+- Hero metric cards now show a tone-colored inline-SVG `Sparkline` + 7-day trend
+  arrow (`MetricTrend`) and a reduced-motion-safe count-up (`AnimatedNumber`).
+  (No fabricated WoW % — the demo window is too short for honest week-over-week.)
+- Charts recolor on theme toggle: `TrendChartInner` re-reads the token palette
+  keyed on `resolvedTheme` (was captured once at mount).
+- Skeletons realigned to the real layout (4 hero cards incl. sparkline height +
+  2 stat panels + 2 charts + table) — no layout shift on load.
+- Gotcha fixed: a function prop (`formatNumber`) can't cross the server→client
+  boundary; `AnimatedNumber` formats internally instead.
+- _Verified:_ live dashboard (seeded demo data) in dark + light; sparklines +
+  count-up render; charts recolor on toggle without reload; new skeleton matches;
+  typecheck + lint + 220 tests green.
 
 ### Phase 6 — Table & list interactions
 - Sort affordances bound to `nuqs` `sort`, density toggle, sticky first column,

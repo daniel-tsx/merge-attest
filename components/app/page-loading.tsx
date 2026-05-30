@@ -64,12 +64,32 @@ function MetricCardSkeleton() {
   return (
     <Card>
       <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <Skeleton className="h-3 w-24" />
-          <Skeleton className="size-6 rounded-control" />
+          <Skeleton className="size-9 rounded-control" />
         </div>
         <Skeleton className="h-7 w-20" />
         <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-6 w-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function StatPanelSkeleton() {
+  return (
+    <Card>
+      <CardContent className="space-y-4 p-4">
+        <Skeleton className="h-4 w-32" />
+        <div className="grid grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-5 w-12" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )
@@ -116,14 +136,20 @@ function FilterBarSkeleton() {
 
 export function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <MetricCardSkeleton key={index} />
-        ))}
+    <div className="space-y-8">
+      <section className="space-y-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <MetricCardSkeleton key={index} />
+          ))}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <StatPanelSkeleton />
+          <StatPanelSkeleton />
+        </div>
       </section>
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card>
           <CardContent className="space-y-3 p-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-48 w-full" />
@@ -132,15 +158,7 @@ export function DashboardSkeleton() {
         <Card>
           <CardContent className="space-y-3 p-4">
             <Skeleton className="h-4 w-28" />
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <Skeleton className="size-8 rounded-full" />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              </div>
-            ))}
+            <Skeleton className="h-48 w-full" />
           </CardContent>
         </Card>
       </div>

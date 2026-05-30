@@ -42,6 +42,80 @@ export type ReviewTimelineItem = {
   detail?: string
 }
 
+export type SignalKey =
+  | 'pendingApprovals'
+  | 'highRiskPrs'
+  | 'failedCi'
+  | 'testGaps'
+
+export type SignalTrend = {
+  /** Daily count of matching pull requests over the trailing window. */
+  series: number[]
+  /** Direction of the series (later half vs earlier half) — describes `series`. */
+  trend: 'up' | 'down' | 'flat'
+}
+
+const signalPredicates: Record<SignalKey, (pr: PullRequest) => boolean> = {
+  pendingApprovals: (pr) => pr.approvalStatus === 'pending',
+  highRiskPrs: (pr) => pr.riskLevel === 'high' || pr.riskLevel === 'critical',
+  failedCi: (pr) => pr.ciStatus === 'failing',
+  testGaps: (pr) => pr.testGapStatus !== 'none',
+}
+
+/**
+ * Per-signal daily counts over the trailing `days` (bucketed by `updatedAt`,
+ * anchored to the latest PR like `buildTrendData`). Derived entirely from the
+ * already-loaded pull request list — no extra query.
+ */
+export function buildSignalTrends(
+  pullRequests: PullRequest[],
+  days = 7,
+): Record<SignalKey, SignalTrend> {
+  const latest = pullRequests.reduce((max, pr) => {
+    const time = new Date(pr.updatedAt).getTime()
+    return Number.isFinite(time) ? Math.max(max, time) : max
+  }, 0)
+  const end = latest ? new Date(latest) : new Date()
+  const dayKeys: string[] = []
+  for (let index = 0; index < days; index += 1) {
+    const day = new Date(
+      Date.UTC(
+        end.getUTCFullYear(),
+        end.getUTCMonth(),
+        end.getUTCDate() - (days - 1 - index),
+      ),
+    )
+    dayKeys.push(day.toISOString().slice(0, 10))
+  }
+  const dayIndex = new Map(dayKeys.map((key, index) => [key, index]))
+
+  const keys = Object.keys(signalPredicates) as SignalKey[]
+  const counts = Object.fromEntries(
+    keys.map((key) => [key, new Array<number>(days).fill(0)]),
+  ) as Record<SignalKey, number[]>
+
+  for (const pullRequest of pullRequests) {
+    const index = dayIndex.get(
+      new Date(pullRequest.updatedAt).toISOString().slice(0, 10),
+    )
+    if (index === undefined) continue
+    for (const key of keys) {
+      if (signalPredicates[key](pullRequest)) counts[key][index] += 1
+    }
+  }
+
+  const half = Math.floor(days / 2)
+  return Object.fromEntries(
+    keys.map((key) => {
+      const series = counts[key]
+      const earlier = series.slice(0, half).reduce((a, b) => a + b, 0)
+      const later = series.slice(series.length - half).reduce((a, b) => a + b, 0)
+      const trend = later > earlier ? 'up' : later < earlier ? 'down' : 'flat'
+      return [key, { series, trend }]
+    }),
+  ) as Record<SignalKey, SignalTrend>
+}
+
 export function getLatestAiReviewJob(pullRequest: PullRequest) {
   return pullRequest.aiReviewJobs[0]
 }
