@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useActionState } from 'react'
+import { type ReactNode, useActionState, useEffect } from 'react'
 import { useFormStatus } from 'react-dom'
+import { toast } from 'sonner'
 import { Check, MessageSquare, ShieldAlert, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -62,6 +63,11 @@ export function ApprovalActions({
     recordApprovalDecision.bind(null, prId),
     initialActionState,
   )
+
+  useEffect(() => {
+    if (state.status === 'success') toast.success(state.message)
+    else if (state.status === 'error') toast.error(state.message)
+  }, [state])
 
   const statusMessage = isPending ? 'Recording decision…' : state.message
   const messageClassName =

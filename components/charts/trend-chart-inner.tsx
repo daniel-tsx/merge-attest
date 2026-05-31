@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo } from 'react'
+import { useTheme } from 'next-themes'
 import {
   CartesianGrid,
   Line,
@@ -56,7 +57,15 @@ export function TrendChartInner({
   data: Array<Record<string, string | number>>
   metric: 'risk' | 'testGaps'
 }) {
-  const [palette] = useState(readPalette)
+  // Re-read tokens whenever the resolved theme changes so the chart recolors
+  // on light/dark toggle. readPalette() reads CSS custom properties that flip
+  // with the .dark class, so resolvedTheme is the intended recompute trigger.
+  const { resolvedTheme } = useTheme()
+  const palette = useMemo(
+    () => readPalette(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [resolvedTheme],
+  )
   const color = metric === 'risk' ? palette.risk : palette.testGaps
 
   return (

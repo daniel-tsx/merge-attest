@@ -21,6 +21,8 @@ describe('search parameter parsers', () => {
       riskLevel: 'all',
       agentSource: 'all',
       approvalStatus: 'all',
+      sort: 'updated',
+      dir: 'desc',
     })
   })
 
@@ -31,13 +33,23 @@ describe('search parameter parsers', () => {
         riskLevel: 'urgent',
         agentSource: 'robot',
         approvalStatus: 'blocked',
+        sort: 'nonsense',
+        dir: 'sideways',
       }),
     ).toEqual({
       query: 'auth',
       riskLevel: 'all',
       agentSource: 'all',
       approvalStatus: 'all',
+      sort: 'updated',
+      dir: 'desc',
     })
+  })
+
+  it('parses valid pull request sort and direction', () => {
+    expect(
+      pullRequestSearchParamsCache.parse({ sort: 'risk', dir: 'asc' }),
+    ).toMatchObject({ sort: 'risk', dir: 'asc' })
   })
 
   it('parses repository filters with valid enum values', () => {
@@ -70,6 +82,20 @@ describe('search parameter serializers', () => {
     expect(params.get('riskLevel')).toBe('high')
     expect(params.get('agentSource')).toBe('cursor')
     expect(params.has('approvalStatus')).toBe(false)
+  })
+
+  it('omits default sort and keeps an active sort', () => {
+    const active = readQueryString(
+      serializePullRequestSearchParams({ sort: 'risk', dir: 'asc' }),
+    )
+    expect(active.get('sort')).toBe('risk')
+    expect(active.get('dir')).toBe('asc')
+
+    const defaulted = readQueryString(
+      serializePullRequestSearchParams({ sort: 'updated', dir: 'desc' }),
+    )
+    expect(defaulted.has('sort')).toBe(false)
+    expect(defaulted.has('dir')).toBe(false)
   })
 
   it('serializes repository and approval filter combinations', () => {

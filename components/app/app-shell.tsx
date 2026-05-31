@@ -30,7 +30,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { CommandPalette } from '@/components/app/command-palette'
 import { LogoMark } from '@/components/app/logo'
+import { SignOutButton } from '@/components/app/sign-out-button'
+import { ThemeToggle } from '@/components/app/theme-toggle'
 import { cn } from '@/lib/utils'
 import type { PlanKey } from '@/lib/types'
 
@@ -203,13 +206,12 @@ function WorkspaceCard({
             {organizationName}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-          <StatusDot
-            tone={dataMode === 'live' ? 'green' : 'blue'}
-            pulse={dataMode === 'live'}
-          />
-          {dataMode === 'live' ? 'Live' : 'Demo'}
-        </div>
+        {dataMode === 'demo' ? (
+          <div className="flex shrink-0 items-center gap-1.5 rounded-pill border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+            <StatusDot tone="blue" />
+            Demo
+          </div>
+        ) : null}
       </div>
       <Separator className="my-3" />
       <div className="flex items-center justify-between text-xs">
@@ -225,6 +227,7 @@ function WorkspaceCard({
         <KeyRound className="size-3.5" aria-hidden="true" />
         Configure GitHub App
       </Link>
+      <SignOutButton />
     </div>
   )
 }
@@ -375,12 +378,16 @@ export function AppShell({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Badge tone={dataMode === 'live' ? 'green' : 'blue'} withDot>
-              {dataMode === 'live' ? 'live data' : 'demo data'}
-            </Badge>
+            <CommandPalette />
+            {dataMode === 'demo' ? (
+              <Badge tone="blue" withDot>
+                demo data
+              </Badge>
+            ) : null}
             <Badge tone="slate" className="hidden capitalize sm:inline-flex">
               {planKey}
             </Badge>
+            <ThemeToggle />
           </div>
         </header>
 
@@ -390,7 +397,9 @@ export function AppShell({
           tabIndex={-1}
           className="mx-auto w-full max-w-7xl p-4 outline-none sm:p-6 lg:p-8"
         >
-          {children}
+          <div key={pathname} data-route-enter>
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -1,9 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import {
-  AlertTriangle,
   Bot,
-  CheckCircle2,
   Download,
   FileWarning,
   GitBranch,
@@ -15,6 +13,7 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/app/empty-state'
 import { ApprovalActions } from '@/components/app/approval-actions'
+import { MutationToasts } from '@/components/app/mutation-toasts'
 import { addReviewNote, assignReviewer } from '@/app/pull-requests/actions'
 import { PageHeader } from '@/components/app/page-header'
 import { RiskScoreRing } from '@/components/app/risk-score'
@@ -57,46 +56,15 @@ import { canRecordApproval } from '@/lib/collaboration'
 import { isFeatureAvailable } from '@/lib/plans'
 import { formatDate, formatNumber } from '@/lib/utils'
 
-type FeedbackTone = 'danger' | 'info' | 'success'
-
-const feedbackToneStyles: Record<
-  FeedbackTone,
-  { container: string; icon: typeof Info }
-> = {
-  danger: {
-    container: 'border-danger-border bg-danger-soft text-danger',
-    icon: AlertTriangle,
-  },
-  success: {
-    container: 'border-success-border bg-success-soft text-success-strong',
-    icon: CheckCircle2,
-  },
-  info: {
-    container: 'border-info-border bg-info-soft text-info',
-    icon: Info,
-  },
-}
-
 export default async function PullRequestDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const [{ id }, resolvedSearchParams, organization] = await Promise.all([
+  const [{ id }, organization] = await Promise.all([
     params,
-    searchParams ?? Promise.resolve(undefined),
     getCurrentOrganization(),
   ])
-  const assignmentStatus =
-    typeof resolvedSearchParams?.assignment === 'string'
-      ? resolvedSearchParams.assignment
-      : undefined
-  const commentStatus =
-    typeof resolvedSearchParams?.comment === 'string'
-      ? resolvedSearchParams.comment
-      : undefined
   const [pr, teamMembers] = await Promise.all([
     getPullRequest(organization.id, id),
     listTeamMembers(organization.id),
@@ -112,31 +80,6 @@ export default async function PullRequestDetailPage({
   const latestAiReview = getLatestAiReviewJob(pr)
   const latestAiReviewDetail = getAiReviewStatusDetail(latestAiReview)
   const latestAiReviewAction = getAiReviewBlockedAction(latestAiReview)
-  const feedbackMessages = [
-    assignmentStatus === 'assigned'
-      ? { text: 'Reviewer assignment updated.', tone: 'success' as const }
-      : assignmentStatus === 'unassigned'
-        ? { text: 'Reviewer assignment cleared.', tone: 'info' as const }
-        : assignmentStatus === 'forbidden'
-          ? {
-              text: 'You do not have permission to assign reviewers.',
-              tone: 'danger' as const,
-            }
-          : null,
-    commentStatus === 'added'
-      ? { text: 'Internal review note added.', tone: 'success' as const }
-      : commentStatus === 'forbidden'
-        ? {
-            text: 'You do not have permission to add review notes.',
-            tone: 'danger' as const,
-          }
-        : commentStatus === 'empty'
-          ? { text: 'Write a note before submitting.', tone: 'info' as const }
-          : null,
-  ].filter(
-    (message): message is { text: string; tone: FeedbackTone } =>
-      message !== null,
-  )
 
   return (
     <div className="space-y-6">
@@ -168,26 +111,7 @@ export default async function PullRequestDetailPage({
           )
         }
       />
-      {feedbackMessages.length ? (
-        <div className="grid gap-2">
-          {feedbackMessages.map((message) => {
-            const styles = feedbackToneStyles[message.tone]
-            const Icon = styles.icon
-            return (
-              <div
-                key={message.text}
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-                className={`flex items-start gap-2.5 rounded-card border px-4 py-3 text-sm ${styles.container}`}
-              >
-                <Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                {message.text}
-              </div>
-            )
-          })}
-        </div>
-      ) : null}
+      <MutationToasts />
 
       {/* Decision hero — risk ring + key facts */}
       <Card className="overflow-hidden">

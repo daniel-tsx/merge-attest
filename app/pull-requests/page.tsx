@@ -10,9 +10,10 @@ import {
   AiReviewBadge,
   ApprovalBadge,
   CiBadge,
-  RiskBadge,
   TestGapBadge,
 } from '@/components/app/status-badge'
+import { RiskScoreBar } from '@/components/app/risk-score'
+import { SortableHeader } from '@/components/app/sortable-header'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -26,6 +27,7 @@ import { getCurrentOrganization, listPullRequests } from '@/lib/data/app-data'
 import { getLatestAiReviewJob } from '@/lib/reporting'
 import { formatDate, formatNumber } from '@/lib/utils'
 import { pullRequestSearchParamsCache } from './search-params'
+import { sortPullRequests } from './sort'
 
 type PageProps = {
   searchParams: Promise<SearchParams>
@@ -57,6 +59,7 @@ async function PullRequestTable({ searchParams }: PageProps) {
     getCurrentOrganization(),
   ])
   const pullRequests = await listPullRequests(organization.id, filters)
+  const sorted = sortPullRequests(pullRequests, filters.sort, filters.dir)
 
   return (
     <>
@@ -71,25 +74,41 @@ async function PullRequestTable({ searchParams }: PageProps) {
             Pull request monitor results with repository, agent, risk, test, CI,
             approval, diff, and updated status
           </caption>
-          <TableHeader className="sticky top-0 z-10">
+          <TableHeader className="sticky top-0 z-20">
             <TableRow>
-              <TableHead>Pull request</TableHead>
-              <TableHead>Repository</TableHead>
+              <TableHead className="sticky left-0 z-30 bg-surface-muted">
+                <SortableHeader sortKey="pr" label="Pull request" />
+              </TableHead>
+              <TableHead>
+                <SortableHeader sortKey="repository" label="Repository" />
+              </TableHead>
               <TableHead>Agent</TableHead>
-              <TableHead>Risk</TableHead>
-              <TableHead>Tests</TableHead>
-              <TableHead>CI</TableHead>
-              <TableHead>Approval</TableHead>
+              <TableHead>
+                <SortableHeader sortKey="risk" label="Risk" />
+              </TableHead>
+              <TableHead>
+                <SortableHeader sortKey="tests" label="Tests" />
+              </TableHead>
+              <TableHead>
+                <SortableHeader sortKey="ci" label="CI" />
+              </TableHead>
+              <TableHead>
+                <SortableHeader sortKey="approval" label="Approval" />
+              </TableHead>
               <TableHead>AI review</TableHead>
-              <TableHead>Diff</TableHead>
-              <TableHead>Updated</TableHead>
+              <TableHead>
+                <SortableHeader sortKey="diff" label="Diff" />
+              </TableHead>
+              <TableHead>
+                <SortableHeader sortKey="updated" label="Updated" />
+              </TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pullRequests.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="min-w-80">
+            {sorted.map((item) => (
+              <TableRow key={item.id} className="group">
+                <TableCell className="sticky left-0 z-10 min-w-80 bg-surface-elevated group-hover:bg-surface-hover">
                   <Link
                     className="font-medium text-foreground hover:text-accent"
                     href={`/pull-requests/${item.id}`}
@@ -103,21 +122,16 @@ async function PullRequestTable({ searchParams }: PageProps) {
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-foreground">
+                <TableCell className="whitespace-nowrap text-foreground">
                   {item.repositoryName}
                 </TableCell>
-                <TableCell className="capitalize">
+                <TableCell className="whitespace-nowrap capitalize">
                   {item.aiAssisted === null
                     ? 'unknown'
                     : item.agentSource.replace('_', ' ')}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <RiskBadge level={item.riskLevel} />
-                    <span className="text-xs tabular-nums text-muted-foreground">
-                      {item.riskScore}
-                    </span>
-                  </div>
+                  <RiskScoreBar level={item.riskLevel} score={item.riskScore} />
                 </TableCell>
                 <TableCell>
                   <TestGapBadge status={item.testGapStatus} />
@@ -131,7 +145,7 @@ async function PullRequestTable({ searchParams }: PageProps) {
                 <TableCell>
                   <AiReviewBadge status={getLatestAiReviewJob(item)?.status} />
                 </TableCell>
-                <TableCell className="font-mono text-xs">
+                <TableCell className="whitespace-nowrap font-mono text-xs">
                   <span className="text-success-strong">
                     +{formatNumber(item.linesAdded)}
                   </span>
@@ -140,7 +154,9 @@ async function PullRequestTable({ searchParams }: PageProps) {
                     -{formatNumber(item.linesDeleted)}
                   </span>
                 </TableCell>
-                <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatDate(item.updatedAt)}
+                </TableCell>
                 <TableCell className="text-right">
                   <Link
                     href={`/pull-requests/${item.id}`}

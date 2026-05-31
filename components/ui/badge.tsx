@@ -44,7 +44,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-pill border px-2 py-0.5 text-[11px] font-medium leading-5 capitalize tracking-tight',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill border px-2 py-0.5 text-[11px] font-medium leading-5 capitalize tracking-tight',
         styles.surface,
         className,
       )}

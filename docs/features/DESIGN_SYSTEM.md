@@ -25,22 +25,47 @@ The source of truth for runtime UI tokens is `app/globals.css`.
 
 Token groups:
 
-- Surfaces: `background`, `surface`, `surface-muted`, `surface-subtle`, `surface-hover`, and `surface-pressed`.
-- Borders: `border` and `border-strong`.
+- Surfaces: `background`, `surface`, `surface-elevated`, `surface-muted`, `surface-subtle`, `surface-hover`, and `surface-pressed`.
+- Borders: `border`, `border-strong`, `border-subtle`, and `divider`.
 - Text: `foreground`, `muted-foreground`, and `subtle-foreground`.
 - Actions: `primary`, `primary-hover`, `primary-foreground`, `accent`, `accent-hover`, `accent-soft`, and `accent-foreground`.
+- Brand chrome: `brand-surface` / `brand-surface-foreground` (fixed deep-ink decorative panels) and `scrim` (modal/overlay dimmer) — these stay dark in **both** themes.
 - Status: `success`, `warning`, `attention`, `danger`, and `info`, each with soft and border variants where needed.
 - Interaction: `focus` and `focus-ring`.
-- Shape/elevation: `radius-control`, `radius-card`, `shadow-card`, and `shadow-card-hover`.
+- Shape/elevation: `radius-control`, `radius-card`, `shadow-card`, `shadow-card-hover`, and `shadow-overlay`.
 
 Current token strategy:
 
 - Use cool near-white surfaces rather than warm cream.
-- Use near-black product chrome for primary actions and shell identity.
+- Use near-black product chrome for primary actions and shell identity — `primary`
+  **inverts to near-white in dark mode** for high-contrast buttons, so decorative
+  dark panels (auth aside) and the modal scrim use `brand-surface` / `scrim`, not `primary`.
 - Use indigo only for selected states, focus, and high-priority accent actions.
-- Keep semantic status colors clear but muted enough for dense tables.
-- Keep shadows extremely shallow; borders carry most structure.
+- Keep semantic status colors clear but muted enough for dense tables; in dark mode
+  the `*-soft` fills go dark-tinted and the base/text tones brighten for contrast.
+- Elevation is restrained but real (cards lift with a soft shadow; in dark, depth
+  also comes from the surface lightness ramp). Borders still carry most structure.
 - Use `rounded-control` for 6px control radius and `rounded-card` for 8px cards.
+
+## Theming (light + dark)
+
+- Light tokens live in `:root`; a tuned `.dark` scale overrides the same runtime
+  variables. The `@theme inline` block maps `--color-* → var(--*)`, so toggling the
+  `.dark` class re-themes every utility at runtime — **no per-component dark classes**.
+- `@custom-variant dark (&:where(.dark, .dark *))` makes Tailwind's `dark:` variant
+  follow the `.dark` class (set by `next-themes`), not OS `prefers-color-scheme`.
+- Theme provider: `components/app/theme-provider.tsx` (`next-themes`, system / light /
+  dark, FOUC-safe) wraps the app in `app/layout.tsx`; `<html suppressHydrationWarning>`.
+- Theme toggle: `components/app/theme-toggle.tsx` (System/Light/Dark dropdown). Mounted
+  in the app header **and** the public landing nav + auth shell.
+
+## Typography utilities
+
+- `text-display` (theme size) — page titles via `PageHeader` (size/leading/tracking/weight bundled).
+- `text-eyebrow` (`@utility`) — the uppercase micro-label (11px / 500 / 0.08em) used by
+  `PageHeader`, `MetricCard`, `Table` headers, and dashboard stat/compliance tiles.
+- **Tailwind v4 note:** a plain `.text-*` author rule is dropped (name collides with the
+  `text-` utility namespace); reusable text utilities must be declared with `@utility`.
 
 ## Component Rules
 
@@ -72,14 +97,15 @@ Badges are metadata, not decoration. Keep them small, text-first, and close to t
 
 The primitive set is shadcn-style (Radix UI behavior + `class-variance-authority`) but wired to the tokens above, not shadcn's default palette. `components.json` makes the shadcn CLI usable; re-tokenize anything `npx shadcn add` generates (notably `accent`, which is brand indigo here, and `surface-*` / `danger` / `focus-ring` in place of `card` / `popover` / `destructive` / `ring`).
 
-**Shipped** (`components/ui/`): `Button`, `Badge`/`StatusDot`, `Card`, `Input`, `Textarea`, `Select` (native), `Table`, `Skeleton`, `Sheet`, `DropdownMenu`, `Tabs`, `Switch`, `Separator`, `Avatar`, `Progress`, `Label`.
+**Shipped** (`components/ui/`): `Button`, `Badge`/`StatusDot`, `Card`, `Input`, `Textarea`, `Select` (native), `Table`, `Skeleton`, `Sheet`, `DropdownMenu`, `Tabs`, `Switch`, `Separator`, `Avatar`, `Progress`, `Label`, `Tooltip` (Radix), `Toast` (Sonner — `sonner.tsx`, theme-synced), and `Command` (cmdk — `command.tsx`, used by the ⌘K palette).
 
 See [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) for the full primitive table and per-component usage.
 
 **Deferred on purpose:**
 
 - A richer **Radix Select** — current selects live in uncontrolled `FormData` forms where the native `<select>` (`Select`) is the correct, lowest-risk control. Radix Select's empty-string-value restriction and form-bubble indirection would add regression risk to team-role and AI-settings mutations for no user-facing gain. Keep `Select` native until a genuinely controlled, rich-content select is needed.
-- **Toast** and **Tooltip** — no `@radix-ui/react-tooltip` dependency is installed; add them as tokened primitives (plus the dependency and a single root provider) only when a real need lands.
+- **React `<ViewTransition>`** (Next `experimental.viewTransition`) — the component isn't in the stable React export (only Next's experimental channel) with uncertain typing; the reduced-motion-safe `route-enter` fade covers route arrival meanwhile. See `docs/strategy/UI_REVAMP_PLAN.md` Phase 7.
+- **Table scan interactions** — shipped on the pull request monitor (sortable headers via `SortableHeader` + a `nuqs` sort/dir param, in-memory `sortPullRequests`, sticky first column). Rolling the same pattern out to the other scan tables (repositories, activity, approvals, audit log) is a follow-up; see `docs/strategy/UI_REVAMP_PLAN.md`.
 
 When adding any new wrapper:
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildPullRequestTimeline,
   buildReportingMetrics,
+  buildSignalTrends,
   serializeIncidentReviewPacket,
 } from '../lib/reporting'
 import type { PullRequest } from '../lib/types'
@@ -114,6 +115,62 @@ describe('reporting metrics', () => {
       commentsPosted: 2,
       commentsFiltered: 1,
     })
+  })
+})
+
+describe('signal trends', () => {
+  const makePr = (overrides: Partial<PullRequest>): PullRequest => ({
+    ...pullRequest,
+    ...overrides,
+  })
+
+  it('buckets matching pull requests into a 7-day series with direction', () => {
+    const trends = buildSignalTrends([
+      makePr({
+        id: 'a',
+        updatedAt: '2026-05-07T12:00:00.000Z',
+        riskLevel: 'critical',
+        ciStatus: 'failing',
+        testGapStatus: 'high',
+        approvalStatus: 'pending',
+      }),
+      makePr({
+        id: 'b',
+        updatedAt: '2026-05-06T12:00:00.000Z',
+        riskLevel: 'high',
+        ciStatus: 'passing',
+        testGapStatus: 'none',
+        approvalStatus: 'approved',
+      }),
+      makePr({
+        id: 'c',
+        updatedAt: '2026-05-01T12:00:00.000Z',
+        riskLevel: 'low',
+        ciStatus: 'passing',
+        testGapStatus: 'none',
+        approvalStatus: 'approved',
+      }),
+      // Outside the trailing 7-day window — must be excluded.
+      makePr({
+        id: 'd',
+        updatedAt: '2026-04-01T12:00:00.000Z',
+        riskLevel: 'critical',
+        ciStatus: 'failing',
+        testGapStatus: 'high',
+        approvalStatus: 'pending',
+      }),
+    ])
+
+    const sum = (series: number[]) => series.reduce((total, n) => total + n, 0)
+
+    expect(trends.highRiskPrs.series).toHaveLength(7)
+    expect(sum(trends.highRiskPrs.series)).toBe(2)
+    expect(trends.highRiskPrs.series.at(-1)).toBe(1)
+    expect(trends.highRiskPrs.trend).toBe('up')
+
+    expect(sum(trends.pendingApprovals.series)).toBe(1)
+    expect(trends.failedCi.trend).toBe('up')
+    expect(trends.testGaps.trend).toBe('up')
   })
 })
 

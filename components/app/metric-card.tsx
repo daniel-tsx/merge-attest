@@ -59,9 +59,7 @@ export function MetricCard({
               aria-hidden="true"
               className={cn('size-1.5 rounded-full', styles.indicator)}
             />
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-subtle-foreground">
-              {label}
-            </p>
+            <p className="text-eyebrow text-subtle-foreground">{label}</p>
           </div>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground tabular-nums">
             {value}

@@ -15,13 +15,11 @@ export function PageHeader({
     <div className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
         {eyebrow ? (
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-subtle-foreground">
+          <div className="text-eyebrow mb-2 flex items-center gap-2 text-subtle-foreground">
             {eyebrow}
           </div>
         ) : null}
-        <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-foreground">
-          {title}
-        </h1>
+        <h1 className="text-display text-foreground">{title}</h1>
         <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>

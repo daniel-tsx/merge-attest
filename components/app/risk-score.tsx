@@ -31,6 +31,50 @@ const levelStyles: Record<
   },
 }
 
+const inlineStyles: Record<RiskLevel, { bar: string; text: string }> = {
+  critical: { bar: 'bg-danger', text: 'text-danger' },
+  high: { bar: 'bg-attention', text: 'text-attention' },
+  medium: { bar: 'bg-warning', text: 'text-warning' },
+  low: { bar: 'bg-success', text: 'text-success-strong' },
+}
+
+/** Compact risk score for dense tables: toned score + proportional meter. */
+export function RiskScoreBar({
+  score,
+  level,
+}: {
+  score: number
+  level: RiskLevel
+}) {
+  const styles = inlineStyles[level]
+  const clamped = Math.max(0, Math.min(100, score))
+  return (
+    <div
+      className="flex items-center gap-2 whitespace-nowrap"
+      role="img"
+      aria-label={`Risk score ${score} of 100 — ${levelStyles[level].label}`}
+    >
+      <span
+        className={cn(
+          'w-7 text-right text-sm font-semibold tabular-nums',
+          styles.text,
+        )}
+      >
+        {score}
+      </span>
+      <span
+        aria-hidden="true"
+        className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-subtle"
+      >
+        <span
+          className={cn('block h-full rounded-full', styles.bar)}
+          style={{ width: `${clamped}%` }}
+        />
+      </span>
+    </div>
+  )
+}
+
 export function RiskScoreRing({
   score,
   level,
