@@ -29,6 +29,7 @@ import { isFeatureAvailable } from '@/lib/plans'
 import type { RepoRule } from '@/lib/types'
 import { formatDate } from '@/lib/utils'
 import { createRule, mutateRule } from './actions'
+import { SubmitButton } from './submit-button'
 
 const triggerTypes: RepoRule['triggerType'][] = [
   'ai_assisted',
@@ -92,6 +93,10 @@ const statusMessages: Record<string, StatusEntry> = {
     message: 'Sign in is required to manage rules.',
   },
   not_found: { tone: 'danger', message: 'Rule or repository not found.' },
+  invalid_form: {
+    tone: 'danger',
+    message: 'Check the rule fields and try again.',
+  },
   upgrade_required: {
     tone: 'info',
     message: 'Custom repository rules require the Team plan or higher.',
@@ -119,7 +124,12 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
       <div className="grid gap-3 md:grid-cols-2">
         {fieldLabel(
           'Rule name',
-          <Input name="name" defaultValue={rule?.name} required />,
+          <Input
+            name="name"
+            defaultValue={rule?.name}
+            maxLength={120}
+            required
+          />,
         )}
         {fieldLabel(
           'Severity',
@@ -137,6 +147,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
         <Textarea
           name="description"
           defaultValue={rule?.description}
+          maxLength={500}
           required
         />,
       )}
@@ -175,6 +186,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
             name="branchPattern"
             placeholder="main, release/*"
             defaultValue={rule?.branchPattern}
+            maxLength={500}
           />,
         )}
         {fieldLabel(
@@ -183,6 +195,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
             name="pathPattern"
             placeholder="auth, prisma/migrations"
             defaultValue={rule?.pathPattern}
+            maxLength={500}
           />,
         )}
         {fieldLabel(
@@ -191,6 +204,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
             name="labelPattern"
             placeholder="security, billing"
             defaultValue={rule?.labelPattern}
+            maxLength={500}
           />,
         )}
         {fieldLabel(
@@ -222,6 +236,7 @@ function RuleFields({ rule }: { rule?: RepoRule }) {
             name="codeOwnerHint"
             placeholder="Security owner"
             defaultValue={rule?.codeOwnerHint}
+            maxLength={500}
           />,
         )}
       </div>
@@ -364,14 +379,14 @@ export default async function RepositoryRulesPage({
                     name="templateKey"
                     value={template.key}
                   />
-                  <Button
-                    type="submit"
+                  <SubmitButton
                     variant="secondary"
                     size="sm"
                     disabled={!customRulesAvailable}
+                    pendingChildren="Applying..."
                   >
                     Apply template
-                  </Button>
+                  </SubmitButton>
                 </form>
               </CardContent>
             </Card>
@@ -393,9 +408,12 @@ export default async function RepositoryRulesPage({
           >
             <input type="hidden" name="_action" value="create" />
             <RuleFields />
-            <Button type="submit" disabled={!customRulesAvailable}>
+            <SubmitButton
+              disabled={!customRulesAvailable}
+              pendingChildren="Creating..."
+            >
               Create rule
-            </Button>
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>
@@ -514,36 +532,38 @@ async function RulesPolicySections({
                       name="enabled"
                       value={rule.enabled ? 'false' : 'true'}
                     />
-                    <Button
-                      type="submit"
+                    <SubmitButton
                       size="sm"
                       variant="secondary"
                       disabled={!customRulesAvailable}
+                      pendingChildren={
+                        rule.enabled ? 'Disabling...' : 'Enabling...'
+                      }
                     >
                       {rule.enabled ? 'Disable' : 'Enable'}
-                    </Button>
+                    </SubmitButton>
                   </form>
                   <form action={mutateRule.bind(null, repositoryId, rule.id)}>
                     <input type="hidden" name="_action" value="duplicate" />
-                    <Button
-                      type="submit"
+                    <SubmitButton
                       size="sm"
                       variant="secondary"
                       disabled={!customRulesAvailable}
+                      pendingChildren="Duplicating..."
                     >
                       Duplicate
-                    </Button>
+                    </SubmitButton>
                   </form>
                   <form action={mutateRule.bind(null, repositoryId, rule.id)}>
                     <input type="hidden" name="_action" value="delete" />
-                    <Button
-                      type="submit"
+                    <SubmitButton
                       size="sm"
                       variant="danger"
                       disabled={!customRulesAvailable}
+                      pendingChildren="Deleting..."
                     >
                       Delete
-                    </Button>
+                    </SubmitButton>
                   </form>
                 </div>
               </div>
@@ -557,13 +577,13 @@ async function RulesPolicySections({
                 >
                   <input type="hidden" name="_action" value="update" />
                   <RuleFields rule={rule} />
-                  <Button
-                    type="submit"
+                  <SubmitButton
                     size="sm"
                     disabled={!customRulesAvailable}
+                    pendingChildren="Saving..."
                   >
                     Save changes
-                  </Button>
+                  </SubmitButton>
                 </form>
               </details>
             </div>

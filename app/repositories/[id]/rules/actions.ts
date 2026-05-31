@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageRules } from '@/lib/collaboration'
 import { isFeatureAvailable } from '@/lib/plans'
@@ -9,7 +10,7 @@ import { getPrismaClient } from '@/lib/prisma'
 import { getRuleTemplate } from '@/lib/rule-templates'
 import type { AgentSource, RepoRule, RiskLevel } from '@/lib/types'
 
-const triggerTypes: RepoRule['triggerType'][] = [
+const triggerTypes = [
   'ai_assisted',
   'high_risk',
   'auth_changed',
@@ -18,25 +19,25 @@ const triggerTypes: RepoRule['triggerType'][] = [
   'dependency_changed',
   'high_test_gap',
   'failing_ci',
-]
+] as const satisfies readonly RepoRule['triggerType'][]
 
-const actionTypes: RepoRule['actionType'][] = [
+const actionTypes = [
   'warn',
   'require_approval',
   'block_merge',
   'request_tests',
   'request_security_review',
   'publish_github_check',
-]
+] as const satisfies readonly RepoRule['actionType'][]
 
-const severityTypes: RepoRule['severity'][] = [
+const severityTypes = [
   'low',
   'medium',
   'high',
   'critical',
-]
+] as const satisfies readonly RepoRule['severity'][]
 
-const agentSources: AgentSource[] = [
+const agentSources = [
   'cursor',
   'codex',
   'claude_code',
@@ -44,9 +45,38 @@ const agentSources: AgentSource[] = [
   'devin',
   'manual',
   'unknown',
-]
+] as const satisfies readonly AgentSource[]
 
-const riskLevels: RiskLevel[] = ['low', 'medium', 'high', 'critical']
+const riskLevels = [
+  'low',
+  'medium',
+  'high',
+  'critical',
+] as const satisfies readonly RiskLevel[]
+
+const optionalString = z
+  .string()
+  .trim()
+  .max(500)
+  .transform((value) => (value ? value : null))
+
+const ruleFormSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().min(1).max(500),
+  triggerType: z.enum(triggerTypes),
+  actionType: z.enum(actionTypes),
+  severity: z.enum(severityTypes),
+  branchPattern: optionalString,
+  pathPattern: optionalString,
+  labelPattern: optionalString,
+  agentSource: z
+    .union([z.enum(agentSources), z.literal('')])
+    .transform((value) => (value && value !== 'unknown' ? value : null)),
+  minimumRiskLevel: z
+    .union([z.enum(riskLevels), z.literal('')])
+    .transform((value) => (value ? value : null)),
+  codeOwnerHint: optionalString,
+})
 
 function optionalText(value: FormDataEntryValue | null) {
   if (typeof value !== 'string') return null
@@ -54,59 +84,30 @@ function optionalText(value: FormDataEntryValue | null) {
   return trimmed ? trimmed.slice(0, 500) : null
 }
 
-function requiredText(value: FormDataEntryValue | null, fallback: string) {
-  return optionalText(value) ?? fallback
+function stringValue(formData: FormData, name: string) {
+  const value = formData.get(name)
+  return typeof value === 'string' ? value : ''
 }
 
-function pickOption<T extends string>(
-  value: FormDataEntryValue | null,
-  options: readonly T[],
-  fallback: T,
-) {
-  return typeof value === 'string' && options.includes(value as T)
-    ? (value as T)
-    : fallback
-}
-
-function parseRuleForm(formData: FormData) {
-  const agentSource = pickOption(
-    formData.get('agentSource'),
-    agentSources,
-    'unknown',
-  )
-  const minimumRiskLevel =
-    typeof formData.get('minimumRiskLevel') === 'string'
-      ? pickOption(formData.get('minimumRiskLevel'), riskLevels, 'low')
-      : null
-
-  return {
-    name: requiredText(formData.get('name'), 'Custom repository rule'),
-    description: requiredText(
-      formData.get('description'),
-      'Custom policy managed from AgentGate.',
-    ),
-    triggerType: pickOption(
-      formData.get('triggerType'),
-      triggerTypes,
-      'ai_assisted',
-    ),
-    actionType: pickOption(
-      formData.get('actionType'),
-      actionTypes,
-      'require_approval',
-    ),
-    severity: pickOption(formData.get('severity'), severityTypes, 'medium'),
-    branchPattern: optionalText(formData.get('branchPattern')),
-    pathPattern: optionalText(formData.get('pathPattern')),
-    labelPattern: optionalText(formData.get('labelPattern')),
-    agentSource:
-      formData.get('agentSource') === '' || agentSource === 'unknown'
-        ? null
-        : agentSource,
-    minimumRiskLevel:
-      formData.get('minimumRiskLevel') === '' ? null : minimumRiskLevel,
-    codeOwnerHint: optionalText(formData.get('codeOwnerHint')),
+function parseRuleForm(formData: FormData, base: string) {
+  const parsed = ruleFormSchema.safeParse({
+    name: stringValue(formData, 'name'),
+    description: stringValue(formData, 'description'),
+    triggerType: stringValue(formData, 'triggerType'),
+    actionType: stringValue(formData, 'actionType'),
+    severity: stringValue(formData, 'severity'),
+    branchPattern: stringValue(formData, 'branchPattern'),
+    pathPattern: stringValue(formData, 'pathPattern'),
+    labelPattern: stringValue(formData, 'labelPattern'),
+    agentSource: stringValue(formData, 'agentSource'),
+    minimumRiskLevel: stringValue(formData, 'minimumRiskLevel'),
+    codeOwnerHint: stringValue(formData, 'codeOwnerHint'),
+  })
+  if (!parsed.success) {
+    redirect(`${base}?status=invalid_form`)
   }
+
+  return parsed.data
 }
 
 async function syncActiveRulesCount(repositoryId: string) {
@@ -155,7 +156,7 @@ export async function createRule(repositoryId: string, formData: FormData) {
         minimumRiskLevel: template.minimumRiskLevel ?? null,
         codeOwnerHint: template.codeOwnerHint ?? null,
       }
-    : parseRuleForm(formData)
+    : parseRuleForm(formData, base)
 
   const rule = await prisma.repoRule.create({
     data: {
@@ -246,7 +247,7 @@ export async function mutateRule(
   } else {
     await prisma.repoRule.update({
       where: { id: rule.id },
-      data: parseRuleForm(formData),
+      data: parseRuleForm(formData, base),
     })
   }
 
