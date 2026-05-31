@@ -105,7 +105,7 @@ See [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) for the full primitive table an
 
 - A richer **Radix Select** — current selects live in uncontrolled `FormData` forms where the native `<select>` (`Select`) is the correct, lowest-risk control. Radix Select's empty-string-value restriction and form-bubble indirection would add regression risk to team-role and AI-settings mutations for no user-facing gain. Keep `Select` native until a genuinely controlled, rich-content select is needed.
 - **React `<ViewTransition>`** (Next `experimental.viewTransition`) — the component isn't in the stable React export (only Next's experimental channel) with uncertain typing; the reduced-motion-safe `route-enter` fade covers route arrival meanwhile. See `docs/strategy/UI_REVAMP_PLAN.md` Phase 7.
-- **Table scan interactions** (sortable headers bound to a new `nuqs` sort/dir param, sticky first column, keyboard row nav) — Phase 6b in the revamp plan.
+- **Table scan interactions** — shipped on the pull request monitor (sortable headers via `SortableHeader` + a `nuqs` sort/dir param, in-memory `sortPullRequests`, sticky first column). Rolling the same pattern out to the other scan tables (repositories, activity, approvals, audit log) is a follow-up; see `docs/strategy/UI_REVAMP_PLAN.md`.
 
 When adding any new wrapper:
 

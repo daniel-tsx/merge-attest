@@ -180,9 +180,25 @@ Each phase is independently shippable after Phase 1.
   compiles + passes TypeScript; a full production build additionally requires the
   GitHub App env vars (pre-existing fail-closed env validation, not a revamp change).
 
+### Phase 6b — Table scan interactions ✅ shipped (pull request monitor)
+- Added `sort` + `dir` to `app/pull-requests/search-params.ts` and a tested pure
+  `sortPullRequests` helper (`app/pull-requests/sort.ts`, in-memory after the
+  single fetch — no data-layer change). Comparators rank risk/test/CI/approval so
+  a descending sort surfaces the rows that need attention first.
+- `components/app/sortable-header.tsx` — client header button bound to the `nuqs`
+  sort/dir state (`shallow: false`), with an active direction chevron; default
+  `updated`/`desc` clears from the URL.
+- Sticky first column (PR title) with `group-hover` background coordination, and a
+  bumped header z-index so the sticky corner sits above both axes.
+- Keyboard nav: rows are reachable via the focusable PR-title and Review links with
+  visible focus rings; explicit arrow-key roving left as an optional later add.
+- _Verified:_ clicking a header sorts + toggles direction (URL `?sort=risk` /
+  `&dir=asc`), the sticky column pins while scrolling at tablet width, and the
+  parser/serializer/sort tests pass (225 total).
+
 ## Deferred follow-ups
-- **Phase 6b** — table scan interactions (sortable headers via new `nuqs` sort/dir,
-  sticky first column, keyboard row nav).
+- Apply the same sort/sticky pattern to the other scan tables (repositories,
+  activity, approvals, audit log) if desired.
 - **React `<ViewTransition>`** — once it stabilizes outside Next's experimental channel.
 - Verify the few app-only flows that need a Team plan (approval-decision toast) with
   an upgraded org.

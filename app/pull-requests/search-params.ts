@@ -5,6 +5,19 @@ import {
   parseAsStringLiteral,
 } from 'nuqs/server'
 
+export const pullRequestSortKeys = [
+  'pr',
+  'repository',
+  'risk',
+  'tests',
+  'ci',
+  'approval',
+  'diff',
+  'updated',
+] as const
+
+export type PullRequestSortKey = (typeof pullRequestSortKeys)[number]
+
 export const pullRequestSearchParams = {
   query: parseAsString.withDefault(''),
   riskLevel: parseAsStringLiteral([
@@ -31,6 +44,8 @@ export const pullRequestSearchParams = {
     'risk_accepted',
     'not_required',
   ] as const).withDefault('all'),
+  sort: parseAsStringLiteral(pullRequestSortKeys).withDefault('updated'),
+  dir: parseAsStringLiteral(['asc', 'desc'] as const).withDefault('desc'),
 }
 
 export const pullRequestSearchParamsCache = createSearchParamsCache(
