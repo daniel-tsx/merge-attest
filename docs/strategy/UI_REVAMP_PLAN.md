@@ -139,9 +139,20 @@ Each phase is independently shippable after Phase 1.
   list-query regression risk, so it's better as its own focused change. Keep
   server-side filtering authoritative and URL keys export-route-compatible.
 
-### Phase 7 — Motion & route transitions
-- Subtle micro-interactions; View Transitions for route changes; reduced-motion safe.
-- _Verify:_ smooth, disabled under reduced-motion, no layout shift.
+### Phase 7 — Motion & route transitions ✅ shipped (View Transitions deferred)
+- Added a reduced-motion-safe `route-enter` animation (subtle fade + 6px rise),
+  applied to a `key={pathname}` content wrapper in the app shell so page content
+  arrives gracefully on each route change. Uses `backwards` fill (not `both`) so
+  **no transform is retained** after the animation — keeps the sticky table
+  headers / detail sidebar working.
+- Button press (Phase 3) + table-row/card hover states already cover the
+  micro-interaction layer.
+- React `<ViewTransition>` (Next `experimental.viewTransition`) is deferred: the
+  component isn't in the stable React export (only Next's experimental channel),
+  with uncertain typing and no easy visual verification — not worth the build
+  risk now. The `route-enter` fade delivers the premium arrival feel meanwhile.
+- _Verified:_ navigation animates content in; wrapper `transform` is `none` after
+  the animation (sticky-safe); no console errors; typecheck + lint + 220 tests.
 
 ### Phase 8 — Marketing + auth elevation
 - Apply elevation scale, dark mode, type scale to landing + split auth; polish

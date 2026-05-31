@@ -395,7 +395,9 @@ export function AppShell({
           tabIndex={-1}
           className="mx-auto w-full max-w-7xl p-4 outline-none sm:p-6 lg:p-8"
         >
-          {children}
+          <div key={pathname} data-route-enter>
+            {children}
+          </div>
         </main>
       </div>
     </div>
