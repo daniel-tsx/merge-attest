@@ -82,7 +82,7 @@ flowchart TB
 | Layer         | Location                        | Responsibility                                                                                        |
 | ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-agentgate-pathname` header |
-| Root layout   | `app/layout.tsx`                | Fonts, `NuqsAdapter`, org context for shell, `globals.css`                                            |
+| Root layout   | `app/layout.tsx`                | Fonts, `ThemeProvider` (next-themes), `TooltipProvider`, `Toaster` (Sonner), `NuqsAdapter`, org context for shell, `globals.css` |
 | Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                             |
 | App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                              |
 | Pages         | `app/**/page.tsx`               | Server-rendered product surfaces; async `searchParams` + `params`                                     |
@@ -207,6 +207,14 @@ Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-autho
 | `Avatar` (+ Image/Fallback)                        | Radix Avatar       | identity initials                                              |
 | `Progress`                                         | Radix Progress     | usage / completion meters (`indicatorClassName` for tone)      |
 | `Label`                                            | Radix Label        | explicit control labels                                        |
+| `Tooltip`                                          | Radix Tooltip      | hover/focus labels; one root `TooltipProvider` in the layout   |
+| `Toaster`                                          | Sonner             | transient mutation feedback; theme-synced via `next-themes`    |
+| `Command`                                          | cmdk + Radix Dialog | ⌘K command palette (`components/app/command-palette.tsx`)     |
+
+Theming: light tokens in `:root`, a `.dark` scale overrides the same vars, and
+`@theme inline` maps `--color-* → var(--*)` so the `.dark` class re-themes all
+utilities at runtime. `next-themes` drives it (provider + `@custom-variant dark`).
+See [`features/DESIGN_SYSTEM.md`](features/DESIGN_SYSTEM.md) for the token detail.
 
 Primitive rules:
 

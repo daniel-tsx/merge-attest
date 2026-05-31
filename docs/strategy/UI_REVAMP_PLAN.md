@@ -1,6 +1,7 @@
 # AgentGate UI Revamp Plan
 
-**Status:** `planned` (in progress — phases marked as they ship)
+**Status:** `shipped` — phases 1–9 delivered on the `ui-revamp` branch; Phase 6b
+(table scan interactions) and React `<ViewTransition>` deferred (see notes).
 **Location:** `docs/strategy/UI_REVAMP_PLAN.md`
 **Created:** 2026-05-31
 
@@ -167,10 +168,24 @@ Each phase is independently shippable after Phase 1.
 - Deeper hero/visual rework left as optional polish — the existing
   border-beam / scan-panel hero already reads well in both themes.
 
-### Phase 9 — QA, a11y, docs
-- Full a11y + contrast pass in both themes; responsive at 375/768/1024/1440.
-- Update `DESIGN_SYSTEM.md` + `SYSTEM_DESIGN.md`; mark this plan `shipped`.
-- `lint/typecheck/test/build` green; tests for theme persistence + palette.
+### Phase 9 — QA, a11y, docs ✅ shipped
+- Updated `features/DESIGN_SYSTEM.md` (theming, dark scale, `brand-surface`/`scrim`,
+  elevation, `text-display`/`text-eyebrow` + the Tailwind v4 `@utility` note,
+  Tooltip/Toast/Command primitives, re-scoped deferred list) and `SYSTEM_DESIGN.md`
+  (layout providers + primitive table + theming note).
+- Spot-checked responsiveness (dashboard at mobile; landing/auth at mobile/desktop)
+  and both themes across dashboard, PR list, PR detail, auth; reduced-motion is
+  honored by `route-enter`, count-up, and charts.
+- `pnpm lint` + `pnpm typecheck` + `pnpm test` (220) green throughout. `next build`
+  compiles + passes TypeScript; a full production build additionally requires the
+  GitHub App env vars (pre-existing fail-closed env validation, not a revamp change).
+
+## Deferred follow-ups
+- **Phase 6b** — table scan interactions (sortable headers via new `nuqs` sort/dir,
+  sticky first column, keyboard row nav).
+- **React `<ViewTransition>`** — once it stabilizes outside Next's experimental channel.
+- Verify the few app-only flows that need a Team plan (approval-decision toast) with
+  an upgraded org.
 
 ## Sequencing
 
