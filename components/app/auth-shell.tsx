@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { GitPullRequest, ListChecks, ShieldCheck } from 'lucide-react'
 import { LogoMark } from '@/components/app/logo'
+import { ThemeToggle } from '@/components/app/theme-toggle'
 
 const trustPoints = [
   {
@@ -36,7 +37,10 @@ export function AuthShell({
   footer?: ReactNode
 }) {
   return (
-    <main className="min-h-screen bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
+    <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-brand-surface p-10 text-brand-surface-foreground lg:flex">
         <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-50" />
         <div className="relative">

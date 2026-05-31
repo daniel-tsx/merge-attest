@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { HeroScanPanel } from '@/components/app/hero-scan-panel'
 import { LogoMark } from '@/components/app/logo'
+import { ThemeToggle } from '@/components/app/theme-toggle'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getServerSession } from '@/lib/auth/session'
@@ -265,6 +266,7 @@ export default async function Home() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button
               asChild
               variant="ghost"

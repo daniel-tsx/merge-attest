@@ -154,10 +154,18 @@ Each phase is independently shippable after Phase 1.
 - _Verified:_ navigation animates content in; wrapper `transform` is `none` after
   the animation (sticky-safe); no console errors; typecheck + lint + 220 tests.
 
-### Phase 8 — Marketing + auth elevation
-- Apply elevation scale, dark mode, type scale to landing + split auth; polish
-  existing border-beam/dot-grid hero moments.
-- _Verify:_ both themes, responsive, motion safe.
+### Phase 8 — Marketing + auth elevation ✅ shipped (focused)
+- Added the theme toggle to the public surfaces: the landing header nav and a
+  top-right control on the auth shell, so visitors aren't stuck on system pref.
+- The marketing landing + auth already re-theme via the token system (verified
+  back in Phase 1). The landing deliberately uses a **monospace** eyebrow
+  aesthetic distinct from the app's `text-eyebrow`, so it was intentionally NOT
+  folded into the app type scale. The auth panel uses the stable `brand-surface`
+  (stays deep ink in both themes; the form column + primary button adapt).
+- _Verified:_ auth page renders in dark + light via the new public toggle (brand
+  panel stays ink, form/button adapt); toggle tooltip works; typecheck + lint.
+- Deeper hero/visual rework left as optional polish — the existing
+  border-beam / scan-panel hero already reads well in both themes.
 
 ### Phase 9 — QA, a11y, docs
 - Full a11y + contrast pass in both themes; responsive at 375/768/1024/1440.
