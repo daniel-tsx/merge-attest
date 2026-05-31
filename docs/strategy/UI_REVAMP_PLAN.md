@@ -93,10 +93,17 @@ Each phase is independently shippable after Phase 1.
 - _Dev note:_ self-registered `dev@agentgate.test` in the local dev DB (email
   delivery not configured, so no verification needed) to verify in-app surfaces.
 
-### Phase 4 — Command palette (⌘K)
-- Global palette in the app shell: fuzzy route nav, quick actions, recents;
-  ⌘K / Ctrl+K + header search affordance; focus-trapped, labeled.
-- _Verify:_ opens via shortcut + click, keyboard-navigable, both themes, a11y.
+### Phase 4 — Command palette (⌘K) ✅ shipped
+- Added `components/ui/command.tsx`: tokenized `cmdk` wrapper (Command,
+  CommandDialog via Radix Dialog, Input/List/Empty/Group/Item/Separator),
+  dark-aware, with an `sr-only` dialog title.
+- Added `components/app/command-palette.tsx`: global palette with route
+  navigation (all sidebar routes) + theme actions; ⌘K / Ctrl+K toggle listener;
+  a header "Search… ⌘K" affordance button. Mounted once in the app-shell header.
+- _Verified:_ opens via button click and ⌘K; fuzzy filter narrows groups;
+  selecting an action runs it and closes the palette; renders in light + dark;
+  typecheck + lint + 220 tests green. (Quick actions like "jump to PR by number"
+  can be layered on later.)
 
 ### Phase 5 — Dashboard as a command center ✅ shipped
 - Added `buildSignalTrends` (`lib/reporting.ts`, unit-tested): per-signal 7-day

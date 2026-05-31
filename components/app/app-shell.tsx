@@ -30,6 +30,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { CommandPalette } from '@/components/app/command-palette'
 import { LogoMark } from '@/components/app/logo'
 import { ThemeToggle } from '@/components/app/theme-toggle'
 import { cn } from '@/lib/utils'
@@ -375,6 +376,7 @@ export function AppShell({
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <CommandPalette />
             {dataMode === 'demo' ? (
               <Badge tone="blue" withDot>
                 demo data
