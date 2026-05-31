@@ -13,6 +13,7 @@ import { MetricTrend } from '@/components/app/metric-trend'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
 import { DashboardSkeleton } from '@/components/app/page-loading'
+import { RiskScoreBar } from '@/components/app/risk-score'
 import { CiBadge, RiskBadge, TestGapBadge } from '@/components/app/status-badge'
 import { TrendChart } from '@/components/charts/dashboard-charts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -419,12 +420,10 @@ async function DashboardContent() {
                       </TableCell>
                       <TableCell>{item.repositoryName}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <RiskBadge level={item.riskLevel} />
-                          <span className="text-xs tabular-nums text-muted-foreground">
-                            {item.riskScore}
-                          </span>
-                        </div>
+                        <RiskScoreBar
+                          level={item.riskLevel}
+                          score={item.riskScore}
+                        />
                       </TableCell>
                       <TableCell>
                         <TestGapBadge status={item.testGapStatus} />

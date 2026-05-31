@@ -10,9 +10,9 @@ import {
   AiReviewBadge,
   ApprovalBadge,
   CiBadge,
-  RiskBadge,
   TestGapBadge,
 } from '@/components/app/status-badge'
+import { RiskScoreBar } from '@/components/app/risk-score'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -103,21 +103,16 @@ async function PullRequestTable({ searchParams }: PageProps) {
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-foreground">
+                <TableCell className="whitespace-nowrap text-foreground">
                   {item.repositoryName}
                 </TableCell>
-                <TableCell className="capitalize">
+                <TableCell className="whitespace-nowrap capitalize">
                   {item.aiAssisted === null
                     ? 'unknown'
                     : item.agentSource.replace('_', ' ')}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <RiskBadge level={item.riskLevel} />
-                    <span className="text-xs tabular-nums text-muted-foreground">
-                      {item.riskScore}
-                    </span>
-                  </div>
+                  <RiskScoreBar level={item.riskLevel} score={item.riskScore} />
                 </TableCell>
                 <TableCell>
                   <TestGapBadge status={item.testGapStatus} />
@@ -131,7 +126,7 @@ async function PullRequestTable({ searchParams }: PageProps) {
                 <TableCell>
                   <AiReviewBadge status={getLatestAiReviewJob(item)?.status} />
                 </TableCell>
-                <TableCell className="font-mono text-xs">
+                <TableCell className="whitespace-nowrap font-mono text-xs">
                   <span className="text-success-strong">
                     +{formatNumber(item.linesAdded)}
                   </span>
@@ -140,7 +135,9 @@ async function PullRequestTable({ searchParams }: PageProps) {
                     -{formatNumber(item.linesDeleted)}
                   </span>
                 </TableCell>
-                <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatDate(item.updatedAt)}
+                </TableCell>
                 <TableCell className="text-right">
                   <Link
                     href={`/pull-requests/${item.id}`}

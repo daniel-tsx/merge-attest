@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/sheet'
 import { CommandPalette } from '@/components/app/command-palette'
 import { LogoMark } from '@/components/app/logo'
+import { SignOutButton } from '@/components/app/sign-out-button'
 import { ThemeToggle } from '@/components/app/theme-toggle'
 import { cn } from '@/lib/utils'
 import type { PlanKey } from '@/lib/types'
@@ -226,6 +227,7 @@ function WorkspaceCard({
         <KeyRound className="size-3.5" aria-hidden="true" />
         Configure GitHub App
       </Link>
+      <SignOutButton />
     </div>
   )
 }
