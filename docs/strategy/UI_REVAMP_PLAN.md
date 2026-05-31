@@ -122,10 +122,22 @@ Each phase is independently shippable after Phase 1.
   count-up render; charts recolor on toggle without reload; new skeleton matches;
   typecheck + lint + 220 tests green.
 
-### Phase 6 — Table & list interactions
-- Sort affordances bound to `nuqs` `sort`, density toggle, sticky first column,
-  row keyboard nav; migrate mutation feedback to toasts (server authoritative).
-- _Verify:_ sorting reflects URL, keyboard nav works, toasts fire, a11y intact.
+### Phase 6 — Mutation feedback via toasts ✅ shipped (table interactions → 6b)
+- Added `components/app/mutation-toasts.tsx`: reads the `assignment` / `comment`
+  result params on PR detail, fires themed Sonner toasts, and strips the params
+  via `router.replace` so they don't re-fire on refresh/back. Replaced the inline
+  feedback banners (and removed the now-dead `feedbackToneStyles` + param parsing).
+- `ApprovalActions` now also fires a success/error toast on each decision result
+  (keeps the persistent inline status line for a11y/record).
+- _Verified:_ toast fires from `?assignment=assigned` and the param is cleared
+  from the URL; PR detail renders correctly in dark; typecheck + lint + 220 tests.
+
+### Phase 6b — Table scan interactions (deferred)
+- Sortable headers bound to a new `nuqs` sort/dir param (in-memory sort after the
+  single fetch), sticky first column, and keyboard row navigation on the scan
+  tables. Split out of Phase 6: it adds new URL-state params and carries more
+  list-query regression risk, so it's better as its own focused change. Keep
+  server-side filtering authoritative and URL keys export-route-compatible.
 
 ### Phase 7 — Motion & route transitions
 - Subtle micro-interactions; View Transitions for route changes; reduced-motion safe.
