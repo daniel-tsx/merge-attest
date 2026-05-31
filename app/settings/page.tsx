@@ -160,7 +160,7 @@ async function SettingsOverview() {
           const Icon = item.icon
           return (
             <Link key={item.label} href={item.href} className="group">
-              <Card className="h-full transition-all hover:border-border-strong hover:shadow-card-hover">
+              <Card className="h-full transition-[border-color,box-shadow] hover:border-border-strong hover:shadow-card-hover">
                 <CardContent className="flex h-full flex-col gap-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex size-9 items-center justify-center rounded-control bg-surface-subtle text-subtle-foreground transition-colors group-hover:bg-accent-soft group-hover:text-accent">

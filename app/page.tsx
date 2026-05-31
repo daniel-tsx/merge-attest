@@ -180,8 +180,11 @@ const steps = [
 
 const popularPlan = 'team'
 
+// Hover lift via shadow + border only — NOT transform. These cards also carry
+// `data-reveal` (a scroll-timeline animation on `transform`); animating
+// `transform` on hover too makes the two fight and the hover flickers.
 const cardHover =
-  'transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-card-hover'
+  'transition-[box-shadow,border-color] duration-200 ease-out hover:border-border-strong hover:shadow-card-hover'
 
 const featureIconBox =
   'flex size-10 shrink-0 items-center justify-center rounded-control bg-accent-soft text-accent ring-1 ring-accent-ring transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-foreground'
