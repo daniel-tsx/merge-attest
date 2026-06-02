@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentGate — Frontend Architecture</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f4f4f5;
+      --warn-bg: #fffbeb;
+      --warn-border: #f59e0b;
+      --good-bg: #f0fdf4;
+      --good-border: #22c55e;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60rem;
+    }
+
+    .meta {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section { margin-bottom: 2.75rem; }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.3rem; }
+
+    code, pre { font-family: var(--mono); font-size: 0.875em; }
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+
+    pre code { background: none; padding: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+    }
+
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre;
+      margin: 0 0 1rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 0.25rem;
+    }
+
+    .tag.warn { background: var(--warn-bg); color: #b45309; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .related a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentGate — Frontend Architecture</h1>
+    <p>
+      Next.js 16 App Router structure: edge proxy gate, root layout shell composition, server-first
+      data access with demo fallback, URL-driven filters via nuqs, and the split between shadcn
+      primitives and app-specific components. Verified against code as of June 2026.
+    </p>
+    <p class="meta">
+      Status: <strong>current</strong> &nbsp;·&nbsp;
+      <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
+      Related: <a href="authentication-architecture.html">Authentication</a>,
+      <a href="database-architecture.html">Database</a>
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#request">Request path</a></li>
+      <li><a href="#routing">Routing</a></li>
+      <li><a href="#data">Data layer</a></li>
+      <li><a href="#search">URL state</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#pages">Page patterns</a></li>
+      <li><a href="#caveats">Caveats</a></li>
+      <li><a href="#files">File map</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        AgentGate's UI is a <strong>React Server Components (RSC)–first</strong> Next.js 16 app.
+        Pages are async server components by default; client components are used for interactivity
+        (shell navigation, filters, theme, forms). Data flows from <code>lib/data/app-data.ts</code>
+        through cached server loaders — not client-side fetch libraries.
+      </p>
+      <div class="callout good">
+        <strong>Server components by default</strong>
+        List pages, detail pages, and dashboards fetch org-scoped data on the server. Client
+        islands handle URL sync, sheets, command palette, and auth forms.
+      </div>
+    </section>
+
+    <section id="stack">
+      <h2>2. Technology Stack</h2>
+      <table>
+        <thead><tr><th>Package / module</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>next@16</code></td><td>App Router, RSC, <code>proxy.ts</code> edge gate</td></tr>
+          <tr><td><code>react@19</code></td><td>Server and client components, <code>cache()</code></td></tr>
+          <tr><td><code>nuqs</code></td><td>Type-safe URL search param parsers and serializers</td></tr>
+          <tr><td><code>tailwindcss</code></td><td>Utility styling; design tokens in <code>globals.css</code></td></tr>
+          <tr><td><code>shadcn/ui</code></td><td>Primitive components under <code>components/ui/</code></td></tr>
+          <tr><td><code>lucide-react</code></td><td>Icons in app shell and pages</td></tr>
+          <tr><td><code>next-themes</code></td><td>Dark/light via <code>ThemeProvider</code></td></tr>
+          <tr><td><code>sonner</code></td><td>Toast notifications</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="request">
+      <h2>3. Request &amp; Layout Path</h2>
+
+      <div class="diagram">HTTP request
+  │
+  ▼
+proxy.ts                         ← auth cookie gate, rate limits, CSRF, security headers
+  │                                sets x-agentgate-pathname header
+  ▼
+app/layout.tsx                   ← fonts, ThemeProvider, NuqsAdapter, RootShell
+  │
+  ├─ Public route? → skip org fetch, minimal shell
+  └─ Authenticated → getCurrentOrganization() + getPlatformAdminContext()
+        │
+        ▼
+RootShell (client)               ← publicRoutes check via usePathname()
+  │
+  ├─ Public → bare min-h-screen wrapper
+  └─ App → AppShell (sidebar, nav, command palette)
+        │
+        ▼
+app/**/page.tsx                  ← RSC page content</div>
+
+      <h3>3.1 proxy.ts</h3>
+      <p>
+        Next.js 16 edge proxy (middleware equivalent). Injects
+        <code>x-agentgate-pathname</code> so the root layout can detect public routes without
+        re-parsing. See <a href="authentication-architecture.html#edge">authentication architecture</a>
+        for security details.
+      </p>
+
+      <h3>3.2 app/layout.tsx</h3>
+      <p>
+        Root server layout loads Geist fonts, wraps children in
+        <code>ThemeProvider</code> → <code>TooltipProvider</code> →
+        <code>NuqsAdapter</code> → <code>RootShell</code>. For authenticated routes it
+        parallel-fetches organization context and admin flag to pass into the shell.
+      </p>
+
+      <h3>3.3 RootShell → AppShell</h3>
+      <p>
+        <code>RootShell</code> is a client component that branches on pathname:
+      </p>
+      <ul>
+        <li><strong>Public</strong> — <code>/</code>, <code>/sign-in</code>, <code>/sign-up</code>, <code>/forgot-password</code>, <code>/reset-password</code> render children without sidebar.</li>
+        <li><strong>Authenticated</strong> — <code>AppShell</code> provides sidebar navigation, org name, plan badge, data mode indicator, admin link, theme toggle, sign out.</li>
+      </ul>
+      <p>
+        <code>AppShell</code> defines nav sections (Overview, Governance, Settings) with Lucide
+        icons and responsive sheet menu for mobile.
+      </p>
+    </section>
+
+    <section id="routing">
+      <h2>4. Public vs Authenticated Routes</h2>
+
+      <table>
+        <thead><tr><th>Category</th><th>Paths</th><th>Shell</th><th>Auth</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Marketing / landing</td>
+            <td><code>/</code></td>
+            <td>Public (no sidebar)</td>
+            <td>None required</td>
+          </tr>
+          <tr>
+            <td>Auth flows</td>
+            <td><code>/sign-in</code>, <code>/sign-up</code>, <code>/forgot-password</code>, <code>/reset-password</code></td>
+            <td>Public</td>
+            <td>Client Better Auth forms</td>
+          </tr>
+          <tr>
+            <td>App workspace</td>
+            <td><code>/dashboard</code>, <code>/pull-requests</code>, <code>/repositories</code>, <code>/approvals</code>, <code>/activity</code>, <code>/audit-log</code>, <code>/settings/*</code></td>
+            <td>AppShell</td>
+            <td>Session cookie + server org context</td>
+          </tr>
+          <tr>
+            <td>Platform admin</td>
+            <td><code>/admin/*</code></td>
+            <td>AppShell (+ admin nav if allowlisted)</td>
+            <td>Session + <code>ADMIN_EMAILS</code></td>
+          </tr>
+          <tr>
+            <td>API</td>
+            <td><code>/api/*</code></td>
+            <td>N/A</td>
+            <td>Per-route (session, webhook, Bearer)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>Dev demo bypass</strong>
+        Without <code>DATABASE_URL</code> in development, <code>proxy.ts</code> allows app pages
+        without a session cookie. Layout still resolves demo org via
+        <code>queryWithDemoFallback</code>.
+      </div>
+    </section>
+
+    <section id="data">
+      <h2>5. Data Layer (<code>lib/data/app-data.ts</code>)</h2>
+      <p>
+        Central server-side data access for the UI. All list/detail loaders scope queries by
+        <code>organizationId</code> from session context.
+      </p>
+
+      <h3>5.1 getCurrentOrganization</h3>
+      <p>
+        Wrapped in React <code>cache()</code> — one lookup per request. Resolution order:
+      </p>
+      <ol>
+        <li><code>ensureCurrentUserOrganization()</code> — live session + membership → <code>dataMode: 'live'</code>.</li>
+        <li>Production or DB configured without session → throws (auth required).</li>
+        <li>Dev without DB → <code>queryWithDemoFallback</code> → demo org with <code>dataMode: 'demo'</code>.</li>
+      </ol>
+      <p>
+        Returns <code>OrganizationContext</code>: id, name, slug, planKey, billing fields,
+        GitHub installation ID, role, and <code>dataMode</code>.
+      </p>
+
+      <h3>5.2 queryWithDemoFallback</h3>
+      <pre><code>async function queryWithDemoFallback(query, fallback, label)</code></pre>
+      <ul>
+        <li>No Prisma client → dev returns <code>fallback()</code>; production throws.</li>
+        <li>Query throws → production rethrows; dev logs warning and returns <code>fallback()</code>.</li>
+        <li>Used by <code>listRepositories</code>, <code>listPullRequests</code>, and other loaders.</li>
+      </ul>
+
+      <h3>5.3 Key exports</h3>
+      <table>
+        <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>getCurrentOrganization()</code></td><td>Cached org + role + dataMode</td></tr>
+          <tr><td><code>listRepositories()</code></td><td>Org-scoped repo list</td></tr>
+          <tr><td><code>listPullRequests()</code></td><td>Org-scoped PR list with relations</td></tr>
+          <tr><td><code>getPullRequest()</code></td><td>Single PR detail</td></tr>
+          <tr><td><code>listActivityEvents()</code></td><td>Recent activity feed</td></tr>
+          <tr><td><code>listAuditEvents()</code></td><td>Audit log entries</td></tr>
+          <tr><td><code>buildTrendData()</code></td><td>Dashboard chart input from PRs</td></tr>
+        </tbody>
+      </table>
+      <p>Demo fixtures live in <code>lib/demo-data.ts</code>; mappers normalize Prisma rows to <code>lib/types</code> shapes.</p>
+    </section>
+
+    <section id="search">
+      <h2>6. URL State — nuqs Pattern</h2>
+      <p>
+        Filterable list pages colocate parsers in <code>search-params.ts</code> and UI in
+        <code>filters.tsx</code>. This keeps server and client in sync with shareable URLs.
+      </p>
+
+      <h3>6.1 search-params.ts (server)</h3>
+      <p>Example: <code>app/pull-requests/search-params.ts</code></p>
+      <ul>
+        <li>Define parsers with <code>parseAsString</code>, <code>parseAsStringLiteral</code>, defaults.</li>
+        <li><code>createSearchParamsCache(parsers)</code> — parse in RSC via <code>cache.parse(searchParams)</code>.</li>
+        <li><code>createSerializer(parsers)</code> — build links preserving filter state.</li>
+      </ul>
+
+      <h3>6.2 filters.tsx (client)</h3>
+      <p>
+        Thin wrapper around <code>UrlFilterForm</code> from
+        <code>components/app/url-filter-form.tsx</code>, passing the same parser object and field
+        definitions (search, select options).
+      </p>
+
+      <h3>6.3 Pages using this pattern</h3>
+      <table>
+        <thead><tr><th>Route</th><th>search-params.ts</th><th>filters.tsx</th></tr></thead>
+        <tbody>
+          <tr><td><code>/pull-requests</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/repositories</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/approvals</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/activity</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/audit-log</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/settings/usage</code></td><td>✓</td><td>✓</td></tr>
+          <tr><td><code>/admin/*</code></td><td>✓</td><td>✓</td></tr>
+        </tbody>
+      </table>
+
+      <div class="diagram">Page (RSC)
+  │
+  ├─ pullRequestSearchParamsCache.parse(searchParams)
+  ├─ listPullRequests(orgId) → filter/sort in server module
+  │
+  └─ render:
+        PageHeader
+        Card
+          PullRequestFilters (client, nuqs → URL)
+          Suspense → PullRequestTable (RSC)</div>
+    </section>
+
+    <section id="components">
+      <h2>7. Component Layers</h2>
+
+      <h3>7.1 components/ui — primitives</h3>
+      <p>
+        shadcn/ui building blocks: <code>Button</code>, <code>Card</code>, <code>Table</code>,
+        <code>Sheet</code>, <code>Badge</code>, <code>Input</code>, <code>Select</code>, etc.
+        Unstyled logic + Tailwind; no business semantics. Reused across app and admin.
+      </p>
+
+      <h3>7.2 components/app — product layer</h3>
+      <p>Domain-aware, AgentGate-specific components:</p>
+      <table>
+        <thead><tr><th>Component</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>app-shell.tsx</code>, <code>root-shell.tsx</code></td><td>Layout chrome and route branching</td></tr>
+          <tr><td><code>page-header.tsx</code></td><td>Standard page title block (eyebrow, title, description)</td></tr>
+          <tr><td><code>page-loading.tsx</code></td><td>Skeleton fallbacks (<code>DashboardSkeleton</code>, <code>TableSkeleton</code>)</td></tr>
+          <tr><td><code>status-badge.tsx</code></td><td>Risk, CI, approval, AI review badges</td></tr>
+          <tr><td><code>url-filter-form.tsx</code></td><td>nuqs-driven filter bar</td></tr>
+          <tr><td><code>empty-state.tsx</code></td><td>Empty and result summary states</td></tr>
+          <tr><td><code>metric-card.tsx</code>, <code>metric-trend.tsx</code></td><td>Dashboard KPIs</td></tr>
+          <tr><td><code>command-palette.tsx</code></td><td>Keyboard navigation</td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.3 components/charts</h3>
+      <p>Chart wrappers (e.g. <code>dashboard-charts.tsx</code>) for trend visualization on dashboard.</p>
+
+      <h3>7.4 Rule of thumb</h3>
+      <ul>
+        <li>Need a generic button or dialog? → <code>components/ui</code></li>
+        <li>Need PR risk badge or org shell? → <code>components/app</code></li>
+        <li>Page-specific layout only used once? → colocate in <code>app/.../page.tsx</code> or a nearby module</li>
+      </ul>
+    </section>
+
+    <section id="pages">
+      <h2>8. Standard Page Composition</h2>
+      <p>Most authenticated pages follow this structure:</p>
+
+      <pre><code>export default function SomePage({ searchParams }) {
+  return (
+    &lt;div className="space-y-6"&gt;
+      &lt;PageHeader eyebrow="…" title="…" description="…" /&gt;
+      &lt;Card&gt;
+        &lt;CardContent&gt;
+          &lt;SomeFilters /&gt;          {/* client, optional */}
+          &lt;Suspense fallback={&lt;TableSkeleton /&gt;}&gt;
+            &lt;SomeContent searchParams={searchParams} /&gt;
+          &lt;/Suspense&gt;
+        &lt;/CardContent&gt;
+      &lt;/Card&gt;
+    &lt;/div&gt;
+  )
+}</code></pre>
+
+      <h3>8.1 PageHeader</h3>
+      <p>
+        Consistent top-of-page hierarchy: optional eyebrow (section label), H1 title, muted
+        description. Keeps vertical rhythm with <code>space-y-6</code> or <code>space-y-8</code>.
+      </p>
+
+      <h3>8.2 Card + Suspense</h3>
+      <ul>
+        <li>Static shell (header, filters) renders immediately.</li>
+        <li>Async server child fetches data inside <code>Suspense</code>.</li>
+        <li>Skeleton from <code>page-loading.tsx</code> matches table/card layout.</li>
+      </ul>
+
+      <h3>8.3 Examples</h3>
+      <table>
+        <thead><tr><th>Page</th><th>Pattern notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>app/dashboard/page.tsx</code></td><td>PageHeader + Suspense + metric cards + charts</td></tr>
+          <tr><td><code>app/pull-requests/page.tsx</code></td><td>PageHeader + Card + Filters + Suspense table</td></tr>
+          <tr><td><code>app/repositories/page.tsx</code></td><td>Limit callouts + Card grid/table</td></tr>
+          <tr><td><code>app/settings/billing/page.tsx</code></td><td>PageHeader + plan cards (server data)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="caveats">
+      <h2>9. Technical Caveats</h2>
+      <table>
+        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Dual public-route lists</td>
+            <td>Public paths defined in both <code>proxy.ts</code> and <code>RootShell</code> — keep in sync when adding auth pages.</td>
+          </tr>
+          <tr>
+            <td>Layout org fetch skipped on public</td>
+            <td>Root layout passes placeholder org name on public routes; no wasted DB call.</td>
+          </tr>
+          <tr>
+            <td>Demo data mode</td>
+            <td><code>dataMode: 'demo'</code> surfaces in shell badge; data may not reflect real GitHub state.</td>
+          </tr>
+          <tr>
+            <td>No global client store</td>
+            <td>Org context comes from server per request, not Zustand/Redux.</td>
+          </tr>
+          <tr>
+            <td>Admin in same shell</td>
+            <td><code>/admin</code> uses AppShell with extra nav when <code>isAdmin</code>; layout guard is in <code>app/admin/layout.tsx</code>.</td>
+          </tr>
+          <tr>
+            <td>searchParams is a Promise</td>
+            <td>Next.js 16 passes <code>searchParams</code> as async; await in RSC children.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="files">
+      <h2>10. File Map</h2>
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>proxy.ts</code></td><td>Edge gate, pathname header, security</td></tr>
+          <tr><td><code>app/layout.tsx</code></td><td>Root providers, org/admin bootstrap</td></tr>
+          <tr><td><code>components/app/root-shell.tsx</code></td><td>Public vs app route branching</td></tr>
+          <tr><td><code>components/app/app-shell.tsx</code></td><td>Sidebar, nav, org chrome</td></tr>
+          <tr><td><code>lib/data/app-data.ts</code></td><td>Cached loaders, demo fallback</td></tr>
+          <tr><td><code>lib/demo-data.ts</code></td><td>Static demo fixtures</td></tr>
+          <tr><td><code>components/app/page-header.tsx</code></td><td>Standard page header</td></tr>
+          <tr><td><code>components/app/page-loading.tsx</code></td><td>Suspense skeletons</td></tr>
+          <tr><td><code>components/app/url-filter-form.tsx</code></td><td>nuqs filter form primitive</td></tr>
+          <tr><td><code>app/*/search-params.ts</code></td><td>Per-route URL parsers</td></tr>
+          <tr><td><code>app/*/filters.tsx</code></td><td>Per-route filter field configs</td></tr>
+          <tr><td><code>components/ui/*</code></td><td>shadcn primitives</td></tr>
+          <tr><td><code>app/globals.css</code></td><td>Design tokens and base styles</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    AgentGate frontend architecture reference · June 2026
+  </footer>
+</body>
+</html>

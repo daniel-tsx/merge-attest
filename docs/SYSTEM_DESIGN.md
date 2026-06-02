@@ -7,6 +7,8 @@ AgentGate is a multi-tenant Next.js application that ingests GitHub pull request
 
 For UI tokens, component rules, and merge checklists, read [`features/DESIGN_SYSTEM.md`](features/DESIGN_SYSTEM.md) after this document.
 
+For deep-dive HTML references (auth, database, governance, GitHub, jobs, billing, AI, frontend, security, deployment, audit), open [`architecture/index.html`](architecture/index.html).
+
 ## Design Principles
 
 1. **Organization-scoped truth** — business data always belongs to an organization; never query across tenants.

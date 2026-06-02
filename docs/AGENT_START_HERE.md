@@ -10,6 +10,7 @@ Read this file at the start of every non-trivial session, then follow the read o
 1. `README.md` — product one-liner and quick start
 2. This file — source-of-truth map, drift warnings, verification commands
 3. Task-specific docs (pick one):
+   - Deep architecture references (HTML) → `architecture/index.html`
    - System architecture and UI composition → `SYSTEM_DESIGN.md`
    - Local setup, routes, architecture → `operations/SETUP.md`
    - API endpoints → `features/API.md`
@@ -78,31 +79,32 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 
 | Area                 | Code truth                                                                                                                | Docs                                                  | Notes                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
-| Auth & sessions      | `lib/auth.ts`, `lib/auth/session.ts`, `lib/auth-client.ts`, `app/api/auth/[...all]/route.ts`, `proxy.ts`                  | `operations/SETUP.md`                                 | Better Auth Infra dash plugin uses `BETTER_AUTH_API_KEY` |
-| Env validation       | `lib/env.ts`, `.env.example`                                                                                              | `operations/PRODUCTION_CHECKLIST.md`                  | Production throws on missing secrets                     |
-| Data access          | `lib/data/app-data.ts`, `prisma/schema.prisma`                                                                            | `operations/SETUP.md`                                 | Demo fallback via `lib/demo-data.ts` when DB absent      |
-| Risk scoring         | `lib/risk.ts`                                                                                                             | —                                                     | `tests/risk.test.ts`                                     |
-| Test gaps            | `lib/test-gap.ts`                                                                                                         | —                                                     | `tests/test-gap.test.ts`                                 |
-| Rules                | `lib/rules.ts`, `lib/rule-templates.ts`                                                                                   | —                                                     | `tests/rules.test.ts`                                    |
+| Auth & sessions      | `lib/auth.ts`, `lib/auth/session.ts`, `lib/auth-client.ts`, `app/api/auth/[...all]/route.ts`, `proxy.ts`                  | `architecture/authentication-architecture.html`       | Better Auth Infra dash plugin uses `BETTER_AUTH_API_KEY` |
+| Env validation       | `lib/env.ts`, `.env.example`                                                                                              | `architecture/deployment-runtime-architecture.html`     | Production throws on missing secrets                     |
+| Data access          | `lib/data/app-data.ts`, `prisma/schema.prisma`                                                                            | `architecture/database-architecture.html`             | Demo fallback via `lib/demo-data.ts` when DB absent      |
+| Risk scoring         | `lib/risk.ts`                                                                                                             | `architecture/governance-architecture.html`           | `tests/risk.test.ts`                                     |
+| Test gaps            | `lib/test-gap.ts`                                                                                                         | `architecture/governance-architecture.html`           | `tests/test-gap.test.ts`                                 |
+| Rules                | `lib/rules.ts`, `lib/rule-templates.ts`                                                                                   | `architecture/governance-architecture.html`           | `tests/rules.test.ts`                                    |
 | Approvals            | `lib/approvals.ts`, `app/api/pull-requests/[id]/approval/`                                                                | `features/API.md`                                     | `tests/approvals.test.ts`                                |
-| GitHub integration   | `lib/github.ts`, `lib/github-sync.ts`, `lib/github-webhooks.ts`, `app/api/github/**`                                      | `features/API.md`, `operations/OPERATIONS_RUNBOOK.md` | Webhook + job runner pattern                             |
-| Billing              | `lib/billing.ts`, `lib/plans.ts`, `lib/lemon-squeezy-webhooks.ts`, `app/api/billing/**`, `app/api/lemon-squeezy/webhook/` | `features/API.md`                                     | Paddle fully removed from schema                         |
-| Entitlements & usage | `lib/entitlements.ts`, `lib/usage.ts`                                                                                     | `operations/SETUP.md`                                 | Enforced server-side                                     |
-| AI review            | `lib/ai/**`, `lib/jobs/pr-review-*.ts`, `app/api/jobs/pr-reviews/`                                                        | `features/API.md`, `operations/OPERATIONS_RUNBOOK.md` | Queue durable; execution disabled                        |
-| Audit export         | `lib/audit-export.ts`, `app/api/audit-log/export/`                                                                        | `operations/PRIVACY_RETENTION_SUPPORT.md`             | `tests/audit-export.test.ts`                             |
+| GitHub integration   | `lib/github.ts`, `lib/github-sync.ts`, `lib/github-webhooks.ts`, `app/api/github/**`                                      | `architecture/github-integration-architecture.html`   | Webhook + job runner pattern                             |
+| Billing              | `lib/billing.ts`, `lib/plans.ts`, `lib/lemon-squeezy-webhooks.ts`, `app/api/billing/**`, `app/api/lemon-squeezy/webhook/` | `architecture/billing-and-entitlements-architecture.html` | Paddle fully removed from schema                     |
+| Entitlements & usage | `lib/entitlements.ts`, `lib/usage.ts`                                                                                     | `architecture/billing-and-entitlements-architecture.html` | Enforced server-side                                 |
+| AI review            | `lib/ai/**`, `lib/jobs/pr-review-*.ts`, `app/api/jobs/pr-reviews/`                                                        | `architecture/ai-review-architecture.html`            | Queue durable; execution disabled                        |
+| Audit export         | `lib/audit-export.ts`, `app/api/audit-log/export/`                                                                        | `architecture/audit-and-compliance-architecture.html` | `tests/audit-export.test.ts`                             |
 | Email                | `lib/email.ts`                                                                                                            | `operations/PRODUCTION_CHECKLIST.md`                  | Resend; mock in dev without keys                         |
-| Jobs & retention     | `lib/jobs/queue.ts`, `app/api/jobs/**`, `lib/retention.ts`                                                                | `operations/OPERATIONS_RUNBOOK.md`                    | Bearer `JOB_RUNNER_SECRET`                               |
+| Jobs & retention     | `lib/jobs/queue.ts`, `app/api/jobs/**`, `lib/retention.ts`                                                                | `architecture/jobs-and-async-architecture.html`         | Bearer `JOB_RUNNER_SECRET`                               |
 | Diagnostics          | `lib/diagnostics.ts`, `app/api/diagnostics/route.ts`                                                                      | `features/API.md`                                     | Owner/admin only                                         |
 | Platform admin       | `lib/admin/*`, `app/admin/**`, `components/app/admin-nav.tsx`                                                             | `features/ADMIN.md`                                   | Cross-tenant; gated by `ADMIN_EMAILS`; `admin-data.ts` is the only cross-org reader |
-| System architecture  | `proxy.ts`, `app/layout.tsx`, `lib/data/app-data.ts`, domain modules in `lib/`                                            | `SYSTEM_DESIGN.md`                                    | Layer model, flows, tenancy, jobs                        |
-| UI design            | `app/globals.css`, `components/ui/**`, `components/app/**`                                                                | `SYSTEM_DESIGN.md`, `features/DESIGN_SYSTEM.md`       | Architecture + tokens; read both for UI changes          |
-| Onboarding           | `lib/onboarding.ts`, `components/app/onboarding-checklist.tsx`                                                            | —                                                     | `tests/onboarding.test.ts`                               |
+| System architecture  | `proxy.ts`, `app/layout.tsx`, `lib/data/app-data.ts`, domain modules in `lib/`                                            | `architecture/index.html`, `SYSTEM_DESIGN.md`         | Layer model, flows, tenancy, jobs                        |
+| UI design            | `app/globals.css`, `components/ui/**`, `components/app/**`                                                                | `architecture/frontend-architecture.html`, `features/DESIGN_SYSTEM.md` | Tokens in design system doc          |
+| Onboarding           | `lib/onboarding.ts`, `components/app/onboarding-checklist.tsx`                                                            | `architecture/frontend-architecture.html`             | `tests/onboarding.test.ts`                               |
 
 ## Doc Status Guide
 
 | Location                  | Purpose                                       | Status               |
 | ------------------------- | --------------------------------------------- | -------------------- |
 | `AGENT_START_HERE.md`     | Session entry point                           | `current`            |
+| `architecture/index.html` | Deep-dive architecture reference hub          | `current`            |
 | `SYSTEM_DESIGN.md`        | Architecture, domain flows, UI layer model    | `current`            |
 | `README.md`               | Doc index                                     | `current`            |
 | `features/`               | Feature/system reference (API, design system) | `current`            |

@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentGate — GitHub Integration Architecture</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f4f4f5;
+      --warn-bg: #fffbeb;
+      --warn-border: #f59e0b;
+      --good-bg: #f0fdf4;
+      --good-border: #22c55e;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60rem;
+    }
+
+    .meta {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section { margin-bottom: 2.75rem; }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.3rem; }
+
+    code, pre { font-family: var(--mono); font-size: 0.875em; }
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+
+    pre code { background: none; padding: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+    }
+
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre;
+      margin: 0 0 1rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 0.25rem;
+    }
+
+    .tag.warn { background: var(--warn-bg); color: #b45309; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .related a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentGate — GitHub Integration Architecture</h1>
+    <p>
+      How AgentGate connects to GitHub as a GitHub App: installation, repository and pull request
+      sync, webhook ingestion with durable queueing, CI status updates, and publishing check runs
+      and comments back to GitHub. Verified against code as of June 2026.
+    </p>
+    <p class="meta related">
+      Status: <strong>current</strong> &nbsp;·&nbsp;
+      <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
+      <a href="jobs-and-async-architecture.html">Jobs &amp; async</a>
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#install">Install &amp; connect</a></li>
+      <li><a href="#manual-sync">Manual sync</a></li>
+      <li><a href="#webhooks">Webhook pipeline</a></li>
+      <li><a href="#events">Event types</a></li>
+      <li><a href="#ci">CI updates</a></li>
+      <li><a href="#output">GitHub output</a></li>
+      <li><a href="#usage">Usage metering</a></li>
+      <li><a href="#demo-live">Demo vs live</a></li>
+      <li><a href="#caveats">Caveats</a></li>
+      <li><a href="#files">File map</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        AgentGate integrates with GitHub through a <strong>GitHub App</strong> using
+        <code>@octokit/auth-app</code> and <code>octokit</code>. Each workspace
+        (<code>Organization</code>) stores a single <code>githubInstallationId</code> after the
+        owner or admin completes the App install flow. Sync and webhook handlers use installation
+        tokens to read repositories and pull requests, compute risk and rule violations, persist
+        domain rows in PostgreSQL, and optionally publish AgentGate check runs and AI review output
+        back to GitHub.
+      </p>
+      <p>The integration has four major paths:</p>
+      <ol>
+        <li><strong>Install</strong> — OAuth-style redirect stores installation metadata on the org.</li>
+        <li><strong>Manual sync</strong> — Authenticated API routes pull installation repos and open PRs.</li>
+        <li><strong>Webhooks</strong> — GitHub POSTs signed events; deliveries are queued and processed asynchronously.</li>
+        <li><strong>Output</strong> — Check runs, managed comments, and inline review comments are published when entitled.</li>
+      </ol>
+      <div class="diagram">GitHub App install
+       │
+       ▼
+Organization.githubInstallationId
+       │
+       ├─ Manual sync (POST /api/github/sync/*)
+       │     └─ listInstallationRepositories → syncGitHubPullRequestRecord
+       │
+       └─ Webhooks (POST /api/github/webhook)
+             ├─ verifyGitHubWebhook (HMAC sha256)
+             ├─ enqueueGitHubWebhookDelivery
+             └─ after() → processQueuedGitHubWebhookDeliveries
+                   └─ sync / CI update / review / installation resync</div>
+      <div class="callout good">
+        <strong>Installation-scoped access</strong>
+        All GitHub API calls use installation auth (<code>getInstallationOctokit</code>). The app
+        never stores user OAuth tokens for repository access.
+      </div>
+    </section>
+
+    <section id="components">
+      <h2>2. Components</h2>
+
+      <h3>2.1 Core modules</h3>
+      <table>
+        <thead>
+          <tr><th>Module</th><th>Responsibility</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lib/github.ts</code></td>
+            <td>
+              GitHub App client factory, install URL, repository/PR API helpers, webhook
+              signature verification, <code>publishAgentGateCheckRun</code>,
+              <code>postPullRequestComment</code>, <code>postPullRequestReview</code>,
+              <code>publishAiReviewCheckRun</code>, demo/live mode detection
+            </td>
+          </tr>
+          <tr>
+            <td><code>lib/github-sync.ts</code></td>
+            <td>
+              Installation and repository sync, <code>syncGitHubPullRequestRecord</code>, agent
+              inference, risk/rules/test-gap pipeline, child row upserts, usage gating, check run
+              publish after sync
+            </td>
+          </tr>
+          <tr>
+            <td><code>lib/github-webhooks.ts</code></td>
+            <td>
+              Webhook enqueue/process, delivery dedupe, retry scheduling, event routing (PR, review,
+              check, installation)
+            </td>
+          </tr>
+          <tr>
+            <td><code>lib/github/output.ts</code></td>
+            <td>
+              AI review GitHub output orchestration: inline review, managed comment, AI review check
+              run; markdown sanitization and plan gating
+            </td>
+          </tr>
+          <tr>
+            <td><code>lib/github-installation-state.ts</code></td>
+            <td>
+              HMAC-signed <code>state</code> parameter for install callback CSRF protection (15-minute
+              TTL, org-bound)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 API routes</h3>
+      <table>
+        <thead>
+          <tr><th>Route</th><th>Auth</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /api/github/installation</code></td>
+            <td>Session + <code>canSyncGitHub</code></td>
+            <td>GitHub App install callback; stores <code>githubInstallationId</code></td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/sync/repositories</code></td>
+            <td>Session + <code>canSyncGitHub</code></td>
+            <td>Full installation sync via <code>syncGitHubInstallation</code></td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/sync/repositories/[id]</code></td>
+            <td>Session + <code>canSyncGitHub</code></td>
+            <td>Single repository sync via <code>syncGitHubRepository</code></td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/backfill</code></td>
+            <td>Session + <code>canSyncGitHub</code></td>
+            <td>Stale repository backfill via <code>backfillStaleGitHubRepositories</code></td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/webhook</code></td>
+            <td>HMAC signature</td>
+            <td>Inbound GitHub webhook receiver</td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/webhook/retry</code></td>
+            <td>Session + <code>canSyncGitHub</code></td>
+            <td>Manual retry of queued/failed webhook deliveries</td>
+          </tr>
+          <tr>
+            <td><code>POST /api/github/comment</code></td>
+            <td>None (dev only)</td>
+            <td>Demo helper; disabled in production</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>2.3 Environment variables</h3>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Required for live mode</th><th>Usage</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GITHUB_APP_ID</code></td>
+            <td>Yes</td>
+            <td>GitHub App identifier for JWT auth</td>
+          </tr>
+          <tr>
+            <td><code>GITHUB_APP_PRIVATE_KEY</code></td>
+            <td>Yes</td>
+            <td>PEM private key (<code>\n</code> escaped in env); used with <code>createAppAuth</code></td>
+          </tr>
+          <tr>
+            <td><code>GITHUB_APP_SLUG</code></td>
+            <td>For install URL</td>
+            <td>Builds <code>https://github.com/apps/{slug}/installations/new</code></td>
+          </tr>
+          <tr>
+            <td><code>GITHUB_WEBHOOK_SECRET</code></td>
+            <td>Yes in production</td>
+            <td>HMAC secret for <code>x-hub-signature-256</code> verification</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        <code>githubConfigured()</code> returns true when <code>GITHUB_APP_ID</code> and
+        <code>GITHUB_APP_PRIVATE_KEY</code> are set. <code>isGitHubDemoMode()</code> is the
+        inverse. Webhook secret is read via <code>getGitHubWebhookSecret()</code> in
+        <code>lib/env.ts</code>.
+      </p>
+    </section>
+
+    <section id="install">
+      <h2>3. Install &amp; Connect Flow</h2>
+
+      <div class="diagram">Settings UI (app/settings/github/page.tsx)
+  │
+  ├─ createGitHubInstallationState(organizationId)  ← HMAC-signed, 15 min TTL
+  └─ getGitHubAppInstallUrl(state)                  ← requires GITHUB_APP_SLUG
+        │
+        ▼
+GitHub App install page
+        │
+        ▼
+GET /api/github/installation?installation_id=&amp;state=
+  │
+  ├─ ensureCurrentUserOrganization()
+  ├─ canSyncGitHub(role)           → owners/admins only
+  ├─ verifyGitHubInstallationState(state, orgId)
+  ├─ getGitHubInstallationMetadata(installationId)
+  └─ prisma.organization.update({
+         githubInstallationId,
+         githubAccountId,
+         githubAccountLogin
+     })
+        │
+        ▼
+Redirect → /settings/github?connected=true</div>
+
+      <h3>3.1 Persisted fields</h3>
+      <p>On successful install callback, the organization row is updated with:</p>
+      <ul>
+        <li><code>githubInstallationId</code> — numeric installation ID from query string</li>
+        <li><code>githubAccountId</code> — GitHub account ID of the installing account/org</li>
+        <li><code>githubAccountLogin</code> — GitHub login of the installing account/org</li>
+      </ul>
+      <p>
+        An audit event (<code>settings_changed</code>) is recorded. Invalid or missing
+        <code>installation_id</code>, failed state verification, or failed metadata lookup redirect
+        to <code>/settings/github?error=...</code>.
+      </p>
+
+      <h3>3.2 State parameter security</h3>
+      <p>
+        <code>createGitHubInstallationState</code> embeds <code>organizationId</code>, a random
+        nonce, and <code>expiresAt</code> in a base64url payload signed with
+        <code>BETTER_AUTH_SECRET</code>. The callback verifies signature, org match, and expiry
+        before accepting the installation.
+      </p>
+    </section>
+
+    <section id="manual-sync">
+      <h2>4. Manual Sync</h2>
+
+      <h3>4.1 Installation-wide sync</h3>
+      <p>
+        <code>syncGitHubInstallation(organizationId)</code> calls
+        <code>listInstallationRepositories</code> and, for each GitHub repo:
+      </p>
+      <ul>
+        <li>Matches existing row by <code>githubRepositoryId</code> or owner/name</li>
+        <li>Respects plan <code>repositoryLimit</code> via <code>canConsume</code> for new repos</li>
+        <li>Upserts <code>Repository</code> with metadata (node ID, URL, default branch, visibility)</li>
+        <li>Syncs all <strong>open</strong> pull requests via <code>syncPullRequestsForRepository</code></li>
+      </ul>
+
+      <h3>4.2 Single repository sync</h3>
+      <p>
+        <code>syncGitHubRepository(repositoryId, organizationId)</code> requires the org to have
+        <code>githubInstallationId</code>, then syncs open PRs for that repo and updates
+        <code>connectedStatus</code> and <code>lastSyncedAt</code>.
+      </p>
+
+      <h3>4.3 Backfill</h3>
+      <p>
+        <code>backfillStaleGitHubRepositories</code> finds connected repositories where
+        <code>lastSyncedAt</code> is null or older than a threshold (default 60 minutes, limit 25)
+        and runs <code>syncGitHubRepository</code> on each.
+      </p>
+
+      <h3>4.4 Pull request sync record</h3>
+      <p>
+        <code>syncGitHubPullRequestRecord</code> is the core per-PR pipeline:
+      </p>
+      <ol>
+        <li><strong>Usage gate</strong> — <code>canRunPrCheck</code> (see §9)</li>
+        <li><strong>Fetch files</strong> — <code>listGitHubPullRequestFiles</code></li>
+        <li><strong>Inference</strong> — <code>inferAgentSource</code>, <code>inferAiAssisted</code></li>
+        <li><strong>Analysis</strong> — <code>calculateRisk</code>, <code>detectTestGap</code>, <code>evaluateRepoRules</code></li>
+        <li><strong>Approval state</strong> — <code>getNextApprovalState</code> preserves decisions on same <code>headSha</code></li>
+        <li><strong>Upsert</strong> — <code>PullRequest</code> row</li>
+        <li><strong>Child rows</strong> — delete-and-recreate: <code>PullRequestFile</code>, <code>RiskSignal</code>, <code>RuleViolation</code>, <code>TestGapAnalysis</code> (+ suggestions)</li>
+        <li><strong>Side effects</strong> — audit event, <code>enqueueAiReviewJob</code>, <code>recordPrChecks</code>, optional <code>publishAgentGateCheckRun</code></li>
+      </ol>
+
+      <h3>4.5 Agent source inference</h3>
+      <p>
+        <code>inferAgentSource</code> scans author login, PR title, and head branch (lowercased):
+      </p>
+      <table>
+        <thead><tr><th>Signal</th><th>Source</th></tr></thead>
+        <tbody>
+          <tr><td><code>cursor</code></td><td><code>cursor</code></td></tr>
+          <tr><td><code>codex</code></td><td><code>codex</code></td></tr>
+          <tr><td><code>claude</code></td><td><code>claude_code</code></td></tr>
+          <tr><td><code>copilot</code></td><td><code>copilot</code></td></tr>
+          <tr><td><code>devin</code></td><td><code>devin</code></td></tr>
+          <tr><td><code>agent/</code>, <code>-bot</code>, <code>[ai]</code></td><td><code>unknown</code></td></tr>
+          <tr><td>Otherwise</td><td><code>manual</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        <code>inferAiAssisted</code> returns <code>true</code> when
+        <code>inferAgentSource(...) !== 'manual'</code>.
+      </p>
+    </section>
+
+    <section id="webhooks">
+      <h2>5. Webhook Pipeline</h2>
+
+      <div class="diagram">GitHub POST /api/github/webhook
+  │
+  ├─ Read raw body
+  ├─ verifyGitHubWebhook(rawBody, x-hub-signature-256)
+  │     ├─ HMAC-SHA256 with GITHUB_WEBHOOK_SECRET
+  │     ├─ timingSafeEqual on "sha256=..." prefix
+  │     ├─ Production + missing secret → 401
+  │     └─ Non-production + missing secret → demo mode (ok: true)
+  │
+  ├─ enqueueGitHubWebhookDelivery({ deliveryId, event, rawBody })
+  │     ├─ Parse payload; resolve org by installation.id
+  │     ├─ Dedupe by deliveryId (processed / queued / processing)
+  │     └─ Persist GitHubWebhookDelivery (status: queued, metadata.rawBody)
+  │
+  └─ after(() => processQueuedGitHubWebhookDeliveries({ deliveryId, limit: 1 }))
+        └─ Async processing in same request lifecycle (Next.js after())</div>
+
+      <h3>5.1 Verification</h3>
+      <p>
+        <code>verifyGitHubWebhook</code> in <code>lib/github.ts</code> computes
+        <code>sha256=HMAC(secret, rawBody)</code> and compares with
+        <code>x-hub-signature-256</code> using constant-time equality. Failures return HTTP 401.
+      </p>
+
+      <h3>5.2 Enqueue and dedupe</h3>
+      <p>
+        <code>enqueueGitHubWebhookDelivery</code> uses the
+        <code>x-github-delivery</code> header as <code>deliveryId</code>:
+      </p>
+      <ul>
+        <li>If status is <code>processed</code> → duplicate, not re-queued</li>
+        <li>If status is <code>queued</code> or <code>processing</code> → duplicate, no new row</li>
+        <li>Failed deliveries can be re-queued on retry with updated metadata</li>
+        <li>Without database or <code>deliveryId</code> → demo mode response, not queued</li>
+      </ul>
+
+      <h3>5.3 Processing and retry</h3>
+      <p>
+        <code>processGitHubWebhookDelivery</code> marks the delivery <code>processing</code>,
+        increments <code>attemptCount</code>, resolves the org by
+        <code>payload.installation.id</code>, routes by event type, then sets status to
+        <code>processed</code> or <code>ignored</code>. On exception, status becomes
+        <code>failed</code> with <code>nextRetryAt</code> computed by exponential backoff:
+      </p>
+      <pre><code>retryDelayMs(attempt) = min(60_000 × 2^(attempt−1), 15 × 60_000)</code></pre>
+      <p>
+        <code>processQueuedGitHubWebhookDeliveries</code> picks deliveries where status is
+        <code>queued</code>, or <code>failed</code> with <code>nextRetryAt ≤ now</code> (or null).
+        Default batch size is 10; the webhook route processes one delivery immediately via
+        <code>after()</code>. Owners/admins can trigger batch retry via
+        <code>POST /api/github/webhook/retry</code> (limit 25).
+      </p>
+    </section>
+
+    <section id="events">
+      <h2>6. Event Types</h2>
+
+      <table>
+        <thead>
+          <tr><th>Event</th><th>Handler</th><th>Behavior</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>pull_request</code></td>
+            <td><code>processPullRequestWebhook</code></td>
+            <td>
+              Ensures repository row; routes by <code>action</code> (see below)
+            </td>
+          </tr>
+          <tr>
+            <td><code>pull_request_review</code></td>
+            <td><code>processPullRequestReviewWebhook</code></td>
+            <td>
+              Maps GitHub review <code>approved</code> / <code>changes_requested</code> to AgentGate
+              approval status; creates <code>Approval</code> and audit/activity rows
+            </td>
+          </tr>
+          <tr>
+            <td><code>check_run</code></td>
+            <td><code>processCheckWebhook</code></td>
+            <td>Updates PR <code>ciStatus</code> from check payload</td>
+          </tr>
+          <tr>
+            <td><code>check_suite</code></td>
+            <td><code>processCheckWebhook</code></td>
+            <td>Same as check_run</td>
+          </tr>
+          <tr>
+            <td><code>workflow_run</code></td>
+            <td><code>processCheckWebhook</code></td>
+            <td>Same as check_run</td>
+          </tr>
+          <tr>
+            <td><code>installation</code></td>
+            <td><code>syncGitHubInstallation</code></td>
+            <td>Full installation resync when repos are added/removed or install changes</td>
+          </tr>
+          <tr>
+            <td><code>installation_repositories</code></td>
+            <td><code>syncGitHubInstallation</code></td>
+            <td>Same as installation</td>
+          </tr>
+          <tr>
+            <td>Other events</td>
+            <td>—</td>
+            <td>Marked <code>ignored</code> with message "Event … is not handled yet."</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6.1 Pull request actions</h3>
+      <p>
+        <code>pullRequestSyncActions</code> triggers full sync via
+        <code>syncGitHubPullRequest</code>:
+      </p>
+      <p>
+        <span class="tag">opened</span>
+        <span class="tag">synchronize</span>
+        <span class="tag">reopened</span>
+        <span class="tag">edited</span>
+        <span class="tag">ready_for_review</span>
+      </p>
+      <p>
+        <code>closed</code> updates status only (<code>merged</code> / <code>closed</code>) without
+        re-running the full analysis pipeline. Other actions are ignored.
+      </p>
+      <p>
+        If no org matches the installation ID, the delivery is marked
+        <code>ignored</code>: "No organization is connected to this GitHub installation."
+      </p>
+    </section>
+
+    <section id="ci">
+      <h2>7. CI Updates</h2>
+      <p>
+        Check events (<code>check_run</code>, <code>check_suite</code>, <code>workflow_run</code>)
+        update existing synced pull requests only — they do not import new PRs.
+      </p>
+
+      <h3>7.1 PR resolution</h3>
+      <ol>
+        <li>Prefer PR number from <code>checkPayload.pull_requests[0].number</code></li>
+        <li>Else match by <code>head_sha</code> on the repository (most recently updated)</li>
+      </ol>
+
+      <h3>7.2 Status mapping</h3>
+      <p><code>mapGitHubCiStatus</code> converts GitHub check/workflow status to AgentGate <code>CiStatus</code>:</p>
+      <table>
+        <thead><tr><th>GitHub</th><th>AgentGate</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>queued</code>, <code>in_progress</code>, <code>requested</code>, <code>waiting</code>, <code>pending</code></td>
+            <td><code>pending</code></td>
+          </tr>
+          <tr>
+            <td><code>completed</code> + <code>success</code> / <code>neutral</code> / <code>skipped</code></td>
+            <td><code>passing</code></td>
+          </tr>
+          <tr>
+            <td><code>completed</code> + <code>failure</code> / <code>timed_out</code> / <code>cancelled</code> / <code>action_required</code> / <code>startup_failure</code></td>
+            <td><code>failing</code></td>
+          </tr>
+          <tr><td>Other combinations</td><td><code>unknown</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        When CI resolves to <code>passing</code> or <code>failing</code>, an
+        <code>AgentActivity</code> row is created (<code>ci_passed</code> or <code>ci_failed</code>).
+        Note: PR sync initially sets <code>ciStatus: 'unknown'</code>; webhooks are the primary path
+        for live CI state after sync.
+      </p>
+    </section>
+
+    <section id="output">
+      <h2>8. GitHub Output</h2>
+      <p>
+        AgentGate publishes back to GitHub in two layers: governance check runs during PR sync, and
+        AI review output after job completion.
+      </p>
+
+      <h3>8.1 AgentGate check run (<code>lib/github.ts</code>)</h3>
+      <p>
+        <code>publishAgentGateCheckRun</code> creates or updates a check run named
+        <strong>AgentGate</strong> on the PR head SHA. Conclusion comes from
+        <code>getAgentGateCheckConclusion</code>:
+      </p>
+      <table>
+        <thead><tr><th>Condition</th><th>Conclusion</th></tr></thead>
+        <tbody>
+          <tr><td><code>approvalStatus === 'rejected'</code> or <code>ciStatus === 'failing'</code></td><td><code>failure</code></td></tr>
+          <tr><td><code>pending</code>, <code>testGapStatus === 'high'</code>, or <code>riskLevel === 'critical'</code></td><td><code>action_required</code></td></tr>
+          <tr><td><code>approved</code>, <code>risk_accepted</code>, or <code>not_required</code></td><td><code>success</code></td></tr>
+          <tr><td>Otherwise</td><td><code>neutral</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        Existing <code>githubAgentGateCheckRunId</code> on the PR is used for update; 404 falls
+        back to create. Check run ID is persisted on the PR row after live publish.
+      </p>
+
+      <h3>8.2 AI review output (<code>lib/github/output.ts</code>)</h3>
+      <p>
+        <code>publishAiReviewGitHubOutput</code> runs after AI review jobs when the plan includes
+        <code>githubComments</code> (<code>isFeatureAvailable(planKey, 'githubComments')</code>).
+        Three publish channels (all default on, configurable via settings):
+      </p>
+      <ul>
+        <li><strong>Inline review</strong> — <code>postPullRequestReview</code> with COMMENT event and line-level findings</li>
+        <li><strong>Managed comment</strong> — <code>postPullRequestComment</code>; updates existing comment via <code>githubManagedCommentId</code></li>
+        <li><strong>AI review check run</strong> — <code>publishAiReviewCheckRun</code> named <strong>AgentGate AI Review</strong></li>
+      </ul>
+      <p>
+        Markdown is sanitized (<code>sanitizeGitHubMarkdownText</code>): strips control chars,
+        neutralizes <code>@</code>, and truncates long bodies. Managed comments include an
+        "Open in AgentGate" link.
+      </p>
+
+      <h3>8.3 Plan gating</h3>
+      <p>
+        <code>shouldPublishGitHubCheckRun(planKey)</code> in sync and
+        <code>publishAiReviewGitHubOutput</code> both require
+        <code>getPlanEntitlements(planKey).features.githubComments</code>. Without entitlement,
+        sync still persists PR data but skips check run publish; AI output returns
+        <code>mode: 'blocked'</code>.
+      </p>
+    </section>
+
+    <section id="usage">
+      <h2>9. Usage Metering Interaction</h2>
+      <p>
+        Each full PR sync through <code>syncGitHubPullRequestRecord</code> consumes one
+        <strong>PR check</strong> against the org's plan limit, unless already recorded for the
+        same source key in the current billing period.
+      </p>
+
+      <h3>9.1 Source key</h3>
+      <pre><code>getPrCheckSourceKey({ repositoryId, pullNumber, headSha })
+  → "{repositoryId}:{pullNumber}:{headSha}"</code></pre>
+
+      <h3>9.2 canRunPrCheck</h3>
+      <ol>
+        <li>Look up existing <code>UsageRecord</code> for metric <code>pr_checks</code>, current period, and source key — if found, allow (idempotent retry)</li>
+        <li>Load org plan; get <code>prCheckLimit</code> from entitlements</li>
+        <li>Compare current usage via <code>getPrCheckUsage</code> and <code>canConsume(limit, used, 1)</code></li>
+      </ol>
+      <p>
+        If <code>canRunPrCheck</code> returns false, <code>syncGitHubPullRequestRecord</code> exits
+        early without syncing — webhook and manual sync both respect this gate.
+      </p>
+
+      <h3>9.3 Recording usage</h3>
+      <p>
+        After successful upsert, <code>recordPrChecks(organizationId, 1, date, sourceKey)</code>
+        writes the usage row. On success, <code>repository.monthlyPrCheckUsage</code> is incremented.
+      </p>
+    </section>
+
+    <section id="demo-live">
+      <h2>10. Demo vs Live Mode</h2>
+
+      <table>
+        <thead>
+          <tr><th>Condition</th><th>Mode</th><th>Behavior</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Missing <code>GITHUB_APP_ID</code> or <code>GITHUB_APP_PRIVATE_KEY</code></td>
+            <td><span class="tag warn">demo</span></td>
+            <td>
+              <code>isGitHubDemoMode()</code>; Octokit clients return null; API helpers return mock
+              messages instead of calling GitHub
+            </td>
+          </tr>
+          <tr>
+            <td>Missing <code>GITHUB_WEBHOOK_SECRET</code> (non-production)</td>
+            <td><span class="tag warn">demo</span></td>
+            <td>Webhook verification passes without signature check</td>
+          </tr>
+          <tr>
+            <td>Missing <code>GITHUB_WEBHOOK_SECRET</code> (production)</td>
+            <td><span class="tag">live</span></td>
+            <td>Verification fails with <code>missing_secret</code> → HTTP 401</td>
+          </tr>
+          <tr>
+            <td>No PostgreSQL / no <code>deliveryId</code></td>
+            <td><span class="tag warn">demo</span></td>
+            <td>Webhooks acknowledged but not queued or processed</td>
+          </tr>
+          <tr>
+            <td>Org missing <code>githubInstallationId</code></td>
+            <td><span class="tag warn">demo</span></td>
+            <td>Sync routes return demo message; no GitHub API calls</td>
+          </tr>
+          <tr>
+            <td>All credentials + DB + installation present</td>
+            <td><span class="tag">live</span></td>
+            <td>Full GitHub API, webhook queue, and output publish</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <strong>Demo output is non-destructive</strong>
+        In demo mode, <code>postPullRequestComment</code>, <code>postPullRequestReview</code>, and
+        check run helpers return descriptive mock messages — nothing is posted to GitHub.
+      </div>
+    </section>
+
+    <section id="caveats">
+      <h2>11. Caveats</h2>
+      <table>
+        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Single installation per org</td>
+            <td>Only one <code>githubInstallationId</code> is stored; reinstall overwrites the previous link.</td>
+          </tr>
+          <tr>
+            <td>Open PRs only on list sync</td>
+            <td><code>listGitHubPullRequests</code> uses <code>state: 'open'</code>; closed PRs are updated via webhooks or direct single-PR sync.</td>
+          </tr>
+          <tr>
+            <td>CI at sync time</td>
+            <td>Full PR sync sets <code>ciStatus: 'unknown'</code>; rely on check/workflow webhooks for accurate CI.</td>
+          </tr>
+          <tr>
+            <td>Usage limit skips sync</td>
+            <td>When PR check quota is exhausted, sync silently returns false — no partial import.</td>
+          </tr>
+          <tr>
+            <td>Webhook without connected org</td>
+            <td>Deliveries for unknown installations are marked <code>ignored</code>, not retried indefinitely.</td>
+          </tr>
+          <tr>
+            <td>Check run publish failures</td>
+            <td>Sync succeeds even if <code>publishAgentGateCheckRun</code> throws; failure is logged with <code>console.warn</code>.</td>
+          </tr>
+          <tr>
+            <td>Repository limit on sync</td>
+            <td>New repos from installation sync are skipped when plan repository limit is reached (existing repos still update).</td>
+          </tr>
+          <tr>
+            <td>Private key formatting</td>
+            <td><code>GITHUB_APP_PRIVATE_KEY</code> must use literal <code>\n</code> for newlines in env; code replaces before use.</td>
+          </tr>
+          <tr>
+            <td>Immediate async processing</td>
+            <td><code>after()</code> processes one delivery per inbound webhook; sustained load depends on retry route or job cron (see jobs doc).</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="files">
+      <h2>12. File Map</h2>
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>lib/github.ts</code></td><td>GitHub App client, API helpers, webhook verification, check runs, comments, reviews</td></tr>
+          <tr><td><code>lib/github-sync.ts</code></td><td>Installation/repo/PR sync, agent inference, child rows, usage metering, sync-time check run</td></tr>
+          <tr><td><code>lib/github-webhooks.ts</code></td><td>Webhook enqueue, dedupe, retry, event routing, CI and review handlers</td></tr>
+          <tr><td><code>lib/github/output.ts</code></td><td>AI review GitHub output (inline, managed comment, check run)</td></tr>
+          <tr><td><code>lib/github-installation-state.ts</code></td><td>Install callback state token create/verify</td></tr>
+          <tr><td><code>lib/env.ts</code></td><td><code>getGitHubWebhookSecret</code>, production env validation for GitHub vars</td></tr>
+          <tr><td><code>lib/usage.ts</code></td><td><code>PR_CHECKS_METRIC</code>, <code>recordPrChecks</code>, <code>getPrCheckUsage</code></td></tr>
+          <tr><td><code>lib/entitlements.ts</code></td><td>Plan limits (<code>prCheckLimit</code>, <code>repositoryLimit</code>, <code>githubComments</code>)</td></tr>
+          <tr><td><code>app/api/github/installation/route.ts</code></td><td>Install callback; persists <code>githubInstallationId</code></td></tr>
+          <tr><td><code>app/api/github/webhook/route.ts</code></td><td>Inbound webhook: verify, enqueue, <code>after()</code> process</td></tr>
+          <tr><td><code>app/api/github/webhook/retry/route.ts</code></td><td>Manual webhook queue drain</td></tr>
+          <tr><td><code>app/api/github/sync/repositories/route.ts</code></td><td>POST installation-wide sync</td></tr>
+          <tr><td><code>app/api/github/sync/repositories/[id]/route.ts</code></td><td>POST single-repository sync</td></tr>
+          <tr><td><code>app/api/github/backfill/route.ts</code></td><td>POST stale repository backfill</td></tr>
+          <tr><td><code>app/api/github/comment/route.ts</code></td><td>Dev-only demo comment helper</td></tr>
+          <tr><td><code>app/settings/github/page.tsx</code></td><td>Install URL, connection status, sync/retry actions</td></tr>
+          <tr><td><code>tests/github-webhook.test.ts</code></td><td>Webhook verification and install state tests</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    AgentGate GitHub integration architecture reference · June 2026
+  </footer>
+</body>
+</html>

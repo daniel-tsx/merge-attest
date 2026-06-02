@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentGate — Deployment &amp; Runtime Architecture</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f4f4f5;
+      --warn-bg: #fffbeb;
+      --warn-border: #f59e0b;
+      --good-bg: #f0fdf4;
+      --good-border: #22c55e;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60rem;
+    }
+
+    .meta {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section { margin-bottom: 2.75rem; }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.3rem; }
+
+    code, pre { font-family: var(--mono); font-size: 0.875em; }
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+
+    pre code { background: none; padding: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+    }
+
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre;
+      margin: 0 0 1rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentGate — Deployment &amp; Runtime Architecture</h1>
+    <p>
+      How AgentGate runs on Vercel-friendly serverless Next.js: build pipeline, database
+      migrations, environment validation, demo mode, connection pooling, external cron jobs,
+      and edge middleware.
+    </p>
+    <p class="meta">
+      Status: <strong>current</strong> &nbsp;·&nbsp;
+      <a href="index.html">Architecture index</a>
+      &nbsp;·&nbsp;
+      <a href="observability-architecture.html">Observability</a>
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#vercel">Vercel / serverless</a></li>
+      <li><a href="#build">Build pipeline</a></li>
+      <li><a href="#database">Database</a></li>
+      <li><a href="#env">Environment</a></li>
+      <li><a href="#demo">Demo mode</a></li>
+      <li><a href="#pooling">Connection pooling</a></li>
+      <li><a href="#jobs">External cron</a></li>
+      <li><a href="#edge">Edge proxy</a></li>
+      <li><a href="#files">File map</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        AgentGate is a Next.js 16 App Router application deployed as serverless functions on
+        Vercel (or compatible hosts). There is no long-running Node process — background work
+        is triggered by external HTTPS cron hitting authenticated job routes. PostgreSQL is
+        accessed via Prisma 7 with the <code>@prisma/adapter-pg</code> driver adapter.
+      </p>
+      <div class="diagram">Deploy (Vercel)
+  │
+  ├─ pnpm install
+  ├─ prisma generate        (prebuild hook)
+  ├─ next build
+  └─ prisma migrate deploy  (release phase / manual — see §4)
+
+Runtime request
+  │
+  ├─ proxy.ts (edge)        rate limit · CSRF · headers · page gate
+  ├─ Route handler / RSC    getPrismaClient() → validateProductionEnv()
+  └─ External cron          POST /api/jobs/* + Bearer JOB_RUNNER_SECRET</div>
+    </section>
+
+    <section id="vercel">
+      <h2>2. Vercel-Friendly Serverless Next.js</h2>
+      <table>
+        <thead><tr><th>Aspect</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Compute model</td>
+            <td>Per-route serverless functions; cold starts possible</td>
+          </tr>
+          <tr>
+            <td>Edge middleware</td>
+            <td><code>proxy.ts</code> runs at the edge before app routes</td>
+          </tr>
+          <tr>
+            <td>Stateful globals</td>
+            <td>Prisma client cached on <code>globalThis</code>; rate-limit buckets in-memory (per instance)</td>
+          </tr>
+          <tr>
+            <td>Background work</td>
+            <td>Not in-process — external scheduler + <code>/api/jobs/*</code></td>
+          </tr>
+          <tr>
+            <td>Deploy metadata</td>
+            <td><code>VERCEL_GIT_COMMIT_SHA</code> injected for log <code>release</code> field</td>
+          </tr>
+          <tr>
+            <td><code>after()</code></td>
+            <td>GitHub webhook route uses Next.js <code>after()</code> for post-response queue drain (single delivery)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <strong>No built-in Vercel Cron in repo</strong>
+        Job scheduling is documented as external HTTPS POST with Bearer token. Configure Vercel
+        Cron, GitHub Actions, or another scheduler per
+        <code>docs/operations/OPERATIONS_RUNBOOK.md</code>.
+      </div>
+    </section>
+
+    <section id="build">
+      <h2>3. Build Pipeline</h2>
+      <p>From <code>package.json</code> scripts:</p>
+      <table>
+        <thead><tr><th>Script</th><th>When</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>pnpm db:generate</code></td><td>Local dev / CI</td><td><code>prisma generate</code> — emits client to <code>lib/generated/prisma/</code></td></tr>
+          <tr><td><code>prebuild</code></td><td>Before <code>next build</code></td><td>Runs <code>prisma generate</code> automatically</td></tr>
+          <tr><td><code>pnpm build</code></td><td>Deploy</td><td><code>next build</code> — production bundle</td></tr>
+          <tr><td><code>pnpm start</code></td><td>Self-hosted</td><td><code>next start</code> after build</td></tr>
+          <tr><td><code>pnpm db:migrate</code></td><td>Local dev only</td><td><code>prisma migrate dev</code> — creates/applies migration files</td></tr>
+        </tbody>
+      </table>
+      <p>CI (`.github/workflows/ci.yml`) runs lint, typecheck, test, audit, and build with placeholder env values.</p>
+    </section>
+
+    <section id="database">
+      <h2>4. Database Migrations (Production)</h2>
+      <p>
+        Production schema changes use Prisma Migrate — <strong>not</strong>
+        <code>db push</code>. Apply pending migrations at deploy time:
+      </p>
+      <pre><code>pnpm db:generate
+npx prisma migrate deploy</code></pre>
+      <p>
+        Run <code>migrate deploy</code> against the production <code>DATABASE_URL</code> before
+        or immediately after deploying app code that depends on new schema. The operations runbook
+        notes: if a migration was previously marked failed, inspect partial DB state before
+        resolving — do not mark applied until tables/indexes/FKs exist.
+      </p>
+      <ul>
+        <li>Local development: <code>pnpm db:migrate</code> (<code>prisma migrate dev</code>)</li>
+        <li>Seed (optional): <code>pnpm db:seed</code></li>
+        <li>Client import path: <code>@/lib/generated/prisma/client</code></li>
+      </ul>
+    </section>
+
+    <section id="env">
+      <h2>5. Environment Validation (<code>lib/env.ts</code>)</h2>
+      <p>
+        Central env accessors trim whitespace and return <code>undefined</code> for empty strings.
+        <code>validateProductionEnv()</code> runs inside <code>getPrismaClient()</code> — any code
+        path that opens the database validates production config first.
+      </p>
+
+      <h3>5.1 Required in production</h3>
+      <pre><code>DATABASE_URL
+BETTER_AUTH_SECRET
+BETTER_AUTH_URL
+BETTER_AUTH_API_KEY
+GITHUB_APP_ID
+GITHUB_APP_SLUG
+GITHUB_APP_PRIVATE_KEY
+GITHUB_WEBHOOK_SECRET</code></pre>
+      <p>Missing any of these throws: <code>Missing required production environment variables: ...</code></p>
+
+      <h3>5.2 Development fallbacks</h3>
+      <table>
+        <thead><tr><th>Variable</th><th>Dev behavior</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>BETTER_AUTH_SECRET</code></td>
+            <td>Hardcoded local fallback if unset (never use in production)</td>
+          </tr>
+          <tr>
+            <td><code>BETTER_AUTH_URL</code></td>
+            <td>Defaults to <code>http://localhost:3000</code></td>
+          </tr>
+          <tr>
+            <td><code>DATABASE_URL</code></td>
+            <td>Optional — enables demo mode when absent</td>
+          </tr>
+          <tr>
+            <td><code>JOB_RUNNER_SECRET</code></td>
+            <td>Job routes allowed without secret in non-production</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>5.3 Helper functions</h3>
+      <ul>
+        <li><code>isProduction()</code> — <code>NODE_ENV === 'production'</code></li>
+        <li><code>isDatabaseConfigured()</code> — truthy trimmed <code>DATABASE_URL</code></li>
+        <li><code>getAdminEmails()</code> — parses comma-separated <code>ADMIN_EMAILS</code></li>
+      </ul>
+    </section>
+
+    <section id="demo">
+      <h2>6. Demo Mode (Dev Without <code>DATABASE_URL</code>)</h2>
+      <p>
+        When PostgreSQL is not configured, the app still runs for UI exploration using in-memory
+        demo fixtures from <code>lib/demo-data.ts</code>.
+      </p>
+      <table>
+        <thead><tr><th>Component</th><th>Demo behavior</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>getPrismaClient()</code></td>
+            <td>Returns <code>null</code> when no <code>DATABASE_URL</code></td>
+          </tr>
+          <tr>
+            <td><code>lib/auth.ts</code></td>
+            <td>Omits Prisma adapter — auth cannot persist users/sessions</td>
+          </tr>
+          <tr>
+            <td><code>proxy.ts</code></td>
+            <td>Non-production + no DB → app pages load without session cookie</td>
+          </tr>
+          <tr>
+            <td><code>lib/data/app-data.ts</code></td>
+            <td>Falls back to demo data arrays when prisma is null</td>
+          </tr>
+          <tr>
+            <td>GitHub webhooks</td>
+            <td><code>mode: 'demo'</code> — received but not persisted/queued</td>
+          </tr>
+          <tr>
+            <td><code>getCurrentOrganization()</code></td>
+            <td>Reports <code>dataMode: 'demo'</code> vs <code>'live'</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <strong>Not production behavior</strong>
+        Demo bypass and unsigned webhook acceptance exist only in development. Production requires
+        full env validation and real persistence.
+      </div>
+    </section>
+
+    <section id="pooling">
+      <h2>7. PostgreSQL Connection Pooling</h2>
+      <p>
+        Prisma connects via the official PostgreSQL driver adapter:
+      </p>
+      <pre><code>import { PrismaPg } from '@prisma/adapter-pg'
+const adapter = new PrismaPg({ connectionString: databaseUrl })
+new PrismaClient({ adapter })</code></pre>
+      <p>
+        The client is singleton-cached on <code>globalThis</code> (keyed by connection string) to
+        survive serverless warm invocations and avoid connection storms on every request.
+      </p>
+      <div class="callout">
+        <strong>Pooling note for production</strong>
+        Serverless functions open many short-lived connections. Point
+        <code>DATABASE_URL</code> at a pooled endpoint (Neon pooler, Supabase pooler, PgBouncer,
+        PlanetScale Postgres proxy, etc.) rather than a direct single-session URL when traffic
+        scales. The adapter uses the <code>pg</code> driver; pool sizing is governed by the
+        provider's pooler, not AgentGate application code.
+      </div>
+    </section>
+
+    <section id="jobs">
+      <h2>8. External Cron — <code>JOB_RUNNER_SECRET</code></h2>
+      <p>
+        Background processing is not embedded in the Next.js process. An external scheduler
+        POSTs to job routes with:
+      </p>
+      <pre><code>Authorization: Bearer &lt;JOB_RUNNER_SECRET&gt;</code></pre>
+      <p><code>authorizeJobRequest()</code> in <code>lib/job-auth.ts</code>:</p>
+      <ul>
+        <li>Production without secret → <strong>503</strong> "Job runner secret is not configured."</li>
+        <li>Wrong/missing Bearer → <strong>401</strong></li>
+        <li>Development without secret → allowed (local testing)</li>
+      </ul>
+
+      <table>
+        <thead><tr><th>Endpoint</th><th>Purpose</th><th>Recommended cadence</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>POST /api/jobs/github-webhooks</code></td>
+            <td>Process queued/retryable GitHub webhook deliveries</td>
+            <td>Every 1–5 minutes</td>
+          </tr>
+          <tr>
+            <td><code>POST /api/jobs/pr-reviews</code></td>
+            <td>AI PR review worker queue</td>
+            <td>Every 1–5 minutes</td>
+          </tr>
+          <tr>
+            <td><code>POST /api/jobs/retention</code></td>
+            <td>Operational data cleanup (<code>lib/retention.ts</code>)</td>
+            <td>Daily</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Job routes are exempt from browser origin checks in <code>proxy.ts</code> because callers
+        are server-side schedulers, not browsers. See
+        <code>docs/operations/OPERATIONS_RUNBOOK.md</code> for expected JSON responses and alerting.
+      </p>
+    </section>
+
+    <section id="edge">
+      <h2>9. Edge Middleware — <code>proxy.ts</code></h2>
+      <p>
+        Exported as Next.js middleware (<code>export function proxy</code>) with matcher excluding
+        static assets. Runs at the edge on Vercel before route handlers.
+      </p>
+      <table>
+        <thead><tr><th>Responsibility</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>CSRF / origin</td><td>Mutating <code>/api/*</code> same-origin check (exemptions for auth, jobs, webhooks)</td></tr>
+          <tr><td>Rate limiting</td><td>Per-IP buckets; 429 when exceeded</td></tr>
+          <tr><td>Security headers</td><td><code>applySecurityHeaders()</code> on every response</td></tr>
+          <tr><td>Page auth gate</td><td>Session cookie required for app pages (with public + demo exceptions)</td></tr>
+          <tr><td>Pathname header</td><td>Sets <code>x-agentgate-pathname</code> for downstream use</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Full security detail: <a href="security-architecture.html">security architecture</a>.
+        Auth detail: <a href="authentication-architecture.html">authentication architecture</a>.
+      </p>
+    </section>
+
+    <section id="files">
+      <h2>10. File Map</h2>
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>package.json</code></td><td>Build/dev/migrate scripts</td></tr>
+          <tr><td><code>proxy.ts</code></td><td>Edge middleware entry</td></tr>
+          <tr><td><code>lib/env.ts</code></td><td>Env accessors, production validation</td></tr>
+          <tr><td><code>lib/prisma.ts</code></td><td>Prisma singleton, adapter-pg, validate on access</td></tr>
+          <tr><td><code>lib/job-auth.ts</code></td><td>Job Bearer authorization</td></tr>
+          <tr><td><code>app/api/jobs/*/route.ts</code></td><td>Cron-triggered workers</td></tr>
+          <tr><td><code>prisma/schema.prisma</code></td><td>Schema source of truth</td></tr>
+          <tr><td><code>prisma/migrations/</code></td><td>Versioned SQL migrations</td></tr>
+          <tr><td><code>docs/operations/OPERATIONS_RUNBOOK.md</code></td><td>Cron setup, incident triage</td></tr>
+          <tr><td><code>docs/operations/PRODUCTION_CHECKLIST.md</code></td><td>Pre-launch env verification</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    AgentGate deployment &amp; runtime architecture reference · June 2026
+  </footer>
+</body>
+</html>
