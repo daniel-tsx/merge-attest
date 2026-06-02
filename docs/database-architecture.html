@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentGate — Database Architecture &amp; Data Structure</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f4f4f5;
+      --warn-bg: #fffbeb;
+      --warn-border: #f59e0b;
+      --good-bg: #f0fdf4;
+      --good-border: #22c55e;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60rem;
+    }
+
+    .meta {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .meta code {
+      font-size: 0.85rem;
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    nav a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      margin-bottom: 2.75rem;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p { margin: 0 0 0.85rem; }
+
+    ul, ol {
+      margin: 0 0 0.85rem;
+      padding-left: 1.35rem;
+    }
+
+    li { margin-bottom: 0.3rem; }
+
+    code, pre {
+      font-family: var(--mono);
+      font-size: 0.875em;
+    }
+
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+    }
+
+    .callout.warn {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+    }
+
+    .callout.good {
+      background: var(--good-bg);
+      border-color: var(--good-border);
+    }
+
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre;
+      margin: 0 0 1rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 0.25rem;
+    }
+
+    .tag.warn { background: var(--warn-bg); color: #b45309; }
+    .tag.good { background: var(--good-bg); color: #15803d; }
+
+    dl { margin: 0 0 1rem; }
+    dt { font-weight: 600; margin-top: 0.75rem; }
+    dd { margin: 0.15rem 0 0 0; color: var(--muted); }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentGate — Database Architecture &amp; Data Structure</h1>
+    <p>
+      Comprehensive reference for PostgreSQL schema, multi-tenant data model, read/write paths,
+      indexing strategy, setup commands, and operational caveats. Verified against
+      <code>prisma/schema.prisma</code> and application code as of June 2026.
+    </p>
+    <p class="meta">
+      Status: <strong>current</strong> &nbsp;·&nbsp;
+      Source of truth: <code>prisma/schema.prisma</code>, <code>lib/data/app-data.ts</code>, <code>lib/prisma.ts</code>
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#model">Data model</a></li>
+      <li><a href="#flow">Data flow</a></li>
+      <li><a href="#setup">Setup</a></li>
+      <li><a href="#indexes">Indexes</a></li>
+      <li><a href="#optimization">Optimization</a></li>
+      <li><a href="#caveats">Caveats</a></li>
+      <li><a href="#retention">Retention</a></li>
+      <li><a href="#security">Security</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        AgentGate is a <strong>multi-tenant SaaS</strong> control center for AI-assisted pull request governance.
+        All business data is scoped to an <strong>Organization</strong> (workspace). PostgreSQL is the system of
+        record; Prisma 7 is the ORM with a driver adapter (<code>@prisma/adapter-pg</code>).
+      </p>
+      <p>Core responsibilities of the database layer:</p>
+      <ul>
+        <li>Identity and sessions (Better Auth tables)</li>
+        <li>Tenant workspaces, memberships, and team invites</li>
+        <li>GitHub-connected repositories and pull requests with governance signals</li>
+        <li>Rules, violations, approvals, and audit evidence</li>
+        <li>Plan entitlements, usage metering, and Lemon Squeezy billing state</li>
+        <li>Durable webhook delivery queues and AI review job lifecycle</li>
+        <li>Encrypted BYOK AI provider credentials</li>
+      </ul>
+      <div class="callout good">
+        <strong>Design principle</strong>
+        Business reads are organization-scoped via <code>lib/data/app-data.ts</code>.
+        Cross-tenant queries exist only in <code>lib/admin/admin-data.ts</code>, gated by
+        <code>ADMIN_EMAILS</code>.
+      </div>
+    </section>
+
+    <section id="stack">
+      <h2>2. Technology Stack</h2>
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Choice</th><th>Location</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Database</td>
+            <td>PostgreSQL</td>
+            <td><code>prisma/schema.prisma</code> — <code>provider = "postgresql"</code></td>
+          </tr>
+          <tr>
+            <td>ORM</td>
+            <td>Prisma 7.8+ with generated client</td>
+            <td><code>lib/generated/prisma</code></td>
+          </tr>
+          <tr>
+            <td>Driver</td>
+            <td><code>@prisma/adapter-pg</code> (node-postgres adapter)</td>
+            <td><code>lib/prisma.ts</code></td>
+          </tr>
+          <tr>
+            <td>Config</td>
+            <td><code>prisma.config.ts</code> (Prisma 7 config file)</td>
+            <td>Migrations path, seed command, datasource URL</td>
+          </tr>
+          <tr>
+            <td>Auth persistence</td>
+            <td>Better Auth + Prisma adapter</td>
+            <td><code>User</code>, <code>Session</code>, <code>Account</code>, <code>Verification</code></td>
+          </tr>
+          <tr>
+            <td>ID strategy</td>
+            <td><code>cuid()</code> for most models; Better Auth uses string IDs</td>
+            <td>Schema defaults</td>
+          </tr>
+          <tr>
+            <td>JSON columns</td>
+            <td>Prisma <code>Json</code> type</td>
+            <td>Metadata, provider config, plan features, filters</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Client initialization</h3>
+      <p>
+        <code>getPrismaClient()</code> in <code>lib/prisma.ts</code> returns <code>null</code> when
+        <code>DATABASE_URL</code> is unset. In production, <code>validateProductionEnv()</code> runs first and
+        fails closed if required env vars are missing. The client is cached on <code>globalThis</code> keyed by
+        connection string so hot reloads do not leak connections.
+      </p>
+      <pre><code>// lib/prisma.ts — simplified
+const adapter = new PrismaPg({ connectionString: databaseUrl })
+globalForPrisma.agentGatePrisma = new PrismaClient({ adapter })</code></pre>
+    </section>
+
+    <section id="architecture">
+      <h2>3. Architecture</h2>
+
+      <h3>3.1 Multi-tenant boundary</h3>
+      <p>
+        The tenant root is <strong>Organization</strong>. Nearly every business table carries an
+        <code>organizationId</code> foreign key with <code>onDelete: Cascade</code>. Application queries
+        filter by the current session's organization ID — never by user ID alone for business data.
+      </p>
+
+      <div class="diagram">┌─────────────────────────────────────────────────────────────────┐
+│                         PostgreSQL (single database)             │
+├─────────────────────────────────────────────────────────────────┤
+│  Auth layer (Better Auth)                                        │
+│    User ── OrganizationMember ── Organization                    │
+│    Session, Account, Verification                                │
+├─────────────────────────────────────────────────────────────────┤
+│  Core domain (org-scoped)                                        │
+│    Organization ── Repository ── PullRequest                     │
+│                      │              ├── PullRequestFile          │
+│                      │              ├── RiskSignal               │
+│                      │              ├── TestGapAnalysis          │
+│                      │              ├── RuleViolation            │
+│                      │              ├── Approval                 │
+│                      │              └── AiReviewJob              │
+│                      └── RepoRule                                │
+├─────────────────────────────────────────────────────────────────┤
+│  Operations &amp; billing                                            │
+│    UsageRecord, Plan, GitHubWebhookDelivery, BillingWebhookEvent │
+│    AuditEvent, AgentActivity, AuditExport                        │
+│    AiProviderCredential, RepositoryReviewSettings, ApiKey        │
+└─────────────────────────────────────────────────────────────────┘</div>
+
+      <h3>3.2 Application layers</h3>
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Role</th><th>Database access pattern</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>lib/data/app-data.ts</code></td>
+            <td>Primary read path for UI pages</td>
+            <td>Org-scoped <code>findMany</code> / <code>findFirst</code>; demo fallback in dev</td>
+          </tr>
+          <tr>
+            <td><code>lib/github-sync.ts</code></td>
+            <td>Write path for GitHub import &amp; PR checks</td>
+            <td>Upserts, nested creates, usage recording</td>
+          </tr>
+          <tr>
+            <td><code>lib/github-webhooks.ts</code></td>
+            <td>Webhook queue &amp; idempotency</td>
+            <td><code>GitHubWebhookDelivery</code> dedupe by <code>deliveryId</code></td>
+          </tr>
+          <tr>
+            <td><code>lib/usage.ts</code></td>
+            <td>Monthly PR check metering</td>
+            <td><code>UsageRecord</code> with composite unique key</td>
+          </tr>
+          <tr>
+            <td><code>lib/auth/session.ts</code></td>
+            <td>Session → org context</td>
+            <td>Auto-provisions org on first login</td>
+          </tr>
+          <tr>
+            <td><code>lib/admin/admin-data.ts</code></td>
+            <td>Platform admin dashboard</td>
+            <td><span class="tag warn">Cross-tenant</span> — admin-gated only</td>
+          </tr>
+          <tr>
+            <td><code>lib/retention.ts</code></td>
+            <td>Scheduled cleanup</td>
+            <td>Plan-based audit deletion; fixed windows for webhooks</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>3.3 Demo vs live data mode</h3>
+      <p>
+        When <code>DATABASE_URL</code> is missing or queries fail in development, reads fall back to
+        <code>lib/demo-data.ts</code> via <code>queryWithDemoFallback()</code>. Production never falls back —
+        it throws if the database is unavailable.
+      </p>
+      <pre><code>// lib/data/app-data.ts — behavior summary
+if (!client) {
+  if (isProduction()) throw new Error('Database access is required in production.')
+  return fallback()  // demo data
+}
+try { return await query(client) }
+catch (error) {
+  if (isProduction()) throw error
+  return fallback()
+}</code></pre>
+    </section>
+
+    <section id="model">
+      <h2>4. Data Model</h2>
+
+      <h3>4.1 Entity groups</h3>
+
+      <h4>Identity &amp; access</h4>
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr><td><code>User</code></td><td>Account holder</td><td><code>email</code> (unique), <code>emailVerified</code></td></tr>
+          <tr><td><code>Session</code></td><td>Better Auth sessions</td><td><code>token</code> (unique), <code>expiresAt</code></td></tr>
+          <tr><td><code>Account</code></td><td>Credential provider linkage</td><td><code>providerId</code>, optional <code>password</code></td></tr>
+          <tr><td><code>Verification</code></td><td>Email verification tokens</td><td><code>identifier</code>, <code>expiresAt</code></td></tr>
+          <tr><td><code>OrganizationMember</code></td><td>User ↔ org membership</td><td><code>role</code> enum, unique <code>[userId, organizationId]</code></td></tr>
+          <tr><td><code>OrganizationInvite</code></td><td>Pending team invites</td><td><code>token</code> (unique), <code>status</code>, <code>expiresAt</code></td></tr>
+          <tr><td><code>ApiKey</code></td><td>Org API keys</td><td><code>prefix</code>, <code>hashedKey</code> (no index on hash — lookup by prefix at app layer)</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Workspace &amp; billing</h4>
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Organization</code></td>
+            <td>Tenant workspace</td>
+            <td>
+              <code>slug</code> (unique), <code>planKey</code>, <code>billingStatus</code>,
+              <code>githubInstallationId</code>, Lemon Squeezy IDs
+            </td>
+          </tr>
+          <tr><td><code>Plan</code></td><td>Plan catalog (seeded per org)</td><td><code>key</code>, limits, <code>features</code> JSON</td></tr>
+          <tr><td><code>UsageRecord</code></td><td>Monthly usage buckets</td><td><code>metric</code>, <code>quantity</code>, <code>periodStart</code>, optional <code>sourceKey</code></td></tr>
+          <tr><td><code>BillingWebhookEvent</code></td><td>Lemon Squeezy idempotency</td><td><code>deliveryId</code> (unique), <code>eventName</code>, <code>status</code></td></tr>
+        </tbody>
+      </table>
+
+      <h4>GitHub domain</h4>
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Repository</code></td>
+            <td>Connected repo</td>
+            <td>
+              Unique <code>[organizationId, githubRepositoryId]</code>,
+              <code>connectedStatus</code>, <code>monthlyPrCheckUsage</code> (denormalized counter)
+            </td>
+          </tr>
+          <tr>
+            <td><code>PullRequest</code></td>
+            <td>PR governance record</td>
+            <td>
+              Unique <code>[repositoryId, number]</code> and <code>[repositoryId, githubPullRequestId]</code>;
+              risk/test-gap/approval/CI fields; GitHub output IDs for comment &amp; check run
+            </td>
+          </tr>
+          <tr><td><code>PullRequestFile</code></td><td>Changed files snapshot</td><td>No org FK — scoped via PR</td></tr>
+          <tr><td><code>RiskSignal</code></td><td>Deterministic risk breakdown</td><td><code>key</code>, <code>score</code>, <code>filePaths</code> JSON</td></tr>
+          <tr><td><code>TestGapAnalysis</code></td><td>Test coverage gap (1:1 with PR)</td><td><code>pullRequestId</code> unique</td></tr>
+          <tr><td><code>TestGapSuggestion</code></td><td>Suggested test cases</td><td>Child of analysis</td></tr>
+          <tr><td><code>RepoRule</code></td><td>Repository policy rules</td><td>Trigger/action enums, optional patterns</td></tr>
+          <tr><td><code>RuleViolation</code></td><td>Rule hits on a PR</td><td><code>resolved</code> flag</td></tr>
+          <tr><td><code>Approval</code></td><td>Approval decision history</td><td><code>decision</code> enum, optional <code>reviewerId</code></td></tr>
+          <tr><td><code>PullRequestComment</code></td><td>In-app PR comments</td><td>Indexed by <code>[pullRequestId, createdAt]</code></td></tr>
+          <tr><td><code>GitHubWebhookDelivery</code></td><td>Durable webhook queue</td><td><code>deliveryId</code> (unique), retry fields</td></tr>
+        </tbody>
+      </table>
+
+      <h4>AI review</h4>
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr><td><code>AiProviderCredential</code></td><td>Encrypted OpenRouter key</td><td>Unique <code>[organizationId, provider]</code></td></tr>
+          <tr><td><code>RepositoryReviewSettings</code></td><td>Per-repo AI config</td><td><code>repositoryId</code> unique; JSON <code>ignoredPaths</code>, <code>stackTags</code></td></tr>
+          <tr><td><code>AiReviewJob</code></td><td>Durable review lifecycle</td><td><code>reviewKey</code> unique; status machine; GitHub output IDs</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Observability &amp; compliance</h4>
+      <table>
+        <thead><tr><th>Model</th><th>Purpose</th><th>Key fields</th></tr></thead>
+        <tbody>
+          <tr><td><code>AgentActivity</code></td><td>Activity feed events</td><td><code>eventType</code>, <code>timestamp</code>, <code>metadata</code> JSON</td></tr>
+          <tr><td><code>AuditEvent</code></td><td>Compliance audit log</td><td><code>eventType</code>, optional repo/PR FKs</td></tr>
+          <tr><td><code>AuditExport</code></td><td>Export job metadata</td><td><code>filters</code> JSON, <code>eventCount</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Enumerations</h3>
+      <p>
+        The schema defines 20+ PostgreSQL enums for typed domain values — roles, billing status,
+        risk levels, rule triggers/actions, AI review status, audit event types, etc. Enums are
+        migrated explicitly in SQL (<code>CREATE TYPE ... AS ENUM</code>) and referenced by Prisma models.
+        Adding enum values requires a migration.
+      </p>
+
+      <h3>4.3 Referential integrity</h3>
+      <ul>
+        <li><strong>Cascade deletes</strong> from Organization → most child tables (data isolation on org removal).</li>
+        <li><strong>SetNull</strong> on optional user references (reviewer, invite acceptor) to preserve history.</li>
+        <li><strong>PullRequestFile, RiskSignal, etc.</strong> cascade from PullRequest — no direct org FK on leaf tables.</li>
+        <li>Webhook/billing event tables use optional <code>organizationId</code> with SetNull for events received before org resolution.</li>
+      </ul>
+
+      <h3>4.4 Denormalization</h3>
+      <ul>
+        <li><code>PullRequest.organizationId</code> — duplicated from repository for org-scoped queries without joins.</li>
+        <li><code>RepoRule.organizationId</code> — enables org-wide rule queries.</li>
+        <li><code>Repository.monthlyPrCheckUsage</code> — counter field (alongside authoritative <code>UsageRecord</code> aggregation).</li>
+        <li><code>Repository.activeRulesCount</code> — maintained on rule changes.</li>
+      </ul>
+    </section>
+
+    <section id="flow">
+      <h2>5. Data Flow</h2>
+
+      <h3>5.1 Read path (UI)</h3>
+      <ol>
+        <li>Request hits <code>proxy.ts</code> (session cookie, rate limits).</li>
+        <li>Server Component calls <code>ensureCurrentUserOrganization()</code> → resolves org from session.</li>
+        <li>Page calls <code>app-data</code> functions with <code>organizationId</code>.</li>
+        <li>Prisma query runs with <code>where: { organizationId }</code> (+ filters).</li>
+        <li>Rows are mapped to UI types (<code>mapPullRequest</code>, etc.) and rendered.</li>
+      </ol>
+
+      <h3>5.2 User signup &amp; org provisioning</h3>
+      <ol>
+        <li>Better Auth creates <code>User</code> (+ <code>Account</code> with password hash).</li>
+        <li>On first authenticated request, <code>ensureCurrentUserOrganization()</code> checks <code>OrganizationMember</code>.</li>
+        <li>If none exists, creates <code>Organization</code> with slug <code>{slugified-name}-{userId-prefix}</code> and owner membership.</li>
+        <li>Default <code>planKey = "free"</code>, <code>billingStatus = active</code>.</li>
+      </ol>
+
+      <h3>5.3 GitHub webhook → PR sync (write path)</h3>
+      <div class="diagram">GitHub POST /api/github/webhook
+        │
+        ├─ Verify HMAC signature
+        ├─ Insert GitHubWebhookDelivery (deliveryId unique → skip duplicates)
+        ├─ Resolve Organization by githubInstallationId
+        │
+        └─ Queue processor / syncGitHubPullRequest()
+              │
+              ├─ canRunPrCheck() — entitlement + UsageRecord idempotency
+              ├─ Fetch PR files from GitHub API
+              ├─ calculateRisk(), detectTestGap(), evaluateRepoRules()
+              ├─ pullRequest.upsert (by repositoryId + number)
+              ├─ Replace child rows: files, riskSignals, testGap, violations
+              ├─ recordPrChecks() with sourceKey = repo:pr:sha
+              ├─ Write AuditEvent + AgentActivity
+              ├─ publishAgentGateCheckRun() (if plan allows)
+              └─ enqueueAiReviewJob() (if repo AI settings enabled)</div>
+
+      <h3>5.4 Usage metering</h3>
+      <p>
+        PR checks are metered monthly in UTC calendar months via <code>UsageRecord</code>:
+      </p>
+      <pre><code>// lib/usage.ts
+periodStart = UTC first day of month
+periodEnd   = UTC first day of next month
+metric      = "pr_checks"</code></pre>
+      <p>
+        Idempotency: composite unique key
+        <code>[organizationId, metric, periodStart, sourceKey]</code> where
+        <code>sourceKey</code> encodes repository + PR number + head SHA. Re-syncing the same commit
+        does not double-count; a new push (new SHA) consumes another check if under limit.
+      </p>
+
+      <h3>5.5 Billing webhooks</h3>
+      <ol>
+        <li>Lemon Squeezy POST → verify signature.</li>
+        <li>Insert <code>BillingWebhookEvent</code> by <code>deliveryId</code> (dedupe).</li>
+        <li>Update <code>Organization</code> subscription fields and <code>planKey</code>.</li>
+      </ol>
+
+      <h3>5.6 AI review job lifecycle</h3>
+      <p>
+        <code>AiReviewJob.reviewKey</code> = <code>{orgId}:{repoId}:{pullNumber}:{headSha}</code> — ensures
+        one job per PR commit. Status transitions: <code>queued → in_progress → completed|failed|skipped|blocked</code>.
+        Worker code lives in <code>lib/jobs/pr-review-worker.ts</code>; model execution is intentionally disabled
+        at time of writing — lifecycle and GitHub output boundaries are in place.
+      </p>
+
+      <h3>5.6 Approval writes</h3>
+      <p>
+        POST <code>/api/pull-requests/[id]/approval</code> creates an <code>Approval</code> row, updates
+        <code>PullRequest.approvalStatus</code>, writes <code>AuditEvent</code>, and optionally posts GitHub
+        comments/check runs when entitlements allow.
+      </p>
+    </section>
+
+    <section id="setup">
+      <h2>6. Database Setup</h2>
+
+      <h3>6.1 Environment</h3>
+      <pre><code># .env.example
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/agentgate?schema=public"</code></pre>
+      <p>
+        Optional but related: <code>AI_PROVIDER_ENCRYPTION_KEY</code> (falls back to
+        <code>BETTER_AUTH_SECRET</code> for credential encryption).
+      </p>
+
+      <h3>6.2 Local development</h3>
+      <pre><code>pnpm install
+cp .env.example .env
+pnpm db:generate    # prisma generate → lib/generated/prisma
+pnpm db:migrate     # prisma migrate dev (interactive, creates/applies migrations)
+pnpm db:seed        # prisma generate && prisma db seed
+pnpm dev</code></pre>
+      <p>
+        Without PostgreSQL, the UI still works using in-memory demo data. With PostgreSQL configured,
+        seed populates one organization, three users, four repositories, twenty pull requests, rules,
+        audit events, and usage records from <code>lib/demo-data.ts</code>.
+      </p>
+
+      <h3>6.3 Production deployment</h3>
+      <pre><code>pnpm db:generate
+pnpm prisma migrate deploy   # non-interactive; applies pending migrations only</code></pre>
+      <div class="callout warn">
+        <strong>Production requires DATABASE_URL</strong>
+        <code>validateProductionEnv()</code> and <code>queryWithDemoFallback</code> ensure the app
+        does not silently serve demo data in production.
+      </div>
+
+      <h3>6.4 Migration history (chronological)</h3>
+      <table>
+        <thead><tr><th>Migration</th><th>Summary</th></tr></thead>
+        <tbody>
+          <tr><td><code>20260501000000_init</code></td><td>Core multi-tenant schema, enums, initial indexes</td></tr>
+          <tr><td><code>20260501002000_better_auth</code></td><td>Session, Account, Verification tables</td></tr>
+          <tr><td><code>20260501004000_github_sync_ids</code></td><td>GitHub repository/PR ID uniques</td></tr>
+          <tr><td><code>20260501010000_github_webhook_deliveries</code></td><td>Webhook delivery queue</td></tr>
+          <tr><td><code>20260501013000_paddle_subscription_fields</code></td><td>Legacy Paddle columns (historical)</td></tr>
+          <tr><td><code>20260502014000_github_webhook_delivery_attempts</code></td><td>Retry scheduling (<code>nextRetryAt</code> index)</td></tr>
+          <tr><td><code>20260502015300_pull_request_managed_comment</code></td><td>GitHub comment ID on PR</td></tr>
+          <tr><td><code>20260502020000_agentgate_check_runs</code></td><td>Check run ID field</td></tr>
+          <tr><td><code>20260502024500_rule_policy_scopes</code></td><td>Rule pattern scopes</td></tr>
+          <tr><td><code>20260502025500_team_collaboration</code></td><td>Invites, reviewer assignment, PR comments</td></tr>
+          <tr><td><code>20260502033800_audit_exports</code></td><td>AuditExport table</td></tr>
+          <tr><td><code>20260502040400_billing_lifecycle</code></td><td>Billing status fields on Organization</td></tr>
+          <tr><td><code>20260502052000_phase1_job_idempotency</code></td><td>UsageRecord unique constraint + indexes</td></tr>
+          <tr><td><code>20260518140500_ai_review_lifecycle</code></td><td>AiReviewJob table</td></tr>
+          <tr><td><code>20260518143000_ai_provider_credentials</code></td><td>Encrypted BYOK credentials</td></tr>
+          <tr><td><code>20260518145500_ai_review_github_output</code></td><td>GitHub output IDs on AI jobs</td></tr>
+          <tr><td><code>20260518152000_repository_review_settings</code></td><td>Per-repo AI settings</td></tr>
+          <tr><td><code>20260518173000_lemon_squeezy_billing</code></td><td>Removes Paddle tables/columns; adds Lemon Squeezy + BillingWebhookEvent</td></tr>
+        </tbody>
+      </table>
+
+      <h3>6.5 Prisma config</h3>
+      <pre><code>// prisma.config.ts
+schema:     prisma/schema.prisma
+migrations: prisma/migrations
+seed:       tsx prisma/seed.ts
+datasource: process.env.DATABASE_URL</code></pre>
+
+      <h3>6.6 Seed behavior</h3>
+      <p>
+        <code>prisma/seed.ts</code> uses the same <code>PrismaPg</code> adapter as the app. It
+        <strong>deletes all rows</strong> in dependency order before inserting demo data — destructive
+        on every <code>pnpm db:seed</code> run. Do not run seed against production databases.
+      </p>
+    </section>
+
+    <section id="indexes">
+      <h2>7. Indexes &amp; Constraints</h2>
+      <p>
+        Indexes are declared in <code>prisma/schema.prisma</code> via <code>@@index</code>,
+        <code>@@unique</code>, and field-level <code>@unique</code>. Prisma migrations emit
+        corresponding PostgreSQL <code>CREATE INDEX</code> / <code>CREATE UNIQUE INDEX</code> statements.
+      </p>
+
+      <h3>7.1 Complete index inventory</h3>
+      <table>
+        <thead>
+          <tr><th>Table</th><th>Index / constraint</th><th>Type</th><th>Query purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>User</td><td><code>email</code></td><td>UNIQUE</td><td>Login lookup</td></tr>
+          <tr><td>Session</td><td><code>token</code></td><td>UNIQUE</td><td>Session validation</td></tr>
+          <tr><td>Session</td><td><code>userId</code></td><td>INDEX</td><td>List/revoke user sessions</td></tr>
+          <tr><td>Account</td><td><code>userId</code></td><td>INDEX</td><td>Credential lookup by user</td></tr>
+          <tr><td>Verification</td><td><code>identifier</code></td><td>INDEX</td><td>Email verification lookup</td></tr>
+          <tr><td>Organization</td><td><code>slug</code></td><td>UNIQUE</td><td>URL routing</td></tr>
+          <tr><td>OrganizationMember</td><td><code>[userId, organizationId]</code></td><td>UNIQUE</td><td>Membership dedupe</td></tr>
+          <tr><td>OrganizationInvite</td><td><code>token</code></td><td>UNIQUE</td><td>Invite acceptance</td></tr>
+          <tr><td>OrganizationInvite</td><td><code>[organizationId, status]</code></td><td>INDEX</td><td>List pending invites</td></tr>
+          <tr><td>OrganizationInvite</td><td><code>email</code></td><td>INDEX</td><td>Find invites by email</td></tr>
+          <tr><td>Repository</td><td><code>[organizationId, githubRepositoryId]</code></td><td>UNIQUE</td><td>GitHub sync upsert</td></tr>
+          <tr><td>Repository</td><td><code>organizationId</code></td><td>INDEX</td><td>List org repositories</td></tr>
+          <tr><td>PullRequest</td><td><code>[repositoryId, number]</code></td><td>UNIQUE</td><td>PR upsert by number</td></tr>
+          <tr><td>PullRequest</td><td><code>[repositoryId, githubPullRequestId]</code></td><td>UNIQUE</td><td>PR upsert by GitHub ID</td></tr>
+          <tr><td>PullRequest</td><td><code>organizationId</code></td><td>INDEX</td><td>Org-wide PR lists, dashboard</td></tr>
+          <tr><td>PullRequest</td><td><code>assignedReviewerId</code></td><td>INDEX</td><td>Reviewer workload filters</td></tr>
+          <tr><td>PullRequest</td><td><code>reviewDueAt</code></td><td>INDEX</td><td>SLA / overdue queries</td></tr>
+          <tr><td>PullRequestComment</td><td><code>[pullRequestId, createdAt]</code></td><td>INDEX</td><td>Comment timeline</td></tr>
+          <tr><td>TestGapAnalysis</td><td><code>pullRequestId</code></td><td>UNIQUE</td><td>1:1 with PR</td></tr>
+          <tr><td>RepoRule</td><td><code>organizationId</code></td><td>INDEX</td><td>Org-scoped rule queries</td></tr>
+          <tr><td>AiProviderCredential</td><td><code>[organizationId, provider]</code></td><td>UNIQUE</td><td>One key per provider per org</td></tr>
+          <tr><td>AiProviderCredential</td><td><code>organizationId</code>, <code>userId</code></td><td>INDEX</td><td>Credential lookup</td></tr>
+          <tr><td>AiReviewJob</td><td><code>reviewKey</code></td><td>UNIQUE</td><td>Job idempotency</td></tr>
+          <tr><td>AiReviewJob</td><td><code>[organizationId, status]</code></td><td>INDEX</td><td>Org job dashboard</td></tr>
+          <tr><td>AiReviewJob</td><td><code>[repositoryId, status]</code></td><td>INDEX</td><td>Repo job lists</td></tr>
+          <tr><td>AiReviewJob</td><td><code>pullRequestId</code></td><td>INDEX</td><td>PR detail AI history</td></tr>
+          <tr><td>AiReviewJob</td><td><code>[status, createdAt]</code></td><td>INDEX</td><td>Worker queue polling</td></tr>
+          <tr><td>AiReviewJob</td><td><code>githubDeliveryId</code></td><td>INDEX</td><td>Webhook correlation</td></tr>
+          <tr><td>RepositoryReviewSettings</td><td><code>repositoryId</code></td><td>UNIQUE</td><td>1:1 settings per repo</td></tr>
+          <tr><td>RepositoryReviewSettings</td><td><code>organizationId</code></td><td>INDEX</td><td>Org settings lists</td></tr>
+          <tr><td>AuditExport</td><td><code>[organizationId, createdAt]</code></td><td>INDEX</td><td>Export history</td></tr>
+          <tr><td>UsageRecord</td><td><code>[organizationId, metric, periodStart, sourceKey]</code></td><td>UNIQUE</td><td>Idempotent metering</td></tr>
+          <tr><td>UsageRecord</td><td><code>[organizationId, metric, periodStart]</code></td><td>INDEX</td><td>Monthly usage aggregation</td></tr>
+          <tr><td>GitHubWebhookDelivery</td><td><code>deliveryId</code></td><td>UNIQUE</td><td>Webhook dedupe</td></tr>
+          <tr><td>GitHubWebhookDelivery</td><td><code>organizationId</code>, <code>event</code>, <code>status</code></td><td>INDEX</td><td>Diagnostics, filtering</td></tr>
+          <tr><td>GitHubWebhookDelivery</td><td><code>nextRetryAt</code></td><td>INDEX</td><td>Retry worker scheduling</td></tr>
+          <tr><td>BillingWebhookEvent</td><td><code>deliveryId</code></td><td>UNIQUE</td><td>Billing dedupe</td></tr>
+          <tr><td>BillingWebhookEvent</td><td><code>organizationId</code>, <code>eventName</code>, <code>status</code>, <code>createdAt</code></td><td>INDEX</td><td>Admin diagnostics</td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.2 Tables without explicit indexes</h3>
+      <div class="callout warn">
+        <strong>Index gaps to be aware of</strong>
+        The following high-volume tables are queried by <code>organizationId</code> but have
+        <em>no</em> dedicated index in the current schema:
+        <ul style="margin: 0.5rem 0 0;">
+          <li><code>AuditEvent</code> — filtered by org + <code>createdAt</code> range in audit log UI and retention cleanup</li>
+          <li><code>AgentActivity</code> — filtered by org, ordered by <code>timestamp DESC</code></li>
+          <li><code>Approval</code>, <code>RuleViolation</code>, <code>PullRequestFile</code>, <code>RiskSignal</code> — accessed via PR includes (join from indexed PR)</li>
+        </ul>
+        At scale, consider adding <code>@@index([organizationId, createdAt])</code> on
+        <code>AuditEvent</code> and <code>@@index([organizationId, timestamp])</code> on
+        <code>AgentActivity</code>.
+      </div>
+
+      <h3>7.3 Foreign keys</h3>
+      <p>
+        Prisma generates foreign key constraints automatically. All org-scoped FKs use
+        <code>ON DELETE CASCADE</code> except nullable user/org references which use
+        <code>SET NULL</code>.
+      </p>
+    </section>
+
+    <section id="optimization">
+      <h2>8. Optimization &amp; Query Patterns</h2>
+
+      <h3>8.1 Organization-scoped reads</h3>
+      <p>
+        Always include <code>organizationId</code> in <code>where</code> clauses for tenant tables.
+        The app never relies on ID-only lookups for business entities without org verification
+        (except admin module).
+      </p>
+
+      <h3>8.2 Eager loading</h3>
+      <p>
+        PR detail pages use Prisma <code>include</code> to fetch nested relations in one round trip:
+        files, riskSignals, testGapAnalysis (+ suggestions), ruleViolations (+ rule), approvals,
+        comments, aiReviewJobs. Avoid N+1 by batching includes at the list/detail query level.
+      </p>
+
+      <h3>8.3 React request deduplication</h3>
+      <p>
+        <code>getServerSession</code> is wrapped in React <code>cache()</code> so multiple server
+        components in one request share a single auth lookup.
+      </p>
+
+      <h3>8.4 Connection pooling</h3>
+      <p>
+        On serverless (Vercel), use a pooled connection string (e.g. Neon, Supabase pooler, or
+        PgBouncer). The Prisma PG adapter opens connections via the provided URL — pool settings
+        are controlled by the connection string and platform, not in application code.
+      </p>
+
+      <h3>8.5 Write amplification on PR sync</h3>
+      <p>
+        Each PR sync deletes and recreates child rows (files, signals, violations) rather than
+        diffing. This simplifies correctness but increases write volume. Acceptable at current scale;
+        consider upsert/diff strategies if sync frequency grows.
+      </p>
+
+      <h3>8.6 Usage aggregation</h3>
+      <p>
+        <code>getPrCheckUsage()</code> uses <code>aggregate({ _sum: { quantity } })</code> over
+        <code>UsageRecord</code> for the current month — indexed via
+        <code>[organizationId, metric, periodStart]</code>. History queries fetch recent rows and
+        bucket in application code.
+      </p>
+
+      <h3>8.7 Webhook queue polling</h3>
+      <p>
+        Retry worker queries <code>GitHubWebhookDelivery</code> where
+        <code>status</code> is pending/failed and <code>nextRetryAt &lt;= now</code>, using the
+        <code>nextRetryAt</code> index. Exponential backoff capped at 15 minutes.
+      </p>
+
+      <h3>8.8 JSON columns</h3>
+      <p>
+        JSON fields (<code>metadata</code>, <code>providerMetadata</code>, <code>features</code>,
+        <code>filters</code>) are not indexed. Filtering happens in application code after fetch,
+        or JSON is used for display/export only — not for indexed queries.
+      </p>
+    </section>
+
+    <section id="caveats">
+      <h2>9. Technical Caveats</h2>
+
+      <div class="callout warn">
+        <strong>Demo fallback is dev-only</strong>
+        Missing or failing DB in development silently serves static demo data. This can mask schema
+        drift or broken queries during local work. Run against a real Postgres instance before shipping.
+      </div>
+
+      <table>
+        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Single-org session</td>
+            <td>
+              <code>ensureCurrentUserOrganization()</code> returns the user's <em>first</em> membership
+              (<code>orderBy: createdAt asc</code>). Multi-org switching is not implemented in session context.
+            </td>
+          </tr>
+          <tr>
+            <td>Auth without database</td>
+            <td>
+              <code>lib/auth.ts</code> omits the Prisma adapter when <code>getPrismaClient()</code> is null.
+              Auth persistence requires PostgreSQL.
+            </td>
+          </tr>
+          <tr>
+            <td>Seed is destructive</td>
+            <td><code>pnpm db:seed</code> wipes all tables. Never run on production.</td>
+          </tr>
+          <tr>
+            <td>Paddle → Lemon Squeezy</td>
+            <td>
+              Migration <code>20260518173000</code> drops Paddle columns/tables. Existing Paddle subscriber
+              IDs are not migrated — manual Lemon Squeezy backfill required.
+            </td>
+          </tr>
+          <tr>
+            <td>Nullable sourceKey in UsageRecord</td>
+            <td>
+              The unique constraint includes <code>sourceKey</code> which can be NULL in PostgreSQL
+              (NULLs are distinct in unique indexes). App code always passes <code>sourceKey</code>
+              for PR checks.
+            </td>
+          </tr>
+          <tr>
+            <td>AI model execution</td>
+            <td>
+              <code>AiReviewJob</code> rows are created and transitioned, but the worker skips actual
+              LLM calls — guardrail in <code>pr-review-worker.ts</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>ApiKey lookup</td>
+            <td>No index on <code>hashedKey</code> — validation likely scans by prefix or uses a separate lookup strategy.</td>
+          </tr>
+          <tr>
+            <td>Plan table dual use</td>
+            <td>
+              <code>Plan</code> rows are seeded per organization (<code>organizationId</code> set) rather
+              than a global catalog table. Plan definitions also live in <code>lib/plans.ts</code> and
+              <code>lib/entitlements.ts</code> (code is authoritative for enforcement).
+            </td>
+          </tr>
+          <tr>
+            <td>UTC usage periods</td>
+            <td>Monthly billing periods use UTC month boundaries, not org timezone.</td>
+          </tr>
+          <tr>
+            <td>Prisma 7 driver adapter</td>
+            <td>
+              Requires <code>@prisma/adapter-pg</code>; standard Prisma binary engine connection string
+              alone is not used. Generated client lives at <code>lib/generated/prisma</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Cross-tenant admin</td>
+            <td>
+              <code>lib/admin/admin-data.ts</code> intentionally queries all orgs. Must always be preceded
+              by <code>requirePlatformAdmin()</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="retention">
+      <h2>10. Data Retention &amp; Cleanup</h2>
+      <p>
+        <code>cleanupOperationalData()</code> in <code>lib/retention.ts</code> is invoked by the job
+        runner. Retention is plan-aware for audit data and fixed for operational tables.
+      </p>
+
+      <table>
+        <thead><tr><th>Data</th><th>Retention rule</th><th>Mechanism</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>AuditEvent</code></td>
+            <td>Per plan: 7 / 30 / 180 / 365 days; unlimited for Enterprise</td>
+            <td><code>deleteMany</code> where <code>createdAt &lt; cutoff</code> per org</td>
+          </tr>
+          <tr>
+            <td><code>GitHubWebhookDelivery</code></td>
+            <td>30 days for processed/ignored</td>
+            <td>Global delete (not org-scoped)</td>
+          </tr>
+          <tr>
+            <td><code>BillingWebhookEvent</code></td>
+            <td>365 days for processed/ignored</td>
+            <td>Global delete</td>
+          </tr>
+          <tr>
+            <td><code>AuditExport</code></td>
+            <td>30 days (metadata only; CSV is streamed, not stored)</td>
+            <td>Global delete</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        PR data, repositories, and governance records are <strong>not</strong> automatically purged —
+        only audit and operational queue metadata expire.
+      </p>
+    </section>
+
+    <section id="security">
+      <h2>11. Security Considerations</h2>
+
+      <h3>11.1 Tenant isolation</h3>
+      <ul>
+        <li>All app reads/writes filter by session organization ID.</li>
+        <li>Cascade deletes prevent orphaned cross-tenant references.</li>
+        <li>Admin cross-tenant access requires explicit email allowlist (<code>ADMIN_EMAILS</code>).</li>
+      </ul>
+
+      <h3>11.2 Secrets at rest</h3>
+      <ul>
+        <li>
+          <code>AiProviderCredential.encryptedKey</code> — AES-256-GCM via
+          <code>lib/ai/credentials.ts</code>; key derived from
+          <code>AI_PROVIDER_ENCRYPTION_KEY</code> or <code>BETTER_AUTH_SECRET</code>.
+        </li>
+        <li>
+          <code>ApiKey.hashedKey</code> — stored hashed; plaintext shown once at creation.
+        </li>
+        <li>
+          Passwords live in <code>Account.password</code> (Better Auth managed hashing).
+        </li>
+      </ul>
+
+      <h3>11.3 Webhook integrity</h3>
+      <ul>
+        <li>GitHub webhooks: HMAC-SHA256 with <code>GITHUB_WEBHOOK_SECRET</code>.</li>
+        <li>Lemon Squeezy: signature verification with <code>LEMON_SQUEEZY_WEBHOOK_SECRET</code>.</li>
+        <li>Both use durable delivery tables for idempotency before side effects.</li>
+      </ul>
+
+      <h3>11.4 Production env validation</h3>
+      <p>
+        <code>validateProductionEnv()</code> in <code>lib/env.ts</code> enforces required secrets
+        including <code>DATABASE_URL</code>, <code>BETTER_AUTH_SECRET</code>,
+        <code>BETTER_AUTH_API_KEY</code>, and integration keys before database client creation.
+      </p>
+    </section>
+
+    <section id="quick-ref">
+      <h2>12. Quick Reference</h2>
+      <table>
+        <thead><tr><th>Task</th><th>Command / file</th></tr></thead>
+        <tbody>
+          <tr><td>Generate client</td><td><code>pnpm db:generate</code></td></tr>
+          <tr><td>Apply migrations (dev)</td><td><code>pnpm db:migrate</code></td></tr>
+          <tr><td>Apply migrations (prod)</td><td><code>pnpm prisma migrate deploy</code></td></tr>
+          <tr><td>Seed demo data</td><td><code>pnpm db:seed</code></td></tr>
+          <tr><td>Schema source</td><td><code>prisma/schema.prisma</code></td></tr>
+          <tr><td>Org-scoped reads</td><td><code>lib/data/app-data.ts</code></td></tr>
+          <tr><td>GitHub writes</td><td><code>lib/github-sync.ts</code></td></tr>
+          <tr><td>Usage metering</td><td><code>lib/usage.ts</code></td></tr>
+          <tr><td>Retention job</td><td><code>lib/retention.ts</code></td></tr>
+          <tr><td>Plan limits (code)</td><td><code>lib/entitlements.ts</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    AgentGate database architecture reference · Generated from codebase analysis · June 2026
+  </footer>
+</body>
+</html>
