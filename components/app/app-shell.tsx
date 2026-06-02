@@ -14,6 +14,7 @@ import {
   ListChecks,
   Menu,
   Settings,
+  ShieldCheck,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -44,7 +45,9 @@ type NavItem = {
   description: string
 }
 
-const navSections: Array<{ label: string; items: NavItem[] }> = [
+type NavSection = { label: string; items: NavItem[] }
+
+const baseNavSections: NavSection[] = [
   {
     label: 'Overview',
     items: [
@@ -104,7 +107,21 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
   },
 ]
 
-const navItems = navSections.flatMap((section) => section.items)
+const adminNavSection: NavSection = {
+  label: 'Platform',
+  items: [
+    {
+      href: '/admin',
+      label: 'Admin',
+      icon: ShieldCheck,
+      description: 'Platform analytics and operations',
+    },
+  ],
+}
+
+function buildNavSections(isAdmin: boolean): NavSection[] {
+  return isAdmin ? [...baseNavSections, adminNavSection] : baseNavSections
+}
 
 function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -157,15 +174,17 @@ function NavLink({
 }
 
 function Navigation({
+  sections,
   pathname,
   onNavigate,
 }: {
+  sections: NavSection[]
   pathname: string
   onNavigate?: () => void
 }) {
   return (
     <nav className="space-y-6" aria-label="Primary navigation">
-      {navSections.map((section) => (
+      {sections.map((section) => (
         <div key={section.label}>
           <h2 className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-subtle-foreground">
             {section.label}
@@ -237,16 +256,23 @@ export function AppShell({
   organizationName,
   planKey,
   dataMode,
+  isAdmin,
 }: {
   children: React.ReactNode
   organizationName: string
   planKey: PlanKey
   dataMode: 'live' | 'demo'
+  isAdmin: boolean
 }) {
   const pathname = usePathname()
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
   const mainRef = React.useRef<HTMLElement>(null)
   const previousPathname = React.useRef(pathname)
+  const navSections = React.useMemo(() => buildNavSections(isAdmin), [isAdmin])
+  const navItems = React.useMemo(
+    () => navSections.flatMap((section) => section.items),
+    [navSections],
+  )
   const currentItem =
     navItems.find((item) => isActivePath(pathname, item.href)) ?? navItems[0]
   const currentSection = navSections.find((section) =>
@@ -288,7 +314,7 @@ export function AppShell({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-5">
-          <Navigation pathname={pathname} />
+          <Navigation sections={navSections} pathname={pathname} />
         </div>
 
         <div className="border-t border-border p-3">
@@ -341,6 +367,7 @@ export function AppShell({
                 </SheetHeader>
                 <div className="flex-1 overflow-y-auto px-4 py-5">
                   <Navigation
+                    sections={navSections}
                     pathname={pathname}
                     onNavigate={() => setMobileNavOpen(false)}
                   />

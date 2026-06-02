@@ -43,10 +43,13 @@ export function UrlFilterForm({
   parsers,
   fields,
   className,
+  resetKeys,
 }: {
   parsers: UseQueryStatesKeysMap
   fields: FilterField[]
   className?: string
+  // Extra query keys (e.g. pagination cursors) cleared whenever filters change.
+  resetKeys?: string[]
 }) {
   const [isPending, startTransition] = React.useTransition()
   const [values, setValues] = useQueryStates(parsers, {
@@ -65,14 +68,15 @@ export function UrlFilterForm({
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
 
-    void setValues(
-      Object.fromEntries(
+    void setValues({
+      ...Object.fromEntries(
         fields.map((field) => {
           const value = String(formData.get(field.name) ?? '').trim()
           return [field.name, value || null]
         }),
       ),
-    )
+      ...Object.fromEntries((resetKeys ?? []).map((key) => [key, null])),
+    })
   }
 
   function handleReset() {

@@ -6,6 +6,7 @@ import { RootShell } from '@/components/app/root-shell'
 import { ThemeProvider } from '@/components/app/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { getPlatformAdminContext } from '@/lib/admin/access'
 import { getCurrentOrganization } from '@/lib/data/app-data'
 import './globals.css'
 
@@ -37,7 +38,9 @@ export default async function RootLayout({
     pathname === '/sign-up' ||
     pathname === '/forgot-password' ||
     pathname === '/reset-password'
-  const organization = isPublicRoute ? null : await getCurrentOrganization()
+  const [organization, adminContext] = isPublicRoute
+    ? ([null, null] as const)
+    : await Promise.all([getCurrentOrganization(), getPlatformAdminContext()])
 
   return (
     <html
@@ -58,6 +61,7 @@ export default async function RootLayout({
                 organizationName={organization?.name ?? 'AgentGate'}
                 planKey={organization?.planKey ?? 'free'}
                 dataMode={organization?.dataMode ?? 'live'}
+                isAdmin={adminContext?.isAdmin ?? false}
               >
                 {children}
               </RootShell>
