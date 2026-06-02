@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentGate — Authentication Architecture</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #ffffff;
+      --border: #e4e4e7;
+      --text: #18181b;
+      --muted: #71717a;
+      --accent: #2563eb;
+      --accent-soft: #eff6ff;
+      --code-bg: #f4f4f5;
+      --warn-bg: #fffbeb;
+      --warn-border: #f59e0b;
+      --good-bg: #f0fdf4;
+      --good-border: #22c55e;
+      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+    }
+
+    header h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.75rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 60rem;
+    }
+
+    .meta {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    nav a { color: var(--accent); text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section { margin-bottom: 2.75rem; }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.65rem;
+    }
+
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    p { margin: 0 0 0.85rem; }
+    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
+    li { margin-bottom: 0.3rem; }
+
+    code, pre { font-family: var(--mono); font-size: 0.875em; }
+    code {
+      background: var(--code-bg);
+      padding: 0.12em 0.35em;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0 0 1rem;
+      line-height: 1.5;
+    }
+
+    pre code { background: none; padding: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--code-bg);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--muted);
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.85rem 1rem;
+      margin: 0 0 1rem;
+      background: var(--surface);
+    }
+
+    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
+    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
+    .callout strong { display: block; margin-bottom: 0.25rem; }
+
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      white-space: pre;
+      margin: 0 0 1rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-right: 0.25rem;
+    }
+
+    .tag.warn { background: var(--warn-bg); color: #b45309; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .related a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentGate — Authentication Architecture</h1>
+    <p>
+      How users sign in, how sessions are validated, how authorization is enforced across
+      pages and APIs, and how non-user actors (webhooks, job runners, platform admins) are
+      authenticated. Verified against code as of June 2026.
+    </p>
+    <p class="meta">
+      Status: <strong>current</strong> &nbsp;·&nbsp;
+      Related: <a href="database-architecture.html">Database architecture</a>
+    </p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#stack">Stack</a></li>
+      <li><a href="#layers">Layers</a></li>
+      <li><a href="#flows">Auth flows</a></li>
+      <li><a href="#session">Sessions</a></li>
+      <li><a href="#authorization">Authorization</a></li>
+      <li><a href="#edge">Edge security</a></li>
+      <li><a href="#non-user">Non-user auth</a></li>
+      <li><a href="#env">Environment</a></li>
+      <li><a href="#persistence">Persistence</a></li>
+      <li><a href="#caveats">Caveats</a></li>
+      <li><a href="#files">File map</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section id="overview">
+      <h2>1. Overview</h2>
+      <p>
+        AgentGate uses <strong>Better Auth</strong> for email/password authentication with
+        optional email verification and password reset via Resend. Sessions are cookie-based;
+        there is no JWT handed to the client for API calls. The app does <em>not</em> implement
+        enterprise SSO, OAuth social login, or SCIM (see
+        <code>docs/strategy/ENTERPRISE_PLACEHOLDERS.md</code>).
+      </p>
+      <p>Authentication is split into three concerns:</p>
+      <ol>
+        <li><strong>Authentication</strong> — Is this a signed-in user? (Better Auth session cookie)</li>
+        <li><strong>Workspace context</strong> — Which organization and role? (<code>ensureCurrentUserOrganization</code>)</li>
+        <li><strong>Authorization</strong> — Is this action allowed for that role? (<code>lib/collaboration.ts</code> helpers)</li>
+      </ol>
+      <div class="callout good">
+        <strong>Fail closed in production</strong>
+        Missing auth config, database, or invalid sessions block real behavior. Development can
+        bypass the page auth gate when PostgreSQL is not configured (demo UI only).
+      </div>
+    </section>
+
+    <section id="stack">
+      <h2>2. Technology Stack</h2>
+      <table>
+        <thead>
+          <tr><th>Package / module</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>better-auth</code></td>
+            <td>Core auth server: sign-up, sign-in, sessions, verification, password reset</td>
+          </tr>
+          <tr>
+            <td><code>@better-auth/prisma-adapter</code></td>
+            <td>Persists users, sessions, accounts, verification tokens in PostgreSQL</td>
+          </tr>
+          <tr>
+            <td><code>@better-auth/infra</code> (<code>dash</code> plugin)</td>
+            <td>Better Auth Infra integration; requires <code>BETTER_AUTH_API_KEY</code> in production</td>
+          </tr>
+          <tr>
+            <td><code>better-auth/react</code></td>
+            <td>Client SDK: <code>signIn</code>, <code>signUp</code>, <code>signOut</code>, <code>useSession</code></td>
+          </tr>
+          <tr>
+            <td><code>better-auth/cookies</code></td>
+            <td><code>getSessionCookie</code> in edge <code>proxy.ts</code> for coarse gate</td>
+          </tr>
+          <tr>
+            <td><code>better-auth/next-js</code></td>
+            <td>Route handler adapter at <code>/api/auth/[...all]</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="layers">
+      <h2>3. Architecture Layers</h2>
+
+      <div class="diagram">Browser
+  │
+  ▼
+proxy.ts                          ← cookie presence, rate limits, CSRF, security headers
+  │
+  ├─ Public paths (/, /sign-in, /sign-up, /forgot-password, /reset-password)
+  ├─ /api/*                         ← passes through (handler validates auth)
+  └─ App pages                      ← redirect to /sign-in if no session cookie
+        │
+        ▼
+app/api/auth/[...all]/route.ts    ← Better Auth HTTP API (login, logout, verify, etc.)
+        │
+        ▼
+lib/auth.ts                       ← betterAuth({ database, emailAndPassword, plugins })
+        │
+        ▼
+PostgreSQL                        ← User, Session, Account, Verification
+
+── After sign-in ──
+
+Server Component / API route
+  │
+  ├─ getServerSession()             ← auth.api.getSession({ headers })  [React cache]
+  ├─ ensureCurrentUserOrganization()← session + OrganizationMember (+ auto-provision)
+  └─ getCurrentOrganization()       ← org context + dataMode for UI  [React cache]</div>
+
+      <h3>3.1 Two-tier session check</h3>
+      <p>
+        The edge layer (<code>proxy.ts</code>) only checks whether a <em>session cookie exists</em>
+        via <code>getSessionCookie()</code>. It does not validate the token against the database.
+        Full validation happens in server code through <code>auth.api.getSession()</code>, which
+        reads the cookie, looks up the <code>Session</code> row, and returns the user or null.
+      </p>
+      <div class="callout warn">
+        <strong>Cookie presence ≠ valid session</strong>
+        An expired or revoked session cookie may pass the edge gate briefly until
+        <code>getServerSession()</code> runs. API routes and server actions must always resolve
+        the session explicitly; never assume the edge gate proves identity.
+      </div>
+
+      <h3>3.2 Request-scoped caching</h3>
+      <p>
+        <code>getServerSession</code>, <code>getPlatformAdminContext</code>, and
+        <code>getCurrentOrganization</code> are wrapped in React <code>cache()</code> so multiple
+        server components and layout segments in one request share a single auth lookup.
+      </p>
+    </section>
+
+    <section id="flows">
+      <h2>4. Authentication Flows</h2>
+
+      <h3>4.1 Sign up</h3>
+      <ol>
+        <li>User submits name, email, password on <code>/sign-up</code> (client component).</li>
+        <li><code>signUp.email()</code> from <code>lib/auth-client.ts</code> calls Better Auth API.</li>
+        <li>Better Auth creates <code>User</code> + <code>Account</code> (password hash).</li>
+        <li>If Resend is configured (<code>RESEND_API_KEY</code> + <code>EMAIL_FROM</code>), verification email is sent and sign-in may require verified email.</li>
+        <li>Client calls <code>POST /api/onboarding/organization</code> → <code>ensureCurrentUserOrganization()</code> creates default free workspace if needed.</li>
+        <li>Redirect to <code>callbackUrl</code> or <code>/dashboard</code> via <code>safeRelativeRedirect</code>.</li>
+      </ol>
+
+      <h3>4.2 Sign in</h3>
+      <ol>
+        <li>User submits email/password on <code>/sign-in</code>.</li>
+        <li><code>signIn.email()</code> validates credentials via Better Auth.</li>
+        <li>Better Auth creates/updates <code>Session</code> row and sets session cookie.</li>
+        <li><code>POST /api/onboarding/organization</code> ensures workspace exists.</li>
+        <li>Redirect to safe relative <code>callbackUrl</code> (open-redirect protection in <code>lib/redirects.ts</code>).</li>
+      </ol>
+
+      <h3>4.3 Email verification</h3>
+      <p>
+        Controlled by whether transactional email is configured
+        (<code>isEmailDeliveryConfigured()</code> in <code>lib/email.ts</code>):
+      </p>
+      <ul>
+        <li><code>requireEmailVerification</code> — enabled when Resend is configured</li>
+        <li><code>sendOnSignUp</code> / <code>sendOnSignIn</code> — verification emails on those events</li>
+        <li>Tokens stored in <code>Verification</code> table; indexed by <code>identifier</code></li>
+      </ul>
+      <p>Without Resend, email verification is disabled and sign-up/sign-in work without verification in dev.</p>
+
+      <h3>4.4 Password reset</h3>
+      <ol>
+        <li>User requests reset on <code>/forgot-password</code>.</li>
+        <li>Better Auth sends email with reset link via <code>sendResetPassword</code> callback.</li>
+        <li>User sets new password on <code>/reset-password</code>.</li>
+        <li><code>revokeSessionsOnPasswordReset: true</code> — all existing sessions invalidated.</li>
+      </ol>
+
+      <h3>4.5 Sign out</h3>
+      <p>
+        Client calls <code>signOut()</code> from auth client → Better Auth clears session cookie
+        and removes/invalidates the <code>Session</code> row.
+      </p>
+
+      <h3>4.6 Team invite acceptance</h3>
+      <ol>
+        <li>Invite link: <code>GET /api/team/invites/accept?token=...</code></li>
+        <li>Requires authenticated session; redirects to sign-in with <code>callbackUrl</code> if absent.</li>
+        <li>Invite token is hashed (SHA-256) before DB lookup — raw token only appears in URL/email.</li>
+        <li>Email must match invite recipient (case-insensitive).</li>
+        <li><code>POST</code> creates/updates <code>OrganizationMember</code> and marks invite accepted.</li>
+      </ol>
+      <p>
+        Note: accepting an invite adds membership to the <em>invited</em> organization, but session
+        context still resolves to the user's <em>first</em> membership unless multi-org switching is added.
+      </p>
+    </section>
+
+    <section id="session">
+      <h2>5. Session Model</h2>
+
+      <table>
+        <thead>
+          <tr><th>Field</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Session.id</code></td><td>Primary key (Better Auth generated)</td></tr>
+          <tr><td><code>Session.token</code></td><td>Unique session token (cookie value reference)</td></tr>
+          <tr><td><code>Session.expiresAt</code></td><td>Expiry enforced by Better Auth</td></tr>
+          <tr><td><code>Session.userId</code></td><td FK to User; indexed</td></tr>
+          <tr><td><code>Session.ipAddress</code>, <code>userAgent</code></td><td>Optional audit metadata</td></tr>
+        </tbody>
+      </table>
+
+      <h3>5.1 Workspace binding</h3>
+      <p>
+        After session validation, <code>ensureCurrentUserOrganization()</code> loads the user's
+        earliest <code>OrganizationMember</code> row (<code>orderBy: createdAt asc</code>). If none
+        exists, it auto-creates an Organization with slug
+        <code>{slugified-name}-{userId-prefix}</code> and owner role.
+      </p>
+      <p>
+        <code>getCurrentOrganization()</code> in <code>lib/data/app-data.ts</code> maps this to
+        UI context including <code>dataMode: 'live' | 'demo'</code>.
+      </p>
+
+      <h3>5.2 Auth without database</h3>
+      <p>
+        When <code>getPrismaClient()</code> returns null, <code>lib/auth.ts</code> omits the Prisma
+        adapter entirely. Better Auth cannot persist users or sessions — auth pages exist but
+        credentials are not stored. Combined with <code>proxy.ts</code> dev bypass, the UI remains
+        usable in demo mode without PostgreSQL.
+      </p>
+    </section>
+
+    <section id="authorization">
+      <h2>6. Authorization (RBAC)</h2>
+      <p>
+        Organization roles are stored on <code>OrganizationMember.role</code>:
+        <code>owner</code>, <code>admin</code>, <code>member</code>, <code>viewer</code>.
+        Permission checks live in <code>lib/collaboration.ts</code> and are enforced in server
+        actions and API routes — not in a centralized middleware.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>owner</th><th>admin</th><th>member</th><th>viewer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Manage team / invites</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+          <tr><td>Manage settings (AI keys)</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+          <tr><td>Manage billing</td><td>✓</td><td></td><td></td><td></td></tr>
+          <tr><td>Sync GitHub / repos</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+          <tr><td>Manage rules / AI review settings</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+          <tr><td>Export audit log</td><td>✓</td><td>✓</td><td></td><td></td></tr>
+          <tr><td>Record PR approvals</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
+          <tr><td>Comment on PRs</td><td>✓</td><td>✓</td><td>✓</td><td></td></tr>
+          <tr><td>Read dashboards / PRs</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        </tbody>
+      </table>
+
+      <h3>6.1 Enforcement patterns</h3>
+      <ul>
+        <li><strong>Server actions</strong> — call <code>getCurrentOrganization()</code>, then <code>canManage*(role)</code>; redirect with <code>?status=forbidden</code> on denial.</li>
+        <li><strong>API routes</strong> — call <code>ensureCurrentUserOrganization()</code>; return 401 if null; check role helpers before mutations.</li>
+        <li><strong>Plan entitlements</strong> — separate from RBAC; enforced in <code>lib/entitlements.ts</code> (e.g. audit export, GitHub output).</li>
+      </ul>
+
+      <h3>6.2 Platform admin (cross-tenant)</h3>
+      <p>
+        Operator console at <code>/admin/*</code> uses a <em>different</em> authorization model:
+        email allowlist via <code>ADMIN_EMAILS</code> env var, not organization role.
+      </p>
+      <ul>
+        <li><code>requirePlatformAdmin()</code> in <code>app/admin/layout.tsx</code> — returns 404 for non-admins (least disclosure).</li>
+        <li><code>getPlatformAdminContext()</code> — cached per request; checks session email against allowlist.</li>
+        <li>Admin server actions re-check <code>context?.isAdmin</code> before mutations.</li>
+        <li>Data reads go through <code>lib/admin/admin-data.ts</code> (intentionally cross-tenant).</li>
+      </ul>
+
+      <h3>6.3 Tenant isolation on reads</h3>
+      <p>
+        All normal app data reads include <code>organizationId</code> from session context.
+        Resource IDs alone are never sufficient — handlers verify the entity belongs to the
+        current organization.
+      </p>
+    </section>
+
+    <section id="edge">
+      <h2>7. Edge Security (<code>proxy.ts</code>)</h2>
+      <p>
+        Next.js middleware equivalent runs on almost all routes (excluding static assets).
+        Responsibilities:
+      </p>
+
+      <h3>7.1 Page auth gate</h3>
+      <table>
+        <thead><tr><th>Condition</th><th>Behavior</th></tr></thead>
+        <tbody>
+          <tr><td>Public path prefix match</td><td>Allow</td></tr>
+          <tr><td><code>/api/*</code></td><td>Allow (handler auth)</td></tr>
+          <tr><td>Dev + no <code>DATABASE_URL</code></td><td>Allow app pages without cookie</td></tr>
+          <tr><td>Session cookie present</td><td>Allow</td></tr>
+          <tr><td>Otherwise</td><td>Redirect to <code>/sign-in?callbackUrl=...</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>7.2 CSRF / origin validation</h3>
+      <p>
+        Mutating API requests (<code>POST</code>, <code>PUT</code>, <code>PATCH</code>,
+        <code>DELETE</code>) must pass same-origin check via <code>Origin</code> or
+        <code>Referer</code> header (<code>lib/security.ts</code>).
+      </p>
+      <p><strong>Exemptions</strong> (external callers cannot satisfy browser origin):</p>
+      <ul>
+        <li><code>/api/auth/*</code> — Better Auth endpoints</li>
+        <li><code>/api/jobs/*</code> — Bearer token job runner</li>
+        <li>Paths containing <code>/webhook</code> — GitHub, Lemon Squeezy</li>
+      </ul>
+
+      <h3>7.3 Rate limiting</h3>
+      <p>In-memory sliding window per IP + method + pathname (<code>lib/rate-limit.ts</code>):</p>
+      <table>
+        <thead><tr><th>Rule</th><th>Limit</th><th>Applies to</th></tr></thead>
+        <tbody>
+          <tr><td>auth</td><td>30 / minute</td><td><code>/api/auth/*</code></td></tr>
+          <tr><td>webhook</td><td>300 / minute</td><td>Paths containing <code>/webhook</code></td></tr>
+          <tr><td>mutation</td><td>90 / minute</td><td>Non-GET API routes</td></tr>
+          <tr><td>public</td><td>120 / minute</td><td>Everything else</td></tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <strong>Rate limits are process-local</strong>
+        Buckets live in a module-level <code>Map</code>. On serverless/multi-instance deployments,
+        limits are per instance, not global. Use an edge KV or Redis for shared limits at scale.
+      </div>
+
+      <h3>7.4 Security headers</h3>
+      <p>Applied to every response via <code>applySecurityHeaders()</code>:</p>
+      <ul>
+        <li><code>X-Content-Type-Options: nosniff</code></li>
+        <li><code>X-Frame-Options: DENY</code></li>
+        <li><code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+        <li><code>Permissions-Policy</code> — camera, microphone, geolocation disabled</li>
+        <li><code>Cross-Origin-Opener-Policy: same-origin</code></li>
+        <li><code>Cross-Origin-Resource-Policy: same-origin</code></li>
+        <li><code>Strict-Transport-Security</code> — production only</li>
+      </ul>
+
+      <h3>7.5 Open redirect protection</h3>
+      <p>
+        <code>safeRelativeRedirect()</code> only allows relative paths starting with
+        <code>/</code>, rejects <code>//</code>, backslashes, and control characters. Used for
+        post-login redirects and invite callbacks.
+      </p>
+    </section>
+
+    <section id="non-user">
+      <h2>8. Non-User Authentication</h2>
+      <p>Not all requests are browser sessions. Other auth mechanisms:</p>
+
+      <table>
+        <thead>
+          <tr><th>Actor</th><th>Mechanism</th><th>Module</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GitHub webhooks</td>
+            <td>HMAC-SHA256 <code>x-hub-signature-256</code> vs <code>GITHUB_WEBHOOK_SECRET</code></td>
+            <td><code>lib/github.ts</code> → <code>verifyGitHubWebhook()</code></td>
+          </tr>
+          <tr>
+            <td>Lemon Squeezy webhooks</td>
+            <td>HMAC signature verification</td>
+            <td><code>lib/lemon-squeezy-webhooks.ts</code></td>
+          </tr>
+          <tr>
+            <td>Job runner (cron)</td>
+            <td><code>Authorization: Bearer {JOB_RUNNER_SECRET}</code></td>
+            <td><code>lib/job-auth.ts</code></td>
+          </tr>
+          <tr>
+            <td>Platform admin</td>
+            <td>Session + <code>ADMIN_EMAILS</code> allowlist</td>
+            <td><code>lib/admin/access.ts</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>8.1 Job runner endpoints</h3>
+      <ul>
+        <li><code>POST /api/jobs/github-webhooks</code> — process queued webhook deliveries</li>
+        <li><code>POST /api/jobs/pr-reviews</code> — AI review worker</li>
+        <li><code>POST /api/jobs/retention</code> — data retention cleanup</li>
+      </ul>
+      <p>
+        In development without <code>JOB_RUNNER_SECRET</code>, requests are allowed. In production,
+        missing secret returns 503; wrong token returns 401.
+      </p>
+
+      <h3>8.2 GitHub webhook dev mode</h3>
+      <p>
+        Without <code>GITHUB_WEBHOOK_SECRET</code>, verification succeeds in non-production
+        (<code>mode: 'demo'</code>) so local webhook testing works. Production requires the secret
+        and rejects missing/invalid signatures with 401.
+      </p>
+
+      <h3>8.3 API keys (future / partial)</h3>
+      <p>
+        The schema includes an <code>ApiKey</code> model (<code>prefix</code>, <code>hashedKey</code>),
+        and <code>getApiKeyCount()</code> exists in app-data, but there is no request-level API key
+        authentication middleware in the current codebase. User-facing auth is session-only.
+      </p>
+    </section>
+
+    <section id="env">
+      <h2>9. Environment Variables</h2>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Required (prod)</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>DATABASE_URL</code></td><td>Yes</td><td>Auth persistence via Prisma adapter</td></tr>
+          <tr><td><code>BETTER_AUTH_SECRET</code></td><td>Yes</td><td>Session signing / crypto; dev fallback exists</td></tr>
+          <tr><td><code>BETTER_AUTH_URL</code></td><td>Yes</td><td>Public app URL for auth callbacks (default localhost in dev)</td></tr>
+          <tr><td><code>BETTER_AUTH_API_KEY</code></td><td>Yes</td><td>Better Auth Infra dash plugin</td></tr>
+          <tr><td><code>RESEND_API_KEY</code></td><td>Recommended</td><td>Email verification + password reset</td></tr>
+          <tr><td><code>EMAIL_FROM</code></td><td>With Resend</td><td>Sender address for transactional email</td></tr>
+          <tr><td><code>ADMIN_EMAILS</code></td><td>Optional</td><td>Comma-separated platform admin allowlist</td></tr>
+          <tr><td><code>JOB_RUNNER_SECRET</code></td><td>Recommended</td><td>Bearer token for job endpoints</td></tr>
+          <tr><td><code>GITHUB_WEBHOOK_SECRET</code></td><td>Yes</td><td>Webhook HMAC verification</td></tr>
+          <tr><td><code>AI_PROVIDER_ENCRYPTION_KEY</code></td><td>Optional</td><td>Separate from auth; falls back to <code>BETTER_AUTH_SECRET</code></td></tr>
+        </tbody>
+      </table>
+      <p>
+        <code>validateProductionEnv()</code> in <code>lib/env.ts</code> throws on startup if core
+        vars (including auth + database) are missing in production.
+      </p>
+    </section>
+
+    <section id="persistence">
+      <h2>10. Auth Persistence (PostgreSQL)</h2>
+      <p>Better Auth owns these tables (see also <a href="database-architecture.html">database architecture</a>):</p>
+
+      <table>
+        <thead><tr><th>Table</th><th>Contents</th><th>Indexes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>User</code></td>
+            <td>Profile, <code>emailVerified</code></td>
+            <td><code>email</code> UNIQUE</td>
+          </tr>
+          <tr>
+            <td><code>Account</code></td>
+            <td>Provider linkage; <code>password</code> hash for email/password</td>
+            <td><code>userId</code></td>
+          </tr>
+          <tr>
+            <td><code>Session</code></td>
+            <td>Active sessions, expiry, token</td>
+            <td><code>token</code> UNIQUE, <code>userId</code></td>
+          </tr>
+          <tr>
+            <td><code>Verification</code></td>
+            <td>Email verify + reset tokens</td>
+            <td><code>identifier</code></td>
+          </tr>
+          <tr>
+            <td><code>OrganizationMember</code></td>
+            <td>User ↔ org role binding</td>
+            <td><code>[userId, organizationId]</code> UNIQUE</td>
+          </tr>
+          <tr>
+            <td><code>OrganizationInvite</code></td>
+            <td>Pending invites; hashed token</td>
+            <td><code>token</code> UNIQUE, <code>[organizationId, status]</code>, <code>email</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>10.1 Trusted origins</h3>
+      <p>
+        Better Auth <code>trustedOrigins</code> includes <code>BETTER_AUTH_URL</code> and
+        <code>https://dash.better-auth.com</code> (Infra plugin). Cross-origin auth requests from
+        untrusted origins are rejected by Better Auth.
+      </p>
+    </section>
+
+    <section id="caveats">
+      <h2>11. Technical Caveats</h2>
+
+      <table>
+        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Single-org session</td>
+            <td>Session always binds to the user's first organization membership. Multi-org switching is not implemented.</td>
+          </tr>
+          <tr>
+            <td>Edge vs server validation</td>
+            <td><code>proxy.ts</code> checks cookie presence only; always use <code>getServerSession()</code> for identity.</td>
+          </tr>
+          <tr>
+            <td>Dev demo bypass</td>
+            <td>Without DB in dev, app pages load without login. Do not confuse with production behavior.</td>
+          </tr>
+          <tr>
+            <td>Local auth secret</td>
+            <td>Dev uses hardcoded fallback secret if <code>BETTER_AUTH_SECRET</code> unset — never use in production.</td>
+          </tr>
+          <tr>
+            <td>No SSO / OAuth</td>
+            <td>Email/password only. Enterprise SSO is planned placeholder only.</td>
+          </tr>
+          <tr>
+            <td>RBAC not centralized</td>
+            <td>Each action/route checks permissions individually; easy to miss on new endpoints.</td>
+          </tr>
+          <tr>
+            <td>Admin 404 vs 403</td>
+            <td>Non-admin users hitting <code>/admin</code> see 404, not 403, by design.</td>
+          </tr>
+          <tr>
+            <td>In-memory rate limits</td>
+            <td>Not shared across serverless instances; per-process only.</td>
+          </tr>
+          <tr>
+            <td>Invite + first org</td>
+            <td>Accepting invite to org B does not switch session context away from org A until multi-org is built.</td>
+          </tr>
+          <tr>
+            <td>Password in Account table</td>
+            <td>Better Auth stores hashed password on <code>Account</code>, not <code>User</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="files">
+      <h2>12. File Map</h2>
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>proxy.ts</code></td><td>Edge gate, rate limits, CSRF, security headers</td></tr>
+          <tr><td><code>lib/auth.ts</code></td><td>Better Auth server configuration</td></tr>
+          <tr><td><code>lib/auth-client.ts</code></td><td>Browser auth client hooks</td></tr>
+          <tr><td><code>lib/auth/session.ts</code></td><td>Server session + org provisioning</td></tr>
+          <tr><td><code>app/api/auth/[...all]/route.ts</code></td><td>Auth HTTP handler mount</td></tr>
+          <tr><td><code>lib/collaboration.ts</code></td><td>RBAC permission helpers</td></tr>
+          <tr><td><code>lib/admin/access.ts</code></td><td>Platform admin allowlist</td></tr>
+          <tr><td><code>lib/job-auth.ts</code></td><td>Job runner Bearer validation</td></tr>
+          <tr><td><code>lib/security.ts</code></td><td>Origin check + response headers</td></tr>
+          <tr><td><code>lib/rate-limit.ts</code></td><td>In-memory rate limit buckets</td></tr>
+          <tr><td><code>lib/redirects.ts</code></td><td>Open redirect protection</td></tr>
+          <tr><td><code>lib/env.ts</code></td><td>Auth env accessors + production validation</td></tr>
+          <tr><td><code>lib/email.ts</code></td><td>Resend boundary for verify/reset emails</td></tr>
+          <tr><td><code>app/sign-in/page.tsx</code>, <code>app/sign-up/page.tsx</code></td><td>Auth UI (client components)</td></tr>
+          <tr><td><code>app/admin/layout.tsx</code></td><td>Admin route guard</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="quick-ref">
+      <h2>13. Quick Reference — Request Checklist</h2>
+      <p>When adding a new protected endpoint or server action:</p>
+      <ol>
+        <li>Is it a browser page? → <code>proxy.ts</code> handles coarse cookie gate.</li>
+        <li>Resolve identity → <code>getServerSession()</code> or <code>ensureCurrentUserOrganization()</code>.</li>
+        <li>Check role → appropriate <code>canManage*()</code> from <code>lib/collaboration.ts</code>.</li>
+        <li>Check plan → <code>getPlanEntitlements()</code> if feature-gated.</li>
+        <li>Scope data → always filter by <code>organizationId</code> from session context.</li>
+        <li>Mutating API from browser? → Origin check applies unless exempt.</li>
+        <li>External webhook/job? → Use signature or Bearer auth, not session.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    AgentGate authentication architecture reference · June 2026
+  </footer>
+</body>
+</html>
