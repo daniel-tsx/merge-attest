@@ -93,6 +93,7 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 | Email                | `lib/email.ts`                                                                                                            | `operations/PRODUCTION_CHECKLIST.md`                  | Resend; mock in dev without keys                         |
 | Jobs & retention     | `lib/jobs/queue.ts`, `app/api/jobs/**`, `lib/retention.ts`                                                                | `operations/OPERATIONS_RUNBOOK.md`                    | Bearer `JOB_RUNNER_SECRET`                               |
 | Diagnostics          | `lib/diagnostics.ts`, `app/api/diagnostics/route.ts`                                                                      | `features/API.md`                                     | Owner/admin only                                         |
+| Platform admin       | `lib/admin/*`, `app/admin/**`, `components/app/admin-nav.tsx`                                                             | `features/ADMIN.md`                                   | Cross-tenant; gated by `ADMIN_EMAILS`; `admin-data.ts` is the only cross-org reader |
 | System architecture  | `proxy.ts`, `app/layout.tsx`, `lib/data/app-data.ts`, domain modules in `lib/`                                            | `SYSTEM_DESIGN.md`                                    | Layer model, flows, tenancy, jobs                        |
 | UI design            | `app/globals.css`, `components/ui/**`, `components/app/**`                                                                | `SYSTEM_DESIGN.md`, `features/DESIGN_SYSTEM.md`       | Architecture + tokens; read both for UI changes          |
 | Onboarding           | `lib/onboarding.ts`, `components/app/onboarding-checklist.tsx`                                                            | —                                                     | `tests/onboarding.test.ts`                               |
@@ -181,6 +182,7 @@ Source: `.env.example` + `lib/env.ts` + module readers. `✓` = required in prod
 | `JOB_RUNNER_SECRET`                         | Scheduled job bearer auth                             |
 | `SUPPORT_EMAIL`                             | Support contact surface                               |
 | `APP_VERSION`                               | Release label in logs                                 |
+| `ADMIN_EMAILS`                              | Comma-separated allowlist for the `/admin` dashboard  |
 
 **Removed:** all `PADDLE_*` variables (legacy; migration `20260518173000_lemon_squeezy_billing`).
 

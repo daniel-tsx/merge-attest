@@ -17,11 +17,13 @@ export function RootShell({
   organizationName,
   planKey,
   dataMode,
+  isAdmin,
 }: {
   children: React.ReactNode
   organizationName: string
   planKey: PlanKey
   dataMode: 'live' | 'demo'
+  isAdmin: boolean
 }) {
   const pathname = usePathname()
 
@@ -38,6 +40,7 @@ export function RootShell({
       organizationName={organizationName}
       planKey={planKey}
       dataMode={dataMode}
+      isAdmin={isAdmin}
     >
       {children}
     </AppShell>

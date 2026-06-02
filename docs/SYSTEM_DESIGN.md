@@ -118,6 +118,8 @@ Every business entity (repositories, pull requests, rules, approvals, audit even
 
 **Demo mode:** when `DATABASE_URL` is absent in development, `app-data.ts` serves `lib/demo-data.ts`. Production requires PostgreSQL.
 
+**Platform admin exception:** the operator console under `/admin` is the one surface that reads across tenants, exclusively through `lib/admin/admin-data.ts`. It is gated by the `ADMIN_EMAILS` allowlist (`lib/admin/access.ts`), enforced in `app/admin/layout.tsx` and re-checked in every admin server action. See [`features/ADMIN.md`](features/ADMIN.md).
+
 ## Core Domain Flows
 
 ### 1. GitHub connect and sync
@@ -229,7 +231,7 @@ Primitive rules:
 | Public marketing/auth | Plain `bg-background` wrapper | `app/page.tsx`, `/sign-in`, `/sign-up`, password reset                 |
 | Authenticated app     | `AppShell` sidebar + header   | All `/dashboard`, `/repositories`, `/pull-requests`, `/settings`, etc. |
 
-Navigation groups in `app-shell.tsx`: **Overview**, **Review work**, **Workspace**. Match this grouping when adding routes.
+Navigation groups in `app-shell.tsx`: **Overview**, **Review work**, **Workspace**, and a **Platform** group rendered only for platform admins (`isAdmin`). Match this grouping when adding routes.
 
 ### Standard page composition
 

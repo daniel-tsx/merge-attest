@@ -39,6 +39,15 @@ export function isDatabaseConfigured(env: Env = process.env) {
   return Boolean(getDatabaseUrl(env))
 }
 
+export function getAdminEmails(env: Env = process.env) {
+  const raw = readEnv('ADMIN_EMAILS', env)
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean)
+}
+
 export function validateProductionEnv(env: Env = process.env) {
   if (!isProduction(env)) return
 

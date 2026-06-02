@@ -100,6 +100,12 @@ pnpm build
 - `/settings/ai`
 - `/settings/billing`
 - `/settings/usage`
+- `/admin` (platform admin; gated by `ADMIN_EMAILS`)
+- `/admin/subscriptions`
+- `/admin/users`
+- `/admin/organizations`
+- `/admin/organizations/[id]`
+- `/admin/system`
 
 ## Architecture Notes
 
@@ -117,6 +123,7 @@ pnpm build
 - `lib/ai/credentials.ts`, `lib/ai/openrouter.ts`, `lib/ai/settings.ts`, and `lib/ai/review.ts`: encrypted OpenRouter BYOK storage, key verification, repository AI review settings, and AI response validation.
 - `lib/github/diff.ts` and `lib/github/output.ts`: PR diff filtering, changed-line validation support, managed AI review comments, inline review publishing, and advisory check-run output.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
+- `lib/admin/access.ts`, `lib/admin/admin-data.ts`, `lib/admin/metrics.ts`: platform admin gating (`ADMIN_EMAILS`), the only cross-tenant data module, and pure analytics helpers (see `features/ADMIN.md`).
 - `lib/billing.ts` and `lib/plans.ts`: Lemon Squeezy checkout/customer portal boundary and plan metadata.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
 - `lib/lemon-squeezy-webhooks.ts`: Lemon Squeezy webhook verification helpers and subscription-to-plan mapping.

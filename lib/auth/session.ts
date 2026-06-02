@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { isProduction } from '@/lib/env'
@@ -35,7 +36,9 @@ function slugify(value: string) {
   return slug || 'workspace'
 }
 
-export async function getServerSession() {
+// Cached per request so callers (org context + platform-admin check) share a
+// single session validation instead of each hitting the auth API.
+export const getServerSession = cache(async () => {
   try {
     return await auth.api.getSession({
       headers: await headers(),
@@ -50,7 +53,7 @@ export async function getServerSession() {
     })
     return null
   }
-}
+})
 
 export async function ensureCurrentUserOrganization(): Promise<SessionOrganization | null> {
   const session = await getServerSession()
