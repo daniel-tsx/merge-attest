@@ -114,8 +114,27 @@ exported via `GET /api/compliance/authorship/export?format=csv|json`.
 
 Tests: `tests/authorship.test.ts`, `tests/scorecard.test.ts`, `tests/attribution.test.ts`.
 
-## Roadmap (later phases)
+## Human-accountability gate
 
-Built on this attribution foundation: a human-accountability gate (AI-authored PRs require a
-named human sign-off + attestation). See
-[`../strategy/ENHANCEMENT_PLAN.md`](../strategy/ENHANCEMENT_PLAN.md).
+Source: [`lib/attestation.ts`](../../lib/attestation.ts) (pure, `tests/attestation.test.ts`),
+recorded in the approval server action ([`app/pull-requests/actions.ts`](../../app/pull-requests/actions.ts)),
+shown on the PR detail page via `AccountabilityPanel`.
+
+- A repository rule with action **`require_human_attestation`** (trigger `ai_assisted`; built-in
+  template "AI-authored PRs require human sign-off") marks AI-authored PRs as needing a named
+  human to take responsibility before merge.
+- Reviewers check "I take responsibility…" when they **approve** or **accept risk**; that writes
+  an immutable `Attestation` (reviewer, statement, attributed agent + confidence snapshot, head
+  SHA), a `human_attestation_recorded` audit event, and — when `githubComments` is entitled — a
+  best-effort **"AgentGate Accountability"** GitHub check run.
+- `pullRequestRequiresAttestation()` derives the required state from the PR's fired rules; any
+  AI-authored PR can also carry a voluntary sign-off. Non-AI PRs show no panel.
+
+This targets the trust gap directly: not "did a bot review it" but "which human is accountable
+for this AI-authored change," recorded for audit.
+
+## Status
+
+Phases A–D of the AI-authorship governance suite are shipped: attribution engine + registry,
+per-agent trust scorecard, authorship ledger + compliance export, and the human-accountability
+gate. See [`../strategy/ENHANCEMENT_PLAN.md`](../strategy/ENHANCEMENT_PLAN.md) for broader roadmap.

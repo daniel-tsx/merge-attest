@@ -55,9 +55,11 @@ function ApprovalDecisionButton({
 export function ApprovalActions({
   prId,
   canRecord = true,
+  attestable = false,
 }: {
   prId: string
   canRecord?: boolean
+  attestable?: boolean
 }) {
   const [state, formAction, isPending] = useActionState(
     recordApprovalDecision.bind(null, prId),
@@ -96,6 +98,21 @@ export function ApprovalActions({
           disabled={formDisabled}
         />
       </label>
+      {attestable ? (
+        <label className="flex items-start gap-2 rounded-control border border-attention-border bg-attention-soft/40 p-3 text-xs text-foreground">
+          <input
+            type="checkbox"
+            name="attest"
+            disabled={formDisabled}
+            className="mt-0.5 size-4 shrink-0 rounded border-border accent-accent"
+          />
+          <span>
+            I take responsibility for reviewing this AI-authored change.
+            Recorded as a human accountability sign-off when you approve or
+            accept risk.
+          </span>
+        </label>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <ApprovalDecisionButton
           decision="approved"

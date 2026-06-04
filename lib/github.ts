@@ -502,6 +502,42 @@ export async function publishAiReviewCheckRun(
   }
 }
 
+export async function publishAccountabilityCheckRun(
+  pr: Pick<PullRequest, 'number' | 'repositoryName'> & {
+    owner?: string
+    installationId?: string
+    headSha?: string | null
+  },
+  input: { reviewer: string; agentSource: string; statement: string },
+) {
+  const octokit = getInstallationOctokit(pr.installationId)
+  if (!octokit || !pr.owner || !pr.headSha) {
+    return {
+      mode: 'demo' as const,
+      message: `Mock AgentGate accountability check for ${pr.repositoryName}#${pr.number}.`,
+    }
+  }
+
+  const response = await octokit.rest.checks.create({
+    owner: pr.owner,
+    repo: pr.repositoryName,
+    name: 'AgentGate Accountability',
+    head_sha: pr.headSha,
+    status: 'completed',
+    conclusion: 'success',
+    output: {
+      title: `Human sign-off by ${input.reviewer}`,
+      summary: input.statement,
+    },
+  })
+
+  return {
+    mode: 'live' as const,
+    checkRunId: String(response.data.id),
+    message: 'AgentGate accountability check published.',
+  }
+}
+
 function isGitHubNotFoundError(error: unknown) {
   return (
     typeof error === 'object' &&

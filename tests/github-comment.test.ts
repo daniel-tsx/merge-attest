@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   getAgentGateCheckConclusion,
   postPullRequestReview,
+  publishAccountabilityCheckRun,
   publishAiReviewCheckRun,
   postPullRequestComment,
   publishAgentGateCheckRun,
@@ -83,6 +84,27 @@ describe('GitHub comment helper', () => {
         title: 'AgentGate AI review found no findings',
         summary: 'AI review completed.',
         conclusion: 'success',
+      },
+    )
+
+    expect(result).toMatchObject({
+      mode: 'demo',
+    })
+  })
+
+  it('returns demo mode for accountability checks without installation credentials', async () => {
+    const result = await publishAccountabilityCheckRun(
+      {
+        number: 42,
+        repositoryName: 'agent-gate',
+        owner: 'northstar',
+        headSha: 'abc123',
+      },
+      {
+        reviewer: 'Maya Chen',
+        agentSource: 'codex',
+        statement:
+          'Maya Chen takes responsibility for reviewing this codex pull request.',
       },
     )
 

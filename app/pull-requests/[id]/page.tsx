@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/app/empty-state'
 import { AttributionPanel } from '@/components/app/attribution-panel'
+import { AccountabilityPanel } from '@/components/app/accountability-panel'
 import { ApprovalActions } from '@/components/app/approval-actions'
 import { MutationToasts } from '@/components/app/mutation-toasts'
 import { addReviewNote, assignReviewer } from '@/app/pull-requests/actions'
@@ -43,9 +44,11 @@ import {
   getCurrentOrganization,
   getPullRequest,
   listActivityEvents,
+  listAttestations,
   listTeamMembers,
   listAuditEvents,
 } from '@/lib/data/app-data'
+import { pullRequestRequiresAttestation } from '@/lib/attestation'
 import { getPlanEntitlements } from '@/lib/entitlements'
 import {
   buildPullRequestTimeline,
@@ -66,12 +69,15 @@ export default async function PullRequestDetailPage({
     params,
     getCurrentOrganization(),
   ])
-  const [pr, teamMembers] = await Promise.all([
+  const [pr, teamMembers, attestations] = await Promise.all([
     getPullRequest(organization.id, id),
     listTeamMembers(organization.id),
+    listAttestations(organization.id, id),
   ])
   if (!pr) notFound()
   const reviewers = teamMembers.filter((member) => member.role !== 'viewer')
+  const attestable = pr.aiAssisted === true
+  const requiresAttestation = pullRequestRequiresAttestation(pr)
   const approvalsAvailable = isFeatureAvailable(
     organization.planKey,
     'approvals',
@@ -468,9 +474,22 @@ export default async function PullRequestDetailPage({
                     : ' · No SLA'}
                 </div>
               </div>
-              <ApprovalActions prId={pr.id} canRecord={canRecord} />
+              <ApprovalActions
+                prId={pr.id}
+                canRecord={canRecord}
+                attestable={attestable}
+              />
             </CardContent>
           </Card>
+
+          {attestable ? (
+            <AccountabilityPanel
+              agentSource={pr.agentSource}
+              headSha={pr.headSha}
+              requiresAttestation={requiresAttestation}
+              attestations={attestations}
+            />
+          ) : null}
 
           <Card>
             <CardHeader>

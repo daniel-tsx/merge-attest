@@ -49,6 +49,7 @@ const actionTypes: RepoRule['actionType'][] = [
   'request_tests',
   'request_security_review',
   'publish_github_check',
+  'require_human_attestation',
 ]
 
 const severityTypes: RepoRule['severity'][] = [

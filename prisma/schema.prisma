@@ -125,6 +125,7 @@ enum RuleActionType {
   request_tests
   request_security_review
   publish_github_check
+  require_human_attestation
 }
 
 enum Severity {
@@ -174,6 +175,7 @@ enum AuditEventType {
   github_check_run_published
   settings_changed
   agent_identity_rule_changed
+  human_attestation_recorded
 }
 
 enum AgentIdentityMatchType {
@@ -200,6 +202,7 @@ model User {
   sentInvites          OrganizationInvite[] @relation("OrganizationInvitesSent")
   acceptedInvites      OrganizationInvite[] @relation("OrganizationInvitesAccepted")
   auditExports         AuditExport[]
+  attestations         Attestation[]
   apiKeys              ApiKey[]
   aiProviderCredentials AiProviderCredential[]
   sessions             Session[]
@@ -289,6 +292,7 @@ model Organization {
   invites                  OrganizationInvite[]
   auditExports             AuditExport[]
   agentIdentityRules       AgentIdentityRule[]
+  attestations             Attestation[]
 }
 
 model OrganizationMember {
@@ -405,6 +409,7 @@ model PullRequest {
   activity         AgentActivity[]
   auditEvents      AuditEvent[]
   aiReviewJobs     AiReviewJob[]
+  attestations     Attestation[]
 
   @@unique([repositoryId, number])
   @@unique([repositoryId, githubPullRequestId])
@@ -509,6 +514,26 @@ model AgentIdentityRule {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
+}
+
+model Attestation {
+  id                    String      @id @default(cuid())
+  statement             String
+  reviewerName          String
+  agentSource           AgentSource
+  attributionConfidence Int         @default(0)
+  headSha               String?
+  reviewerId            String?
+  pullRequestId         String
+  organizationId        String
+  createdAt             DateTime    @default(now())
+
+  reviewer     User?        @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
+  pullRequest  PullRequest  @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
   @@index([organizationId])
 }
 

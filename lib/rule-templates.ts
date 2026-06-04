@@ -60,6 +60,16 @@ export const ruleTemplates: RuleTemplate[] = [
     severity: 'high',
     minimumRiskLevel: 'medium',
   },
+  {
+    key: 'ai-human-attestation',
+    name: 'AI-authored PRs require human sign-off',
+    description:
+      'AI-authored pull requests require a named human to take responsibility before merge.',
+    triggerType: 'ai_assisted',
+    actionType: 'require_human_attestation',
+    severity: 'high',
+    codeOwnerHint: 'Accountable reviewer',
+  },
 ]
 
 export function getRuleTemplate(key: string) {

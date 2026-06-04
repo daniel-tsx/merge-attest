@@ -43,6 +43,7 @@ describe('Prisma data mappers', () => {
       number: 12,
       title: 'Add auth guard',
       author: 'cursor-agent',
+      headSha: 'abc123',
       branch: 'agent/auth',
       baseBranch: 'main',
       status: 'open',
@@ -152,6 +153,7 @@ describe('Prisma data mappers', () => {
     })
 
     expect(result.repositoryName).toBe('agent-gate')
+    expect(result.headSha).toBe('abc123')
     expect(result.riskSignals[0].filePaths).toEqual(['lib/auth.ts'])
     expect(result.testGapAnalysis.suggestedTestFiles).toEqual([
       'tests/auth.test.ts',

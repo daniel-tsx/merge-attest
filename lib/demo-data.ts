@@ -2,6 +2,7 @@ import type {
   ActivityEvent,
   AgentIdentityRule,
   AgentSource,
+  Attestation,
   AttributionEvidence,
   AuditEvent,
   Approval,
@@ -801,4 +802,32 @@ export const agentIdentityRules: AgentIdentityRule[] = [
 
 export function getAgentIdentityRules() {
   return agentIdentityRules
+}
+
+const demoAttestations: Array<Attestation & { pullRequestId: string }> = [
+  {
+    pullRequestId: 'pr-repo-billing-184',
+    id: 'attestation-billing-184',
+    statement:
+      'Maya Chen takes responsibility for reviewing this codex pull request.',
+    reviewerName: 'Maya Chen',
+    agentSource: 'codex',
+    attributionConfidence: 95,
+    headSha: 'a1b2c3d',
+    createdAt: '2026-04-24T15:00:00.000Z',
+  },
+]
+
+export function getAttestations(pullRequestId: string): Attestation[] {
+  return demoAttestations
+    .filter((item) => item.pullRequestId === pullRequestId)
+    .map((item) => ({
+      id: item.id,
+      statement: item.statement,
+      reviewerName: item.reviewerName,
+      agentSource: item.agentSource,
+      attributionConfidence: item.attributionConfidence,
+      headSha: item.headSha,
+      createdAt: item.createdAt,
+    }))
 }

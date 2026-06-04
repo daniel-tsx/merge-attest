@@ -28,6 +28,7 @@ const actionTypes = [
   'request_tests',
   'request_security_review',
   'publish_github_check',
+  'require_human_attestation',
 ] as const satisfies readonly RepoRule['actionType'][]
 
 const severityTypes = [

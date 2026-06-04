@@ -74,6 +74,16 @@ export type AgentIdentityRule = {
   updatedAt: string
 }
 
+export type Attestation = {
+  id: string
+  statement: string
+  reviewerName: string
+  agentSource: AgentSource
+  attributionConfidence: number
+  headSha?: string
+  createdAt: string
+}
+
 export type Repository = {
   id: string
   name: string
@@ -97,6 +107,7 @@ export type PullRequest = {
   number: number
   title: string
   author: string
+  headSha?: string
   branch: string
   baseBranch: string
   status: PullRequestStatus
@@ -162,6 +173,7 @@ export type RepoRule = {
     | 'request_tests'
     | 'request_security_review'
     | 'publish_github_check'
+    | 'require_human_attestation'
   severity: Severity
   branchPattern?: string
   pathPattern?: string
@@ -278,6 +290,7 @@ export type AuditEvent = {
     | 'github_check_run_published'
     | 'settings_changed'
     | 'agent_identity_rule_changed'
+    | 'human_attestation_recorded'
   repositoryId?: string
   pullRequestId?: string
   actor?: string

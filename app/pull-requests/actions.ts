@@ -8,13 +8,23 @@ import {
   auditEventTypeForDecision,
   isApprovalDecision,
 } from '@/lib/approvals'
+import {
+  actionsRequireAttestation,
+  buildAttestationStatement,
+  isAccountabilityDecision,
+  shouldBlockMissingAttestation,
+} from '@/lib/attestation'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import {
   canCommentOnPullRequest,
   canRecordApproval,
   defaultReviewDueAt,
 } from '@/lib/collaboration'
-import { postPullRequestComment, publishAgentGateCheckRun } from '@/lib/github'
+import {
+  postPullRequestComment,
+  publishAccountabilityCheckRun,
+  publishAgentGateCheckRun,
+} from '@/lib/github'
 import { logEvent, reportError } from '@/lib/observability'
 import { isFeatureAvailable } from '@/lib/plans'
 import { getPrismaClient } from '@/lib/prisma'
@@ -76,35 +86,100 @@ export async function recordApprovalDecision(
 
   const pullRequest = await prisma.pullRequest.findFirst({
     where: { id: prId, organizationId: organization.id },
-    include: { repository: { include: { organization: true } } },
+    include: {
+      repository: { include: { organization: true } },
+      ruleViolations: { include: { rule: { select: { actionType: true } } } },
+      attestations: { select: { headSha: true } },
+    },
   })
   if (!pullRequest) {
     return fail('Pull request not found.')
   }
 
-  const approvalStatus = approvalStatusForDecision(decision)
-  await prisma.approval.create({
-    data: {
+  const attest = formData.get('attest') === 'on'
+  const requiresAttestation =
+    pullRequest.aiAssisted === true &&
+    actionsRequireAttestation(
+      pullRequest.ruleViolations.map((violation) => violation.rule.actionType),
+    )
+  const reviewerName = organization.userName || organization.userEmail
+  const accountabilityDecision = isAccountabilityDecision(decision)
+  const hasCurrentAttestation = pullRequest.attestations.some(
+    (attestation) => attestation.headSha === pullRequest.headSha,
+  )
+  const recordedAttestation =
+    attest && pullRequest.aiAssisted === true && accountabilityDecision
+
+  if (
+    shouldBlockMissingAttestation({
       decision,
-      note,
-      reviewerId: organization.userId,
-      pullRequestId: pullRequest.id,
-    },
-  })
-  await prisma.pullRequest.update({
-    where: { id: pullRequest.id },
-    data: { approvalStatus },
-  })
-  await prisma.auditEvent.create({
-    data: {
-      eventType: auditEventTypeForDecision(decision),
-      actor: organization.userName || organization.userEmail,
-      summary: approvalSummary(decision, pullRequest.number),
-      metadata: { decision, note, approvalStatus },
-      organizationId: organization.id,
-      repositoryId: pullRequest.repositoryId,
-      pullRequestId: pullRequest.id,
-    },
+      hasCurrentAttestation,
+      recordedAttestation,
+      requiresAttestation,
+    })
+  ) {
+    return fail(
+      'Human accountability sign-off is required before approving or accepting risk for this AI-assisted pull request.',
+    )
+  }
+
+  const approvalStatus = approvalStatusForDecision(decision)
+  await prisma.$transaction(async (tx) => {
+    await tx.approval.create({
+      data: {
+        reviewerId: organization.userId,
+        pullRequestId: pullRequest.id,
+        decision,
+        note,
+      },
+    })
+    await tx.pullRequest.update({
+      where: { id: pullRequest.id },
+      data: { approvalStatus },
+    })
+    await tx.auditEvent.create({
+      data: {
+        eventType: auditEventTypeForDecision(decision),
+        actor: reviewerName,
+        summary: approvalSummary(decision, pullRequest.number),
+        metadata: { decision, note, approvalStatus },
+        organizationId: organization.id,
+        repositoryId: pullRequest.repositoryId,
+        pullRequestId: pullRequest.id,
+      },
+    })
+
+    if (recordedAttestation) {
+      await tx.attestation.create({
+        data: {
+          statement: buildAttestationStatement(
+            reviewerName,
+            pullRequest.agentSource,
+          ),
+          reviewerName,
+          agentSource: pullRequest.agentSource,
+          attributionConfidence: pullRequest.attributionConfidence,
+          headSha: pullRequest.headSha,
+          reviewerId: organization.userId,
+          pullRequestId: pullRequest.id,
+          organizationId: organization.id,
+        },
+      })
+      await tx.auditEvent.create({
+        data: {
+          eventType: 'human_attestation_recorded',
+          actor: reviewerName,
+          summary: `Recorded human accountability sign-off for #${pullRequest.number}`,
+          metadata: {
+            agentSource: pullRequest.agentSource,
+            requiredByRule: requiresAttestation,
+          },
+          organizationId: organization.id,
+          repositoryId: pullRequest.repositoryId,
+          pullRequestId: pullRequest.id,
+        },
+      })
+    }
   })
 
   logEvent({
@@ -210,6 +285,28 @@ export async function recordApprovalDecision(
         },
       })
     }
+
+    if (recordedAttestation && canPostGitHubComment) {
+      await publishAccountabilityCheckRun(
+        {
+          number: pullRequest.number,
+          repositoryName: pullRequest.repository.name,
+          owner: pullRequest.repository.owner,
+          installationId:
+            pullRequest.repository.organization.githubInstallationId ??
+            undefined,
+          headSha: pullRequest.headSha,
+        },
+        {
+          reviewer: reviewerName,
+          agentSource: pullRequest.agentSource,
+          statement: buildAttestationStatement(
+            reviewerName,
+            pullRequest.agentSource,
+          ),
+        },
+      )
+    }
   } catch (error) {
     reportError({
       area: 'approval',
@@ -225,7 +322,9 @@ export async function recordApprovalDecision(
 
   return {
     decision,
-    message: `Recorded ${decision.replaceAll('_', ' ')}. Current status: ${approvalStatus}.`,
+    message: recordedAttestation
+      ? `Recorded ${decision.replaceAll('_', ' ')} with human sign-off. Current status: ${approvalStatus}.`
+      : `Recorded ${decision.replaceAll('_', ' ')}. Current status: ${approvalStatus}.`,
     status: 'success',
   }
 }

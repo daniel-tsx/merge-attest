@@ -9,6 +9,7 @@ import {
   getRepositoryPullRequests as getDemoRepositoryPullRequests,
   getRepositoryRules as getDemoRepositoryRules,
   getAgentIdentityRules as getDemoAgentIdentityRules,
+  getAttestations as getDemoAttestations,
   pullRequests as demoPullRequests,
   repositories as demoRepositories,
   users as demoUsers,
@@ -29,6 +30,7 @@ import type { PrismaClient } from '@/lib/generated/prisma/client'
 import type {
   ActivityEvent,
   AgentIdentityRule,
+  Attestation,
   AttributionEvidence,
   AuditExport,
   AuditEvent,
@@ -162,6 +164,7 @@ type PullRequestRow = {
   number: number
   title: string
   author: string
+  headSha: string | null
   branch: string
   baseBranch: string
   status: string
@@ -874,6 +877,7 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
     number: row.number,
     title: row.title,
     author: row.author,
+    headSha: row.headSha ?? undefined,
     branch: row.branch,
     baseBranch: row.baseBranch,
     status: row.status as PullRequest['status'],
@@ -1141,6 +1145,43 @@ export async function listAgentIdentityRules(organizationId: string) {
     },
     () => getDemoAgentIdentityRules(),
     'agent identity rules',
+  )
+}
+
+export function mapAttestation(row: {
+  id: string
+  statement: string
+  reviewerName: string
+  agentSource: string
+  attributionConfidence: number
+  headSha: string | null
+  createdAt: Date
+}): Attestation {
+  return {
+    id: row.id,
+    statement: row.statement,
+    reviewerName: row.reviewerName,
+    agentSource: row.agentSource as Attestation['agentSource'],
+    attributionConfidence: row.attributionConfidence,
+    headSha: row.headSha ?? undefined,
+    createdAt: toIso(row.createdAt),
+  }
+}
+
+export async function listAttestations(
+  organizationId: string,
+  pullRequestId: string,
+) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.attestation.findMany({
+        where: { organizationId, pullRequestId },
+        orderBy: { createdAt: 'desc' },
+      })
+      return rows.map(mapAttestation)
+    },
+    () => getDemoAttestations(pullRequestId),
+    'attestations',
   )
 }
 
