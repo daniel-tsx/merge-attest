@@ -10,7 +10,9 @@ function redirectToSignIn(request: NextRequest) {
   const signInUrl = new URL('/sign-in', request.url)
   signInUrl.searchParams.set(
     'callbackUrl',
-    safeRelativeRedirect(`${request.nextUrl.pathname}${request.nextUrl.search}`),
+    safeRelativeRedirect(
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    ),
   )
   return NextResponse.redirect(signInUrl)
 }

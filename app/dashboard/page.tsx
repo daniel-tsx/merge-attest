@@ -107,7 +107,10 @@ async function DashboardContent() {
       value: metrics.pendingApprovals,
       description: 'Decisions waiting on a reviewer',
       icon: CheckCircle2,
-      tone: metrics.pendingApprovals > 0 ? ('accent' as const) : ('neutral' as const),
+      tone:
+        metrics.pendingApprovals > 0
+          ? ('accent' as const)
+          : ('neutral' as const),
     },
     {
       key: 'highRiskPrs' as const,
@@ -115,7 +118,8 @@ async function DashboardContent() {
       value: metrics.highRiskPrs,
       description: 'High or critical risk score',
       icon: ShieldAlert,
-      tone: metrics.highRiskPrs > 0 ? ('danger' as const) : ('success' as const),
+      tone:
+        metrics.highRiskPrs > 0 ? ('danger' as const) : ('success' as const),
     },
     {
       key: 'failedCi' as const,
@@ -123,7 +127,10 @@ async function DashboardContent() {
       value: metrics.failedCiChecks,
       description: 'Blocking merge confidence',
       icon: AlertTriangle,
-      tone: metrics.failedCiChecks > 0 ? ('warning' as const) : ('success' as const),
+      tone:
+        metrics.failedCiChecks > 0
+          ? ('warning' as const)
+          : ('success' as const),
     },
     {
       key: 'testGaps' as const,
@@ -131,7 +138,10 @@ async function DashboardContent() {
       value: metrics.prsWithTestGaps,
       description: 'Suggested test coverage',
       icon: TestTube2,
-      tone: metrics.prsWithTestGaps > 0 ? ('warning' as const) : ('success' as const),
+      tone:
+        metrics.prsWithTestGaps > 0
+          ? ('warning' as const)
+          : ('success' as const),
     },
   ]
 
@@ -169,13 +179,17 @@ async function DashboardContent() {
       label: 'AI reviews blocked',
       value: aiReviewMetrics.blocked,
       description: 'Needs configuration or plan action',
-      tone: aiReviewMetrics.blocked > 0 ? ('warning' as const) : ('neutral' as const),
+      tone:
+        aiReviewMetrics.blocked > 0
+          ? ('warning' as const)
+          : ('neutral' as const),
     },
     {
       label: 'AI reviews failed',
       value: aiReviewMetrics.failed,
       description: 'Provider or worker failures',
-      tone: aiReviewMetrics.failed > 0 ? ('danger' as const) : ('neutral' as const),
+      tone:
+        aiReviewMetrics.failed > 0 ? ('danger' as const) : ('neutral' as const),
     },
     {
       label: 'AI comments',
@@ -247,7 +261,9 @@ async function DashboardContent() {
                 key={label}
                 className="rounded-control border border-border bg-surface-muted/40 p-4"
               >
-                <div className="text-eyebrow text-subtle-foreground">{label}</div>
+                <div className="text-eyebrow text-subtle-foreground">
+                  {label}
+                </div>
                 <div className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
                   {value}
                 </div>
@@ -314,7 +330,8 @@ async function DashboardContent() {
             {trendData.length ? (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Detected test gaps across {trendData.length} reporting periods.
+                  Detected test gaps across {trendData.length} reporting
+                  periods.
                 </p>
                 <TrendChart data={trendData} metric="testGaps" />
               </div>
@@ -528,7 +545,9 @@ function StatPanel({
                   statToneDot[stat.tone ?? 'neutral'],
                 )}
               />
-              <p className="text-eyebrow text-subtle-foreground">{stat.label}</p>
+              <p className="text-eyebrow text-subtle-foreground">
+                {stat.label}
+              </p>
             </div>
             <p className="mt-2 text-xl font-semibold tabular-nums tracking-tight text-foreground">
               {formatNumber(stat.value)}

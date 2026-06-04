@@ -21,7 +21,11 @@ export function SortableHeader({
   )
   const active = sort === sortKey
   const nextDir = active && dir === 'desc' ? 'asc' : 'desc'
-  const Icon = !active ? ChevronsUpDown : dir === 'desc' ? ChevronDown : ChevronUp
+  const Icon = !active
+    ? ChevronsUpDown
+    : dir === 'desc'
+      ? ChevronDown
+      : ChevronUp
 
   return (
     <button

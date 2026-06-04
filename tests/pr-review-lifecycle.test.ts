@@ -224,14 +224,14 @@ describe('PR review lifecycle', () => {
       },
     } as never)
 
-    await expect(
-      processQueuedAiReviewJobs({ limit: 5, now }),
-    ).resolves.toEqual({
-      processed: 1,
-      blocked: 1,
-      failed: 0,
-      skipped: 0,
-    })
+    await expect(processQueuedAiReviewJobs({ limit: 5, now })).resolves.toEqual(
+      {
+        processed: 1,
+        blocked: 1,
+        failed: 0,
+        skipped: 0,
+      },
+    )
     expect(update).toHaveBeenNthCalledWith(1, {
       where: { id: 'job_1' },
       data: {
@@ -277,14 +277,14 @@ describe('PR review lifecycle', () => {
       },
     } as never)
 
-    await expect(
-      processQueuedAiReviewJobs({ limit: 5, now }),
-    ).resolves.toEqual({
-      processed: 1,
-      blocked: 0,
-      failed: 0,
-      skipped: 1,
-    })
+    await expect(processQueuedAiReviewJobs({ limit: 5, now })).resolves.toEqual(
+      {
+        processed: 1,
+        blocked: 0,
+        failed: 0,
+        skipped: 1,
+      },
+    )
     expect(update).toHaveBeenNthCalledWith(2, {
       where: { id: 'job_1' },
       data: {
@@ -331,14 +331,14 @@ describe('PR review lifecycle', () => {
       },
     } as never)
 
-    await expect(
-      processQueuedAiReviewJobs({ limit: 5, now }),
-    ).resolves.toEqual({
-      processed: 1,
-      blocked: 0,
-      failed: 0,
-      skipped: 1,
-    })
+    await expect(processQueuedAiReviewJobs({ limit: 5, now })).resolves.toEqual(
+      {
+        processed: 1,
+        blocked: 0,
+        failed: 0,
+        skipped: 1,
+      },
+    )
     expect(update).toHaveBeenNthCalledWith(2, {
       where: { id: 'job_1' },
       data: {
@@ -393,14 +393,14 @@ describe('PR review lifecycle', () => {
       },
     } as never)
 
-    await expect(
-      processQueuedAiReviewJobs({ limit: 5, now }),
-    ).resolves.toEqual({
-      processed: 1,
-      blocked: 0,
-      failed: 0,
-      skipped: 1,
-    })
+    await expect(processQueuedAiReviewJobs({ limit: 5, now })).resolves.toEqual(
+      {
+        processed: 1,
+        blocked: 0,
+        failed: 0,
+        skipped: 1,
+      },
+    )
     expect(update).toHaveBeenNthCalledWith(2, {
       where: { id: 'job_1' },
       data: {
@@ -456,14 +456,14 @@ describe('PR review lifecycle', () => {
       },
     } as never)
 
-    await expect(
-      processQueuedAiReviewJobs({ limit: 5, now }),
-    ).resolves.toEqual({
-      processed: 1,
-      blocked: 0,
-      failed: 0,
-      skipped: 1,
-    })
+    await expect(processQueuedAiReviewJobs({ limit: 5, now })).resolves.toEqual(
+      {
+        processed: 1,
+        blocked: 0,
+        failed: 0,
+        skipped: 1,
+      },
+    )
     expect(update).toHaveBeenNthCalledWith(2, {
       where: { id: 'job_1' },
       data: {
@@ -496,10 +496,13 @@ describe('PR review lifecycle', () => {
     expect(unauthorized.status).toBe(401)
 
     const authorized = await POST(
-      new NextRequest('https://app.example.test/api/jobs/pr-reviews?limit=250', {
-        method: 'POST',
-        headers: { authorization: 'Bearer job-secret' },
-      }),
+      new NextRequest(
+        'https://app.example.test/api/jobs/pr-reviews?limit=250',
+        {
+          method: 'POST',
+          headers: { authorization: 'Bearer job-secret' },
+        },
+      ),
     )
     await expect(authorized.json()).resolves.toEqual({
       processed: 0,

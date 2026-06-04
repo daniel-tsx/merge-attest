@@ -9,7 +9,10 @@ import {
   encryptProviderKey,
   getOrganizationOpenRouterCredential,
 } from '@/lib/ai/credentials'
-import { normalizeOpenRouterKey, verifyOpenRouterKey } from '@/lib/ai/openrouter'
+import {
+  normalizeOpenRouterKey,
+  verifyOpenRouterKey,
+} from '@/lib/ai/openrouter'
 import { getPrismaClient } from '@/lib/prisma'
 
 function aiSettingsUrl(status: string) {
@@ -20,7 +23,8 @@ async function ensureCanManageAiSettings() {
   const organization = await ensureCurrentUserOrganization()
   const prisma = getPrismaClient()
   if (!organization || !prisma) redirect(aiSettingsUrl('auth_required'))
-  if (!canManageSettings(organization.role)) redirect(aiSettingsUrl('forbidden'))
+  if (!canManageSettings(organization.role))
+    redirect(aiSettingsUrl('forbidden'))
 
   return { organization, prisma }
 }

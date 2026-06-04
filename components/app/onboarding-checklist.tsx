@@ -25,9 +25,23 @@ function StepIcon({ status }: { status: OnboardingStep['status'] }) {
 }
 
 function StepBadge({ status }: { status: OnboardingStep['status'] }) {
-  if (status === 'complete') return <Badge tone="green" withDot>done</Badge>
-  if (status === 'blocked') return <Badge tone="slate" withDot>blocked</Badge>
-  return <Badge tone="blue" withDot>next</Badge>
+  if (status === 'complete')
+    return (
+      <Badge tone="green" withDot>
+        done
+      </Badge>
+    )
+  if (status === 'blocked')
+    return (
+      <Badge tone="slate" withDot>
+        blocked
+      </Badge>
+    )
+  return (
+    <Badge tone="blue" withDot>
+      next
+    </Badge>
+  )
 }
 
 export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {

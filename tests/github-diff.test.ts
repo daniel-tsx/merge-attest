@@ -33,8 +33,9 @@ describe('GitHub diff guardrails', () => {
 
   it('matches exact, directory, and wildcard ignored paths', () => {
     expect(matchesIgnoredPath('docs/readme.md', ['docs/'])).toBe(true)
-    expect(matchesIgnoredPath('src/generated/client.ts', ['src/*/client.ts']))
-      .toBe(true)
+    expect(
+      matchesIgnoredPath('src/generated/client.ts', ['src/*/client.ts']),
+    ).toBe(true)
     expect(matchesIgnoredPath('lib/review.ts', ['lib/review.ts'])).toBe(true)
     expect(matchesIgnoredPath('lib/review.ts', ['app/'])).toBe(false)
   })
@@ -73,7 +74,9 @@ describe('GitHub diff guardrails', () => {
   })
 
   it('marks every file as skipped when no reviewable diff remains', () => {
-    const filtered = filterDiffFiles(parseUnifiedDiff(sampleDiff('build/app.js')))
+    const filtered = filterDiffFiles(
+      parseUnifiedDiff(sampleDiff('build/app.js')),
+    )
 
     expect(filtered.files).toEqual([])
     expect(filtered.skippedFiles).toEqual([

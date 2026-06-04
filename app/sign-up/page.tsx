@@ -48,9 +48,7 @@ export default function SignUpPage() {
       const workspaceReady = await ensureOrganization()
       if (!workspaceReady) {
         setSubmitting(false)
-        setMessage(
-          'Check your email to verify your account before signing in.',
-        )
+        setMessage('Check your email to verify your account before signing in.')
         return
       }
       const searchParams = new URLSearchParams(window.location.search)

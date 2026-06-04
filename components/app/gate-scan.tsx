@@ -113,7 +113,13 @@ export function GateScan({
         {state === 'question' && (
           <>
             <path d={QUESTION_PATH} />
-            <circle cx={24} cy={38.6} r={1.2} fill="currentColor" stroke="none" />
+            <circle
+              cx={24}
+              cy={38.6}
+              r={1.2}
+              fill="currentColor"
+              stroke="none"
+            />
           </>
         )}
       </svg>

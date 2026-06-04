@@ -1,692 +1,1054 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Billing &amp; Entitlements Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Billing &amp; Entitlements Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.1rem 0.45rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 0.25rem;
+      }
 
-    .tag.warn { background: var(--warn-bg); color: #b45309; }
+      .tag.warn {
+        background: var(--warn-bg);
+        color: #b45309;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    .related a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Billing &amp; Entitlements Architecture</h1>
-    <p>
-      How plan limits are defined and enforced, how PR-check usage is metered with idempotent
-      monthly buckets, and how Lemon Squeezy checkout, customer portal, and subscription webhooks
-      update organization billing state. Verified against code as of June 2026.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
-      Related: <a href="authentication-architecture.html">Authentication</a>,
-      <a href="database-architecture.html">Database</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#plans">Plans</a></li>
-      <li><a href="#entitlements">Entitlements</a></li>
-      <li><a href="#usage">Usage metering</a></li>
-      <li><a href="#billing">Lemon Squeezy</a></li>
-      <li><a href="#webhooks">Webhooks</a></li>
-      <li><a href="#enforcement">Enforcement</a></li>
-      <li><a href="#access">Access control</a></li>
-      <li><a href="#env">Environment</a></li>
-      <li><a href="#caveats">Caveats</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      .related a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Billing &amp; Entitlements Architecture</h1>
       <p>
-        Billing and entitlements are split into three layers: <strong>plan metadata</strong>
-        (marketing copy and seed data), <strong>code entitlements</strong> (authoritative limits
-        and feature flags), and <strong>runtime state</strong> on <code>Organization</code>
-        (current <code>planKey</code>, Lemon Squeezy IDs, billing status).
+        How plan limits are defined and enforced, how PR-check usage is metered
+        with idempotent monthly buckets, and how Lemon Squeezy checkout,
+        customer portal, and subscription webhooks update organization billing
+        state. Verified against code as of June 2026.
       </p>
-      <ol>
-        <li><strong>Entitlements</strong> — <code>lib/entitlements.ts</code> defines numeric limits and boolean features per plan.</li>
-        <li><strong>Usage</strong> — <code>lib/usage.ts</code> records PR checks in UTC calendar months with optional <code>sourceKey</code> dedupe.</li>
-        <li><strong>Billing</strong> — <code>lib/billing.ts</code> talks to Lemon Squeezy for checkout and customer portal; webhooks update org rows.</li>
-      </ol>
-      <div class="callout good">
-        <strong>Code entitlements are authoritative</strong>
-        Enforcement always calls <code>getPlanEntitlements()</code> from
-        <code>lib/entitlements.ts</code>. The <code>Plan</code> table seeded from
-        <code>lib/plans.ts</code> is for display and admin reference — not the runtime gate.
-      </div>
-    </section>
-
-    <section id="plans">
-      <h2>2. Plan Catalog (<code>lib/plans.ts</code>)</h2>
-      <p>
-        <code>plans</code> is a static array of five tiers with human-readable pricing, limit
-        strings, and marketing feature bullets. <code>isFeatureAvailable()</code> delegates to
-        <code>getPlanEntitlements()</code> for boolean feature checks.
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a> &nbsp;·&nbsp; Related:
+        <a href="authentication-architecture.html">Authentication</a>,
+        <a href="database-architecture.html">Database</a>
       </p>
+    </header>
 
-      <table>
-        <thead>
-          <tr><th>Plan key</th><th>Display price</th><th>Primary positioning</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>free</code></td><td>$0</td><td>Single repo, basic risk summary</td></tr>
-          <tr><td><code>starter</code></td><td>$19/mo</td><td>GitHub comments/check runs, higher usage</td></tr>
-          <tr><td><code>team</code></td><td>$79/mo</td><td>Approvals, custom rules, team governance</td></tr>
-          <tr><td><code>growth</code></td><td>$199/mo</td><td>Advanced scoring, audit export</td></tr>
-          <tr><td><code>enterprise</code></td><td>Custom</td><td>SSO/self-hosted placeholders, compliance</td></tr>
-        </tbody>
-      </table>
-
-      <h3>2.1 Database seed vs code</h3>
-      <p>
-        <code>prisma/seed.ts</code> creates <code>Plan</code> rows from the <code>plans</code>
-        array (name, price, string limits, feature list). At runtime, however:
-      </p>
+    <nav>
       <ul>
-        <li><code>Organization.planKey</code> is the active subscription tier.</li>
-        <li>Limits and features are read from <code>planEntitlements</code> in code, not from the <code>Plan</code> table.</li>
-        <li>Paid checkout maps variant IDs via env vars, not Plan table rows.</li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#plans">Plans</a></li>
+        <li><a href="#entitlements">Entitlements</a></li>
+        <li><a href="#usage">Usage metering</a></li>
+        <li><a href="#billing">Lemon Squeezy</a></li>
+        <li><a href="#webhooks">Webhooks</a></li>
+        <li><a href="#enforcement">Enforcement</a></li>
+        <li><a href="#access">Access control</a></li>
+        <li><a href="#env">Environment</a></li>
+        <li><a href="#caveats">Caveats</a></li>
+        <li><a href="#files">File map</a></li>
       </ul>
-      <div class="callout warn">
-        <strong>Keep seed and entitlements aligned</strong>
-        If marketing limits in <code>lib/plans.ts</code> drift from
-        <code>lib/entitlements.ts</code>, the UI may show incorrect plan copy while enforcement
-        follows code. Update both when changing limits.
-      </div>
-    </section>
+    </nav>
 
-    <section id="entitlements">
-      <h2>3. Plan Entitlements (<code>lib/entitlements.ts</code>)</h2>
-      <p>
-        <code>PlanEntitlements</code> bundles numeric limits (<code>null</code> = unlimited) and
-        feature flags. Helpers <code>remainingLimit</code>, <code>canConsume</code>, and
-        <code>limitLabel</code> support UI and enforcement.
-      </p>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          Billing and entitlements are split into three layers:
+          <strong>plan metadata</strong> (marketing copy and seed data),
+          <strong>code entitlements</strong> (authoritative limits and feature
+          flags), and <strong>runtime state</strong> on
+          <code>Organization</code> (current <code>planKey</code>, Lemon Squeezy
+          IDs, billing status).
+        </p>
+        <ol>
+          <li>
+            <strong>Entitlements</strong> —
+            <code>lib/entitlements.ts</code> defines numeric limits and boolean
+            features per plan.
+          </li>
+          <li>
+            <strong>Usage</strong> — <code>lib/usage.ts</code> records PR checks
+            in UTC calendar months with optional <code>sourceKey</code> dedupe.
+          </li>
+          <li>
+            <strong>Billing</strong> — <code>lib/billing.ts</code> talks to
+            Lemon Squeezy for checkout and customer portal; webhooks update org
+            rows.
+          </li>
+        </ol>
+        <div class="callout good">
+          <strong>Code entitlements are authoritative</strong>
+          Enforcement always calls <code>getPlanEntitlements()</code> from
+          <code>lib/entitlements.ts</code>. The <code>Plan</code> table seeded
+          from <code>lib/plans.ts</code> is for display and admin reference —
+          not the runtime gate.
+        </div>
+      </section>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Plan</th>
-            <th>Repos</th>
-            <th>PR checks/mo</th>
-            <th>Audit retention</th>
-            <th>Approvals</th>
-            <th>Custom rules</th>
-            <th>GitHub output</th>
-            <th>Audit export</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>free</code></td>
-            <td>1</td><td>50</td><td>7 days</td>
-            <td></td><td></td><td></td><td></td>
-          </tr>
-          <tr>
-            <td><code>starter</code></td>
-            <td>3</td><td>300</td><td>30 days</td>
-            <td></td><td></td><td>✓</td><td></td>
-          </tr>
-          <tr>
-            <td><code>team</code></td>
-            <td>10</td><td>2,000</td><td>180 days</td>
-            <td>✓</td><td>✓</td><td>✓</td><td></td>
-          </tr>
-          <tr>
-            <td><code>growth</code></td>
-            <td>50</td><td>10,000</td><td>365 days</td>
-            <td>✓</td><td>✓</td><td>✓</td><td>✓</td>
-          </tr>
-          <tr>
-            <td><code>enterprise</code></td>
-            <td>∞</td><td>∞</td><td>∞</td>
-            <td>✓</td><td>✓</td><td>✓</td><td>✓</td>
-          </tr>
-        </tbody>
-      </table>
+      <section id="plans">
+        <h2>2. Plan Catalog (<code>lib/plans.ts</code>)</h2>
+        <p>
+          <code>plans</code> is a static array of five tiers with human-readable
+          pricing, limit strings, and marketing feature bullets.
+          <code>isFeatureAvailable()</code> delegates to
+          <code>getPlanEntitlements()</code> for boolean feature checks.
+        </p>
 
-      <h3>3.1 Other consumers</h3>
-      <ul>
-        <li><code>lib/retention.ts</code> — audit event retention window from <code>auditRetentionDays</code>.</li>
-        <li><code>lib/audit-export.ts</code> — export gated by <code>features.auditExport</code>.</li>
-        <li><code>lib/github-sync.ts</code> — <code>shouldPublishGitHubCheckRun()</code> uses <code>features.githubComments</code>.</li>
-        <li>Settings pages — <code>app/settings/billing/page.tsx</code>, <code>app/settings/usage/page.tsx</code>, <code>app/repositories/page.tsx</code>.</li>
-      </ul>
-    </section>
+        <table>
+          <thead>
+            <tr>
+              <th>Plan key</th>
+              <th>Display price</th>
+              <th>Primary positioning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>free</code></td>
+              <td>$0</td>
+              <td>Single repo, basic risk summary</td>
+            </tr>
+            <tr>
+              <td><code>starter</code></td>
+              <td>$19/mo</td>
+              <td>GitHub comments/check runs, higher usage</td>
+            </tr>
+            <tr>
+              <td><code>team</code></td>
+              <td>$79/mo</td>
+              <td>Approvals, custom rules, team governance</td>
+            </tr>
+            <tr>
+              <td><code>growth</code></td>
+              <td>$199/mo</td>
+              <td>Advanced scoring, audit export</td>
+            </tr>
+            <tr>
+              <td><code>enterprise</code></td>
+              <td>Custom</td>
+              <td>SSO/self-hosted placeholders, compliance</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <section id="usage">
-      <h2>4. Usage Metering (<code>lib/usage.ts</code>)</h2>
+        <h3>2.1 Database seed vs code</h3>
+        <p>
+          <code>prisma/seed.ts</code> creates <code>Plan</code> rows from the
+          <code>plans</code>
+          array (name, price, string limits, feature list). At runtime, however:
+        </p>
+        <ul>
+          <li>
+            <code>Organization.planKey</code> is the active subscription tier.
+          </li>
+          <li>
+            Limits and features are read from <code>planEntitlements</code> in
+            code, not from the <code>Plan</code> table.
+          </li>
+          <li>
+            Paid checkout maps variant IDs via env vars, not Plan table rows.
+          </li>
+        </ul>
+        <div class="callout warn">
+          <strong>Keep seed and entitlements aligned</strong>
+          If marketing limits in <code>lib/plans.ts</code> drift from
+          <code>lib/entitlements.ts</code>, the UI may show incorrect plan copy
+          while enforcement follows code. Update both when changing limits.
+        </div>
+      </section>
 
-      <h3>4.1 Metric and periods</h3>
-      <p>
-        The sole metered metric is <code>PR_CHECKS_METRIC = 'pr_checks'</code>. Usage periods are
-        <strong>calendar months in UTC</strong>:
-      </p>
-      <pre><code>periodStart = UTC(year, month, 1)
+      <section id="entitlements">
+        <h2>3. Plan Entitlements (<code>lib/entitlements.ts</code>)</h2>
+        <p>
+          <code>PlanEntitlements</code> bundles numeric limits (<code
+            >null</code
+          >
+          = unlimited) and feature flags. Helpers <code>remainingLimit</code>,
+          <code>canConsume</code>, and <code>limitLabel</code> support UI and
+          enforcement.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Repos</th>
+              <th>PR checks/mo</th>
+              <th>Audit retention</th>
+              <th>Approvals</th>
+              <th>Custom rules</th>
+              <th>GitHub output</th>
+              <th>Audit export</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>free</code></td>
+              <td>1</td>
+              <td>50</td>
+              <td>7 days</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><code>starter</code></td>
+              <td>3</td>
+              <td>300</td>
+              <td>30 days</td>
+              <td></td>
+              <td></td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><code>team</code></td>
+              <td>10</td>
+              <td>2,000</td>
+              <td>180 days</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td><code>growth</code></td>
+              <td>50</td>
+              <td>10,000</td>
+              <td>365 days</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td><code>enterprise</code></td>
+              <td>∞</td>
+              <td>∞</td>
+              <td>∞</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3.1 Other consumers</h3>
+        <ul>
+          <li>
+            <code>lib/retention.ts</code> — audit event retention window from
+            <code>auditRetentionDays</code>.
+          </li>
+          <li>
+            <code>lib/audit-export.ts</code> — export gated by
+            <code>features.auditExport</code>.
+          </li>
+          <li>
+            <code>lib/github-sync.ts</code> —
+            <code>shouldPublishGitHubCheckRun()</code> uses
+            <code>features.githubComments</code>.
+          </li>
+          <li>
+            Settings pages — <code>app/settings/billing/page.tsx</code>,
+            <code>app/settings/usage/page.tsx</code>,
+            <code>app/repositories/page.tsx</code>.
+          </li>
+        </ul>
+      </section>
+
+      <section id="usage">
+        <h2>4. Usage Metering (<code>lib/usage.ts</code>)</h2>
+
+        <h3>4.1 Metric and periods</h3>
+        <p>
+          The sole metered metric is
+          <code>PR_CHECKS_METRIC = 'pr_checks'</code>. Usage periods are
+          <strong>calendar months in UTC</strong>:
+        </p>
+        <pre><code>periodStart = UTC(year, month, 1)
 periodEnd   = UTC(year, month + 1, 1)</code></pre>
-      <p>
-        <code>getPrCheckUsage()</code> aggregates <code>UsageRecord.quantity</code> for the
-        current period. <code>getPrCheckUsageHistory()</code> returns up to six prior months
-        (deduped by <code>periodStart</code>).
-      </p>
+        <p>
+          <code>getPrCheckUsage()</code> aggregates
+          <code>UsageRecord.quantity</code> for the current period.
+          <code>getPrCheckUsageHistory()</code> returns up to six prior months
+          (deduped by <code>periodStart</code>).
+        </p>
 
-      <h3>4.2 Recording with sourceKey idempotency</h3>
-      <p>
-        <code>recordPrChecks(organizationId, quantity, now?, sourceKey?)</code> creates a
-        <code>UsageRecord</code> row. When <code>sourceKey</code> is provided, a unique constraint
-        on <code>[organizationId, metric, periodStart, sourceKey]</code> prevents double-counting.
-      </p>
-      <p>
-        GitHub sync builds the key via <code>getPrCheckSourceKey()</code> in
-        <code>lib/github-sync.ts</code>:
-      </p>
-      <pre><code>{repositoryId}:{pullNumber}:{headSha}</code></pre>
-      <p>
-        The same key is checked in <code>canRunPrCheck()</code> before sync work begins — if a
-        record already exists for that PR head in the current month, the check is allowed to
-        proceed without consuming additional quota.
-      </p>
+        <h3>4.2 Recording with sourceKey idempotency</h3>
+        <p>
+          <code
+            >recordPrChecks(organizationId, quantity, now?, sourceKey?)</code
+          >
+          creates a <code>UsageRecord</code> row. When <code>sourceKey</code> is
+          provided, a unique constraint on
+          <code>[organizationId, metric, periodStart, sourceKey]</code> prevents
+          double-counting.
+        </p>
+        <p>
+          GitHub sync builds the key via <code>getPrCheckSourceKey()</code> in
+          <code>lib/github-sync.ts</code>:
+        </p>
+        <pre><code>{repositoryId}:{pullNumber}:{headSha}</code></pre>
+        <p>
+          The same key is checked in <code>canRunPrCheck()</code> before sync
+          work begins — if a record already exists for that PR head in the
+          current month, the check is allowed to proceed without consuming
+          additional quota.
+        </p>
 
-      <div class="diagram">GitHub webhook / sync
-  │
-  ├─ canRunPrCheck(orgId, sourceKey)
-  │     ├─ existing UsageRecord for sourceKey? → allow (no new charge)
-  │     └─ else canConsume(prCheckLimit, used)? → allow or block
-  │
-  └─ after successful PR sync
-        recordPrChecks(orgId, 1, now, sourceKey)
-        increment repository.monthlyPrCheckUsage</div>
-    </section>
+        <div class="diagram">
+          GitHub webhook / sync │ ├─ canRunPrCheck(orgId, sourceKey) │ ├─
+          existing UsageRecord for sourceKey? → allow (no new charge) │ └─ else
+          canConsume(prCheckLimit, used)? → allow or block │ └─ after successful
+          PR sync recordPrChecks(orgId, 1, now, sourceKey) increment
+          repository.monthlyPrCheckUsage
+        </div>
+      </section>
 
-    <section id="billing">
-      <h2>5. Lemon Squeezy Integration (<code>lib/billing.ts</code>)</h2>
+      <section id="billing">
+        <h2>5. Lemon Squeezy Integration (<code>lib/billing.ts</code>)</h2>
 
-      <h3>5.1 Billing mode</h3>
-      <p><code>getBillingMode()</code> returns one of three states:</p>
-      <table>
-        <thead><tr><th>Mode</th><th>Condition</th><th>Behavior</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>live</code></td>
-            <td><code>LEMON_SQUEEZY_API_KEY</code> and <code>LEMON_SQUEEZY_STORE_ID</code> set</td>
-            <td>Real checkout and portal API calls</td>
-          </tr>
-          <tr>
-            <td><code>mock</code></td>
-            <td>Not production, Lemon Squeezy not configured</td>
-            <td>Dev-friendly; checkout may redirect with <code>checkout_unavailable</code></td>
-          </tr>
-          <tr>
-            <td><code>unconfigured</code></td>
-            <td>Production without Lemon Squeezy credentials</td>
-            <td>Checkout API returns 503</td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>5.1 Billing mode</h3>
+        <p><code>getBillingMode()</code> returns one of three states:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>Condition</th>
+              <th>Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>live</code></td>
+              <td>
+                <code>LEMON_SQUEEZY_API_KEY</code> and
+                <code>LEMON_SQUEEZY_STORE_ID</code> set
+              </td>
+              <td>Real checkout and portal API calls</td>
+            </tr>
+            <tr>
+              <td><code>mock</code></td>
+              <td>Not production, Lemon Squeezy not configured</td>
+              <td>
+                Dev-friendly; checkout may redirect with
+                <code>checkout_unavailable</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>unconfigured</code></td>
+              <td>Production without Lemon Squeezy credentials</td>
+              <td>Checkout API returns 503</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>5.2 Paid plans and variant mapping</h3>
-      <p>
-        <code>isPaidPlan()</code> is true for <code>starter</code>, <code>team</code>, and
-        <code>growth</code>. Each maps to an env-backed variant ID:
-      </p>
-      <table>
-        <thead><tr><th>Plan</th><th>Env var</th></tr></thead>
-        <tbody>
-          <tr><td><code>starter</code></td><td><code>LEMON_SQUEEZY_STARTER_VARIANT_ID</code></td></tr>
-          <tr><td><code>team</code></td><td><code>LEMON_SQUEEZY_TEAM_VARIANT_ID</code></td></tr>
-          <tr><td><code>growth</code></td><td><code>LEMON_SQUEEZY_GROWTH_VARIANT_ID</code></td></tr>
-        </tbody>
-      </table>
+        <h3>5.2 Paid plans and variant mapping</h3>
+        <p>
+          <code>isPaidPlan()</code> is true for <code>starter</code>,
+          <code>team</code>, and <code>growth</code>. Each maps to an env-backed
+          variant ID:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Env var</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>starter</code></td>
+              <td><code>LEMON_SQUEEZY_STARTER_VARIANT_ID</code></td>
+            </tr>
+            <tr>
+              <td><code>team</code></td>
+              <td><code>LEMON_SQUEEZY_TEAM_VARIANT_ID</code></td>
+            </tr>
+            <tr>
+              <td><code>growth</code></td>
+              <td><code>LEMON_SQUEEZY_GROWTH_VARIANT_ID</code></td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>5.3 Checkout</h3>
-      <p>
-        <code>createCheckoutSession()</code> POSTs to Lemon Squeezy <code>/v1/checkouts</code> with:
-      </p>
-      <ul>
-        <li><code>checkout_data.custom.organizationId</code> and <code>planKey</code> for webhook correlation.</li>
-        <li><code>product_options.redirect_url</code> from <code>getBillingReturnUrl()</code> (default <code>/settings/billing</code>).</li>
-        <li>Customer email/name from the authenticated owner session.</li>
-      </ul>
-      <p>Handled by <code>POST /api/billing/checkout</code>.</p>
+        <h3>5.3 Checkout</h3>
+        <p>
+          <code>createCheckoutSession()</code> POSTs to Lemon Squeezy
+          <code>/v1/checkouts</code> with:
+        </p>
+        <ul>
+          <li>
+            <code>checkout_data.custom.organizationId</code> and
+            <code>planKey</code> for webhook correlation.
+          </li>
+          <li>
+            <code>product_options.redirect_url</code> from
+            <code>getBillingReturnUrl()</code> (default
+            <code>/settings/billing</code>).
+          </li>
+          <li>Customer email/name from the authenticated owner session.</li>
+        </ul>
+        <p>Handled by <code>POST /api/billing/checkout</code>.</p>
 
-      <h3>5.4 Customer portal</h3>
-      <p>
-        <code>getLemonSqueezyCustomerPortalUrl()</code> fetches portal URL from subscription or
-        customer API. Requires stored <code>lemonSqueezySubscriptionId</code> or
-        <code>lemonSqueezyCustomerId</code> on the organization. Handled by
-        <code>POST /api/billing/portal</code>.
-      </p>
+        <h3>5.4 Customer portal</h3>
+        <p>
+          <code>getLemonSqueezyCustomerPortalUrl()</code> fetches portal URL
+          from subscription or customer API. Requires stored
+          <code>lemonSqueezySubscriptionId</code> or
+          <code>lemonSqueezyCustomerId</code> on the organization. Handled by
+          <code>POST /api/billing/portal</code>.
+        </p>
 
-      <h3>5.5 Billing status labels</h3>
-      <p>
-        <code>BillingStatus</code>: <code>trialing</code>, <code>active</code>,
-        <code>past_due</code>, <code>paused</code>, <code>canceled</code>.
-        <code>getBillingCallout()</code> produces user-facing status strings for the billing page.
-      </p>
-    </section>
+        <h3>5.5 Billing status labels</h3>
+        <p>
+          <code>BillingStatus</code>: <code>trialing</code>,
+          <code>active</code>, <code>past_due</code>, <code>paused</code>,
+          <code>canceled</code>. <code>getBillingCallout()</code> produces
+          user-facing status strings for the billing page.
+        </p>
+      </section>
 
-    <section id="webhooks">
-      <h2>6. Subscription Webhooks (<code>lib/lemon-squeezy-webhooks.ts</code>)</h2>
-      <p>
-        Endpoint: <code>POST /api/lemon-squeezy/webhook</code>. Raw body is verified with HMAC-SHA256
-        against <code>LEMON_SQUEEZY_WEBHOOK_SECRET</code> (<code>x-signature</code> header).
-      </p>
+      <section id="webhooks">
+        <h2>
+          6. Subscription Webhooks (<code>lib/lemon-squeezy-webhooks.ts</code>)
+        </h2>
+        <p>
+          Endpoint: <code>POST /api/lemon-squeezy/webhook</code>. Raw body is
+          verified with HMAC-SHA256 against
+          <code>LEMON_SQUEEZY_WEBHOOK_SECRET</code> (<code>x-signature</code>
+          header).
+        </p>
 
-      <h3>6.1 Handled subscription events</h3>
-      <table>
-        <thead><tr><th>Event</th><th>Typical effect</th></tr></thead>
-        <tbody>
-          <tr><td><code>subscription_created</code></td><td>Set plan, billing status, Lemon IDs</td></tr>
-          <tr><td><code>subscription_updated</code></td><td>Plan change, status sync; stale-active guard</td></tr>
-          <tr><td><code>subscription_cancelled</code></td><td><code>canceled</code> status, cancellation date</td></tr>
-          <tr><td><code>subscription_resumed</code></td><td>Reactivate subscription</td></tr>
-          <tr><td><code>subscription_expired</code></td><td>Downgrade to <code>free</code></td></tr>
-          <tr><td><code>subscription_paused</code> / <code>subscription_unpaused</code></td><td>Pause/resume billing state</td></tr>
-        </tbody>
-      </table>
-      <p>Non-subscription events are recorded as <code>ignored</code>.</p>
+        <h3>6.1 Handled subscription events</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Typical effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>subscription_created</code></td>
+              <td>Set plan, billing status, Lemon IDs</td>
+            </tr>
+            <tr>
+              <td><code>subscription_updated</code></td>
+              <td>Plan change, status sync; stale-active guard</td>
+            </tr>
+            <tr>
+              <td><code>subscription_cancelled</code></td>
+              <td><code>canceled</code> status, cancellation date</td>
+            </tr>
+            <tr>
+              <td><code>subscription_resumed</code></td>
+              <td>Reactivate subscription</td>
+            </tr>
+            <tr>
+              <td><code>subscription_expired</code></td>
+              <td>Downgrade to <code>free</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code>subscription_paused</code> /
+                <code>subscription_unpaused</code>
+              </td>
+              <td>Pause/resume billing state</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Non-subscription events are recorded as <code>ignored</code>.</p>
 
-      <h3>6.2 BillingWebhookEvent dedupe</h3>
-      <p>
-        Each delivery gets a <code>deliveryId</code> (SHA-256 of raw body). The
-        <code>BillingWebhookEvent</code> table tracks:
-      </p>
-      <table>
-        <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
-        <tbody>
-          <tr><td><code>processing</code></td><td>In-flight; retries within 5 minutes treated as duplicate</td></tr>
-          <tr><td><code>processed</code></td><td>Successfully applied; subsequent deliveries skipped</td></tr>
-          <tr><td><code>ignored</code></td><td>Unknown event, missing org, or stale update; final state</td></tr>
-        </tbody>
-      </table>
+        <h3>6.2 BillingWebhookEvent dedupe</h3>
+        <p>
+          Each delivery gets a <code>deliveryId</code> (SHA-256 of raw body).
+          The <code>BillingWebhookEvent</code> table tracks:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>processing</code></td>
+              <td>In-flight; retries within 5 minutes treated as duplicate</td>
+            </tr>
+            <tr>
+              <td><code>processed</code></td>
+              <td>Successfully applied; subsequent deliveries skipped</td>
+            </tr>
+            <tr>
+              <td><code>ignored</code></td>
+              <td>Unknown event, missing org, or stale update; final state</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>6.3 Organization lookup</h3>
-      <p><code>getOrganizationLookup()</code> resolves the org by, in order:</p>
-      <ol>
-        <li><code>meta.custom_data.organizationId</code> from checkout</li>
-        <li><code>lemonSqueezySubscriptionId</code> from event data ID</li>
-        <li><code>lemonSqueezyCustomerId</code> from subscription attributes</li>
-      </ol>
+        <h3>6.3 Organization lookup</h3>
+        <p>
+          <code>getOrganizationLookup()</code> resolves the org by, in order:
+        </p>
+        <ol>
+          <li><code>meta.custom_data.organizationId</code> from checkout</li>
+          <li><code>lemonSqueezySubscriptionId</code> from event data ID</li>
+          <li>
+            <code>lemonSqueezyCustomerId</code> from subscription attributes
+          </li>
+        </ol>
 
-      <h3>6.4 Plan resolution</h3>
-      <p>
-        <code>getPlanKeyFromLemonSqueezyEvent()</code> prefers <code>custom_data.planKey</code>,
-        then maps <code>variant_id</code> via env variant IDs. Expired subscriptions force
-        <code>planKey = 'free'</code>.
-      </p>
+        <h3>6.4 Plan resolution</h3>
+        <p>
+          <code>getPlanKeyFromLemonSqueezyEvent()</code> prefers
+          <code>custom_data.planKey</code>, then maps
+          <code>variant_id</code> via env variant IDs. Expired subscriptions
+          force <code>planKey = 'free'</code>.
+        </p>
 
-      <div class="diagram">Lemon Squeezy POST /api/lemon-squeezy/webhook
-  │
-  ├─ verifyLemonSqueezyWebhookSignature(rawBody, x-signature)
-  ├─ deliveryId = sha256(rawBody)
-  ├─ BillingWebhookEvent upsert → processing
-  ├─ lookup Organization
-  ├─ update Organization (planKey, billingStatus, Lemon IDs, trial/cancel dates)
-  ├─ AuditEvent (settings_changed, actor: Lemon Squeezy)
-  └─ BillingWebhookEvent → processed</div>
-    </section>
+        <div class="diagram">
+          Lemon Squeezy POST /api/lemon-squeezy/webhook │ ├─
+          verifyLemonSqueezyWebhookSignature(rawBody, x-signature) ├─ deliveryId
+          = sha256(rawBody) ├─ BillingWebhookEvent upsert → processing ├─ lookup
+          Organization ├─ update Organization (planKey, billingStatus, Lemon
+          IDs, trial/cancel dates) ├─ AuditEvent (settings_changed, actor: Lemon
+          Squeezy) └─ BillingWebhookEvent → processed
+        </div>
+      </section>
 
-    <section id="enforcement">
-      <h2>7. Runtime Enforcement</h2>
+      <section id="enforcement">
+        <h2>7. Runtime Enforcement</h2>
 
-      <h3>7.1 GitHub sync (<code>lib/github-sync.ts</code>)</h3>
-      <table>
-        <thead><tr><th>Gate</th><th>Function</th><th>Limit</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>PR check quota</td>
-            <td><code>canRunPrCheck()</code></td>
-            <td><code>prCheckLimit</code> per UTC month (with sourceKey dedupe)</td>
-          </tr>
-          <tr>
-            <td>Repository import</td>
-            <td><code>syncGitHubInstallation()</code></td>
-            <td><code>repositoryLimit</code> — skips new repos when at cap</td>
-          </tr>
-          <tr>
-            <td>GitHub check runs</td>
-            <td><code>shouldPublishGitHubCheckRun()</code></td>
-            <td><code>features.githubComments</code> (free plan blocked)</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>
-        When <code>canRunPrCheck</code> returns false, PR sync is skipped entirely for that
-        head SHA — no risk scoring, no usage record, no AI review enqueue.
-      </p>
+        <h3>7.1 GitHub sync (<code>lib/github-sync.ts</code>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Gate</th>
+              <th>Function</th>
+              <th>Limit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PR check quota</td>
+              <td><code>canRunPrCheck()</code></td>
+              <td>
+                <code>prCheckLimit</code> per UTC month (with sourceKey dedupe)
+              </td>
+            </tr>
+            <tr>
+              <td>Repository import</td>
+              <td><code>syncGitHubInstallation()</code></td>
+              <td>
+                <code>repositoryLimit</code> — skips new repos when at cap
+              </td>
+            </tr>
+            <tr>
+              <td>GitHub check runs</td>
+              <td><code>shouldPublishGitHubCheckRun()</code></td>
+              <td><code>features.githubComments</code> (free plan blocked)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          When <code>canRunPrCheck</code> returns false, PR sync is skipped
+          entirely for that head SHA — no risk scoring, no usage record, no AI
+          review enqueue.
+        </p>
 
-      <h3>7.2 UI enforcement</h3>
-      <ul>
-        <li><code>app/repositories/page.tsx</code> — warns when <code>repositoryLimit</code> reached.</li>
-        <li><code>app/settings/usage/page.tsx</code> — shows usage vs <code>prCheckLimit</code>.</li>
-        <li><code>app/settings/billing/page.tsx</code> — plan comparison from entitlements.</li>
-      </ul>
-    </section>
+        <h3>7.2 UI enforcement</h3>
+        <ul>
+          <li>
+            <code>app/repositories/page.tsx</code> — warns when
+            <code>repositoryLimit</code> reached.
+          </li>
+          <li>
+            <code>app/settings/usage/page.tsx</code> — shows usage vs
+            <code>prCheckLimit</code>.
+          </li>
+          <li>
+            <code>app/settings/billing/page.tsx</code> — plan comparison from
+            entitlements.
+          </li>
+        </ul>
+      </section>
 
-    <section id="access">
-      <h2>8. Billing Access Control</h2>
-      <p>
-        <code>canManageBilling(role)</code> in <code>lib/collaboration.ts</code> returns true
-        <strong>only for <code>owner</code></strong>. Admins, members, and viewers cannot start
-        checkout or open the customer portal.
-      </p>
-      <table>
-        <thead><tr><th>Route / surface</th><th>Check</th><th>On denial</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>POST /api/billing/checkout</code></td>
-            <td><code>canManageBilling(organization.role)</code></td>
-            <td>403 JSON</td>
-          </tr>
-          <tr>
-            <td><code>POST /api/billing/portal</code></td>
-            <td><code>canManageBilling(organization.role)</code></td>
-            <td>403 JSON</td>
-          </tr>
-          <tr>
-            <td><code>app/settings/billing/page.tsx</code></td>
-            <td><code>canManageBilling</code> gates upgrade/portal buttons</td>
-            <td>Read-only view for non-owners</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="callout warn">
-        <strong>Usage and billing pages are readable by all roles</strong>
-        Only mutation paths (checkout, portal) require owner. Team members can see current plan
-        and usage metrics.
-      </div>
-    </section>
+      <section id="access">
+        <h2>8. Billing Access Control</h2>
+        <p>
+          <code>canManageBilling(role)</code> in
+          <code>lib/collaboration.ts</code> returns true
+          <strong>only for <code>owner</code></strong
+          >. Admins, members, and viewers cannot start checkout or open the
+          customer portal.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Route / surface</th>
+              <th>Check</th>
+              <th>On denial</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>POST /api/billing/checkout</code></td>
+              <td><code>canManageBilling(organization.role)</code></td>
+              <td>403 JSON</td>
+            </tr>
+            <tr>
+              <td><code>POST /api/billing/portal</code></td>
+              <td><code>canManageBilling(organization.role)</code></td>
+              <td>403 JSON</td>
+            </tr>
+            <tr>
+              <td><code>app/settings/billing/page.tsx</code></td>
+              <td>
+                <code>canManageBilling</code> gates upgrade/portal buttons
+              </td>
+              <td>Read-only view for non-owners</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warn">
+          <strong>Usage and billing pages are readable by all roles</strong>
+          Only mutation paths (checkout, portal) require owner. Team members can
+          see current plan and usage metrics.
+        </div>
+      </section>
 
-    <section id="env">
-      <h2>9. Environment Variables</h2>
-      <table>
-        <thead><tr><th>Variable</th><th>Required (prod)</th><th>Purpose</th></tr></thead>
-        <tbody>
-          <tr><td><code>LEMON_SQUEEZY_API_KEY</code></td><td>For live billing</td><td>Checkout and portal API auth</td></tr>
-          <tr><td><code>LEMON_SQUEEZY_STORE_ID</code></td><td>For live billing</td><td>Store relationship on checkout create</td></tr>
-          <tr><td><code>LEMON_SQUEEZY_WEBHOOK_SECRET</code></td><td>Yes (live billing)</td><td>Webhook HMAC verification</td></tr>
-          <tr><td><code>LEMON_SQUEEZY_STARTER_VARIANT_ID</code></td><td>For paid tiers</td><td>Starter plan variant</td></tr>
-          <tr><td><code>LEMON_SQUEEZY_TEAM_VARIANT_ID</code></td><td>For paid tiers</td><td>Team plan variant</td></tr>
-          <tr><td><code>LEMON_SQUEEZY_GROWTH_VARIANT_ID</code></td><td>For paid tiers</td><td>Growth plan variant</td></tr>
-          <tr><td><code>BETTER_AUTH_URL</code></td><td>Yes</td><td>Checkout return URL base</td></tr>
-        </tbody>
-      </table>
-    </section>
+      <section id="env">
+        <h2>9. Environment Variables</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Required (prod)</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>LEMON_SQUEEZY_API_KEY</code></td>
+              <td>For live billing</td>
+              <td>Checkout and portal API auth</td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEEZY_STORE_ID</code></td>
+              <td>For live billing</td>
+              <td>Store relationship on checkout create</td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEEZY_WEBHOOK_SECRET</code></td>
+              <td>Yes (live billing)</td>
+              <td>Webhook HMAC verification</td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEEZY_STARTER_VARIANT_ID</code></td>
+              <td>For paid tiers</td>
+              <td>Starter plan variant</td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEEZY_TEAM_VARIANT_ID</code></td>
+              <td>For paid tiers</td>
+              <td>Team plan variant</td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEEZY_GROWTH_VARIANT_ID</code></td>
+              <td>For paid tiers</td>
+              <td>Growth plan variant</td>
+            </tr>
+            <tr>
+              <td><code>BETTER_AUTH_URL</code></td>
+              <td>Yes</td>
+              <td>Checkout return URL base</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="caveats">
-      <h2>10. Technical Caveats</h2>
-      <table>
-        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Plan table vs code</td>
-            <td>Seeded <code>Plan</code> rows are not queried for enforcement. Always update <code>lib/entitlements.ts</code>.</td>
-          </tr>
-          <tr>
-            <td>Enterprise is manual</td>
-            <td>No Lemon Squeezy variant; unlimited limits in code. Sales/onboarding must set <code>planKey</code> directly.</td>
-          </tr>
-          <tr>
-            <td>UTC month boundaries</td>
-            <td>Usage resets on UTC month rollover, not org timezone.</td>
-          </tr>
-          <tr>
-            <td>Resync idempotency</td>
-            <td>Same PR head SHA in a month does not double-charge thanks to <code>sourceKey</code>.</td>
-          </tr>
-          <tr>
-            <td>Stale subscription updates</td>
-            <td>Active updates after cancel+free downgrade are ignored to prevent webhook race rewinds.</td>
-          </tr>
-          <tr>
-            <td>Mock mode in dev</td>
-            <td>Checkout without Lemon Squeezy redirects with error param — not a simulated payment.</td>
-          </tr>
-          <tr>
-            <td>Owner-only billing</td>
-            <td>Admins cannot upgrade; product decision to keep payment authority with workspace owner.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+      <section id="caveats">
+        <h2>10. Technical Caveats</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Plan table vs code</td>
+              <td>
+                Seeded <code>Plan</code> rows are not queried for enforcement.
+                Always update <code>lib/entitlements.ts</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>Enterprise is manual</td>
+              <td>
+                No Lemon Squeezy variant; unlimited limits in code.
+                Sales/onboarding must set <code>planKey</code> directly.
+              </td>
+            </tr>
+            <tr>
+              <td>UTC month boundaries</td>
+              <td>Usage resets on UTC month rollover, not org timezone.</td>
+            </tr>
+            <tr>
+              <td>Resync idempotency</td>
+              <td>
+                Same PR head SHA in a month does not double-charge thanks to
+                <code>sourceKey</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>Stale subscription updates</td>
+              <td>
+                Active updates after cancel+free downgrade are ignored to
+                prevent webhook race rewinds.
+              </td>
+            </tr>
+            <tr>
+              <td>Mock mode in dev</td>
+              <td>
+                Checkout without Lemon Squeezy redirects with error param — not
+                a simulated payment.
+              </td>
+            </tr>
+            <tr>
+              <td>Owner-only billing</td>
+              <td>
+                Admins cannot upgrade; product decision to keep payment
+                authority with workspace owner.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="files">
-      <h2>11. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/entitlements.ts</code></td><td>Authoritative plan limits and feature flags</td></tr>
-          <tr><td><code>lib/plans.ts</code></td><td>Marketing plan metadata; <code>isFeatureAvailable()</code></td></tr>
-          <tr><td><code>lib/usage.ts</code></td><td>PR check metering, UTC periods, sourceKey idempotency</td></tr>
-          <tr><td><code>lib/billing.ts</code></td><td>Lemon Squeezy checkout/portal, billing mode, status helpers</td></tr>
-          <tr><td><code>lib/lemon-squeezy-webhooks.ts</code></td><td>Webhook verify, dedupe, org/plan updates</td></tr>
-          <tr><td><code>lib/github-sync.ts</code></td><td>PR check and repository limit enforcement</td></tr>
-          <tr><td><code>lib/collaboration.ts</code></td><td><code>canManageBilling()</code> owner gate</td></tr>
-          <tr><td><code>lib/retention.ts</code></td><td>Audit retention from entitlements</td></tr>
-          <tr><td><code>lib/audit-export.ts</code></td><td>Export feature gate</td></tr>
-          <tr><td><code>app/api/billing/checkout/route.ts</code></td><td>Checkout POST handler</td></tr>
-          <tr><td><code>app/api/billing/portal/route.ts</code></td><td>Customer portal redirect</td></tr>
-          <tr><td><code>app/api/lemon-squeezy/webhook/route.ts</code></td><td>Webhook HTTP entry</td></tr>
-          <tr><td><code>app/settings/billing/page.tsx</code></td><td>Billing UI</td></tr>
-          <tr><td><code>app/settings/usage/page.tsx</code></td><td>Usage dashboard</td></tr>
-          <tr><td><code>prisma/seed.ts</code></td><td>Seeds <code>Plan</code> rows from <code>plans</code></td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <section id="files">
+        <h2>11. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/entitlements.ts</code></td>
+              <td>Authoritative plan limits and feature flags</td>
+            </tr>
+            <tr>
+              <td><code>lib/plans.ts</code></td>
+              <td>
+                Marketing plan metadata; <code>isFeatureAvailable()</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/usage.ts</code></td>
+              <td>PR check metering, UTC periods, sourceKey idempotency</td>
+            </tr>
+            <tr>
+              <td><code>lib/billing.ts</code></td>
+              <td>
+                Lemon Squeezy checkout/portal, billing mode, status helpers
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/lemon-squeezy-webhooks.ts</code></td>
+              <td>Webhook verify, dedupe, org/plan updates</td>
+            </tr>
+            <tr>
+              <td><code>lib/github-sync.ts</code></td>
+              <td>PR check and repository limit enforcement</td>
+            </tr>
+            <tr>
+              <td><code>lib/collaboration.ts</code></td>
+              <td><code>canManageBilling()</code> owner gate</td>
+            </tr>
+            <tr>
+              <td><code>lib/retention.ts</code></td>
+              <td>Audit retention from entitlements</td>
+            </tr>
+            <tr>
+              <td><code>lib/audit-export.ts</code></td>
+              <td>Export feature gate</td>
+            </tr>
+            <tr>
+              <td><code>app/api/billing/checkout/route.ts</code></td>
+              <td>Checkout POST handler</td>
+            </tr>
+            <tr>
+              <td><code>app/api/billing/portal/route.ts</code></td>
+              <td>Customer portal redirect</td>
+            </tr>
+            <tr>
+              <td><code>app/api/lemon-squeezy/webhook/route.ts</code></td>
+              <td>Webhook HTTP entry</td>
+            </tr>
+            <tr>
+              <td><code>app/settings/billing/page.tsx</code></td>
+              <td>Billing UI</td>
+            </tr>
+            <tr>
+              <td><code>app/settings/usage/page.tsx</code></td>
+              <td>Usage dashboard</td>
+            </tr>
+            <tr>
+              <td><code>prisma/seed.ts</code></td>
+              <td>Seeds <code>Plan</code> rows from <code>plans</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
 
-  <footer>
-    AgentGate billing &amp; entitlements architecture reference · June 2026
-  </footer>
-</body>
+    <footer>
+      AgentGate billing &amp; entitlements architecture reference · June 2026
+    </footer>
+  </body>
 </html>

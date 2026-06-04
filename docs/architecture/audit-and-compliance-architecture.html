@@ -1,531 +1,827 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Audit &amp; Compliance Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Audit &amp; Compliance Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Audit &amp; Compliance Architecture</h1>
-    <p>
-      Durable audit evidence: <code>AuditEvent</code> vs operational <code>AgentActivity</code>,
-      plan-gated retention and CSV export, approval audit mapping, and metadata-only export records.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a>
-      &nbsp;·&nbsp;
-      <a href="database-architecture.html">Database architecture</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#distinction">Audit vs activity</a></li>
-      <li><a href="#events">Audit event types</a></li>
-      <li><a href="#approvals">Approval mapping</a></li>
-      <li><a href="#retention">Retention</a></li>
-      <li><a href="#export">CSV export</a></li>
-      <li><a href="#audit-export-table">AuditExport table</a></li>
-      <li><a href="#cleanup">Cleanup job</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Audit &amp; Compliance Architecture</h1>
       <p>
-        AgentGate maintains a tenant-scoped audit trail in PostgreSQL for governance and
-        compliance workflows. Audit events capture human and system actions with actor, summary,
-        and JSON metadata. A separate <code>AgentActivity</code> stream powers PR timeline UX for
-        agent/CI activity — it is not the compliance audit log.
+        Durable audit evidence: <code>AuditEvent</code> vs operational
+        <code>AgentActivity</code>, plan-gated retention and CSV export,
+        approval audit mapping, and metadata-only export records.
       </p>
-      <div class="diagram">User / system action
-  │
-  ├─ Governance-worthy?  → AuditEvent (compliance, exportable)
-  └─ PR timeline signal?  → AgentActivity (UI feed, riskLevel, agentSource)
-
-Export flow (Growth+)
-  GET /api/audit-log/export
-    → listAuditEvents (plan retention window)
-    → serializeAuditEventsToCsv (stream to client)
-    → AuditExport row (metadata only — no CSV blob stored)</div>
-    </section>
-
-    <section id="distinction">
-      <h2>2. AuditEvent vs AgentActivity</h2>
-      <table>
-        <thead><tr><th>Dimension</th><th>AuditEvent</th><th>AgentActivity</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Purpose</td>
-            <td>Compliance / governance evidence</td>
-            <td>PR activity timeline in product UI</td>
-          </tr>
-          <tr>
-            <td>Timestamp field</td>
-            <td><code>createdAt</code></td>
-            <td><code>timestamp</code></td>
-          </tr>
-          <tr>
-            <td>Actor</td>
-            <td>Optional (<code>actor?</code>); defaults to "system" in CSV</td>
-            <td>Required string (user, agent, or "GitHub Checks")</td>
-          </tr>
-          <tr>
-            <td>Agent context</td>
-            <td>Not stored</td>
-            <td><code>agentSource</code> + <code>riskLevel</code></td>
-          </tr>
-          <tr>
-            <td>Event vocabulary</td>
-            <td><code>AuditEventType</code> — settings, sync, approvals, GitHub output</td>
-            <td><code>ActivityEventType</code> — CI, commits, merges, rule triggers</td>
-          </tr>
-          <tr>
-            <td>Retention</td>
-            <td>Plan-based (<code>auditRetentionDays</code>); null = unlimited (Enterprise)</td>
-            <td>Follows related PR/repo lifecycle; not export-gated</td>
-          </tr>
-          <tr>
-            <td>Export</td>
-            <td>Included in CSV export API</td>
-            <td>Not exported via audit export</td>
-          </tr>
-          <tr>
-            <td>Typical writers</td>
-            <td>Server actions, settings, billing, sync, approvals</td>
-            <td>GitHub webhook processor (CI status, GitHub reviews)</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="callout">
-        <strong>Dual-write example</strong>
-        When a GitHub review webhook updates approval status, the processor creates both an
-        <code>AuditEvent</code> (<code>pr_approved</code> / <code>pr_rejected</code>) and an
-        <code>AgentActivity</code> (<code>approved</code> / <code>rejected</code>) in
-        <code>lib/github-webhooks.ts</code>.
-      </div>
-    </section>
-
-    <section id="events">
-      <h2>3. Audit Event Types</h2>
-      <p>From <code>lib/types.ts</code> / Prisma <code>AuditEventType</code> enum:</p>
-      <table>
-        <thead><tr><th>eventType</th><th>Typical trigger</th></tr></thead>
-        <tbody>
-          <tr><td><code>repository_connected</code></td><td>GitHub App installation / repo sync</td></tr>
-          <tr><td><code>pr_synced</code></td><td>Pull request data synced from GitHub</td></tr>
-          <tr><td><code>risk_score_calculated</code></td><td>Risk engine run on PR</td></tr>
-          <tr><td><code>test_gap_detected</code></td><td>Test coverage gap identified</td></tr>
-          <tr><td><code>rule_triggered</code></td><td>Custom governance rule violation</td></tr>
-          <tr><td><code>approval_requested</code></td><td>Approval workflow initiated</td></tr>
-          <tr><td><code>pr_approved</code></td><td>Human or GitHub approval recorded</td></tr>
-          <tr><td><code>pr_rejected</code></td><td>Human or GitHub rejection recorded</td></tr>
-          <tr><td><code>risk_accepted</code></td><td>Explicit risk acceptance decision</td></tr>
-          <tr><td><code>github_comment_posted</code></td><td>AgentGate comment on GitHub PR</td></tr>
-          <tr><td><code>github_check_run_published</code></td><td>AgentGate check run on GitHub</td></tr>
-          <tr><td><code>settings_changed</code></td><td>AI keys, team, rules, billing settings</td></tr>
-        </tbody>
-      </table>
-      <p>
-        All rows include <code>organizationId</code> and optional
-        <code>repositoryId</code> / <code>pullRequestId</code> FKs. Listing always filters by
-        organization from session context.
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a>
+        &nbsp;·&nbsp;
+        <a href="database-architecture.html">Database architecture</a>
       </p>
-    </section>
+    </header>
 
-    <section id="approvals">
-      <h2>4. Approval Audit Mapping (<code>lib/approvals.ts</code>)</h2>
-      <p>
-        When a user records an approval decision in <code>app/pull-requests/actions.ts</code>,
-        helper functions map the domain decision to audit vocabulary:
-      </p>
-      <table>
-        <thead><tr><th>Function</th><th>Role</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>auditEventTypeForDecision(decision)</code></td>
-            <td>Maps <code>ApprovalDecision</code> → <code>AuditEvent.eventType</code></td>
-          </tr>
-          <tr>
-            <td><code>approvalStatusForDecision(decision)</code></td>
-            <td>Maps decision → <code>PullRequest.approvalStatus</code> (not audit-specific)</td>
-          </tr>
-          <tr>
-            <td><code>approvalSummary(decision, prNumber)</code></td>
-            <td>Human-readable <code>AuditEvent.summary</code> text</td>
-          </tr>
-          <tr>
-            <td><code>isApprovalDecision(value)</code></td>
-            <td>Validates decision enum at action boundary</td>
-          </tr>
-        </tbody>
-      </table>
+    <nav>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#distinction">Audit vs activity</a></li>
+        <li><a href="#events">Audit event types</a></li>
+        <li><a href="#approvals">Approval mapping</a></li>
+        <li><a href="#retention">Retention</a></li>
+        <li><a href="#export">CSV export</a></li>
+        <li><a href="#audit-export-table">AuditExport table</a></li>
+        <li><a href="#cleanup">Cleanup job</a></li>
+        <li><a href="#files">File map</a></li>
+      </ul>
+    </nav>
 
-      <h3>4.1 Decision → eventType</h3>
-      <table>
-        <thead><tr><th>Decision</th><th>audit eventType</th><th>approvalStatus</th></tr></thead>
-        <tbody>
-          <tr><td><code>approved</code></td><td><code>pr_approved</code></td><td><code>approved</code></td></tr>
-          <tr><td><code>rejected</code></td><td><code>pr_rejected</code></td><td><code>rejected</code></td></tr>
-          <tr><td><code>risk_accepted</code></td><td><code>risk_accepted</code></td><td><code>risk_accepted</code></td></tr>
-          <tr><td><code>requested_tests</code></td><td><code>approval_requested</code></td><td><code>pending</code></td></tr>
-        </tbody>
-      </table>
-      <p>
-        Audit row metadata includes <code>{ decision, note, approvalStatus }</code>. Structured
-        ops logging uses <code>logEvent</code> with <code>area: approval</code> separately from
-        the durable <code>AuditEvent</code> row.
-      </p>
-    </section>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AgentGate maintains a tenant-scoped audit trail in PostgreSQL for
+          governance and compliance workflows. Audit events capture human and
+          system actions with actor, summary, and JSON metadata. A separate
+          <code>AgentActivity</code> stream powers PR timeline UX for agent/CI
+          activity — it is not the compliance audit log.
+        </p>
+        <div class="diagram">
+          User / system action │ ├─ Governance-worthy? → AuditEvent (compliance,
+          exportable) └─ PR timeline signal? → AgentActivity (UI feed,
+          riskLevel, agentSource) Export flow (Growth+) GET
+          /api/audit-log/export → listAuditEvents (plan retention window) →
+          serializeAuditEventsToCsv (stream to client) → AuditExport row
+          (metadata only — no CSV blob stored)
+        </div>
+      </section>
 
-    <section id="retention">
-      <h2>5. Plan-Gated Retention</h2>
-      <p>
-        <code>getAuditRetentionStart(planKey, now)</code> in <code>lib/audit-export.ts</code>
-        computes the earliest <code>createdAt</code> included in UI lists and exports:
-      </p>
-      <pre><code>retentionDays = getPlanEntitlements(planKey).auditRetentionDays
+      <section id="distinction">
+        <h2>2. AuditEvent vs AgentActivity</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>AuditEvent</th>
+              <th>AgentActivity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Purpose</td>
+              <td>Compliance / governance evidence</td>
+              <td>PR activity timeline in product UI</td>
+            </tr>
+            <tr>
+              <td>Timestamp field</td>
+              <td><code>createdAt</code></td>
+              <td><code>timestamp</code></td>
+            </tr>
+            <tr>
+              <td>Actor</td>
+              <td>
+                Optional (<code>actor?</code>); defaults to "system" in CSV
+              </td>
+              <td>Required string (user, agent, or "GitHub Checks")</td>
+            </tr>
+            <tr>
+              <td>Agent context</td>
+              <td>Not stored</td>
+              <td><code>agentSource</code> + <code>riskLevel</code></td>
+            </tr>
+            <tr>
+              <td>Event vocabulary</td>
+              <td>
+                <code>AuditEventType</code> — settings, sync, approvals, GitHub
+                output
+              </td>
+              <td>
+                <code>ActivityEventType</code> — CI, commits, merges, rule
+                triggers
+              </td>
+            </tr>
+            <tr>
+              <td>Retention</td>
+              <td>
+                Plan-based (<code>auditRetentionDays</code>); null = unlimited
+                (Enterprise)
+              </td>
+              <td>Follows related PR/repo lifecycle; not export-gated</td>
+            </tr>
+            <tr>
+              <td>Export</td>
+              <td>Included in CSV export API</td>
+              <td>Not exported via audit export</td>
+            </tr>
+            <tr>
+              <td>Typical writers</td>
+              <td>Server actions, settings, billing, sync, approvals</td>
+              <td>GitHub webhook processor (CI status, GitHub reviews)</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <strong>Dual-write example</strong>
+          When a GitHub review webhook updates approval status, the processor
+          creates both an
+          <code>AuditEvent</code> (<code>pr_approved</code> /
+          <code>pr_rejected</code>) and an <code>AgentActivity</code> (<code
+            >approved</code
+          >
+          / <code>rejected</code>) in <code>lib/github-webhooks.ts</code>.
+        </div>
+      </section>
+
+      <section id="events">
+        <h2>3. Audit Event Types</h2>
+        <p>
+          From <code>lib/types.ts</code> / Prisma
+          <code>AuditEventType</code> enum:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>eventType</th>
+              <th>Typical trigger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>repository_connected</code></td>
+              <td>GitHub App installation / repo sync</td>
+            </tr>
+            <tr>
+              <td><code>pr_synced</code></td>
+              <td>Pull request data synced from GitHub</td>
+            </tr>
+            <tr>
+              <td><code>risk_score_calculated</code></td>
+              <td>Risk engine run on PR</td>
+            </tr>
+            <tr>
+              <td><code>test_gap_detected</code></td>
+              <td>Test coverage gap identified</td>
+            </tr>
+            <tr>
+              <td><code>rule_triggered</code></td>
+              <td>Custom governance rule violation</td>
+            </tr>
+            <tr>
+              <td><code>approval_requested</code></td>
+              <td>Approval workflow initiated</td>
+            </tr>
+            <tr>
+              <td><code>pr_approved</code></td>
+              <td>Human or GitHub approval recorded</td>
+            </tr>
+            <tr>
+              <td><code>pr_rejected</code></td>
+              <td>Human or GitHub rejection recorded</td>
+            </tr>
+            <tr>
+              <td><code>risk_accepted</code></td>
+              <td>Explicit risk acceptance decision</td>
+            </tr>
+            <tr>
+              <td><code>github_comment_posted</code></td>
+              <td>AgentGate comment on GitHub PR</td>
+            </tr>
+            <tr>
+              <td><code>github_check_run_published</code></td>
+              <td>AgentGate check run on GitHub</td>
+            </tr>
+            <tr>
+              <td><code>settings_changed</code></td>
+              <td>AI keys, team, rules, billing settings</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          All rows include <code>organizationId</code> and optional
+          <code>repositoryId</code> / <code>pullRequestId</code> FKs. Listing
+          always filters by organization from session context.
+        </p>
+      </section>
+
+      <section id="approvals">
+        <h2>4. Approval Audit Mapping (<code>lib/approvals.ts</code>)</h2>
+        <p>
+          When a user records an approval decision in
+          <code>app/pull-requests/actions.ts</code>, helper functions map the
+          domain decision to audit vocabulary:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>auditEventTypeForDecision(decision)</code></td>
+              <td>
+                Maps <code>ApprovalDecision</code> →
+                <code>AuditEvent.eventType</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>approvalStatusForDecision(decision)</code></td>
+              <td>
+                Maps decision → <code>PullRequest.approvalStatus</code> (not
+                audit-specific)
+              </td>
+            </tr>
+            <tr>
+              <td><code>approvalSummary(decision, prNumber)</code></td>
+              <td>Human-readable <code>AuditEvent.summary</code> text</td>
+            </tr>
+            <tr>
+              <td><code>isApprovalDecision(value)</code></td>
+              <td>Validates decision enum at action boundary</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>4.1 Decision → eventType</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Decision</th>
+              <th>audit eventType</th>
+              <th>approvalStatus</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>approved</code></td>
+              <td><code>pr_approved</code></td>
+              <td><code>approved</code></td>
+            </tr>
+            <tr>
+              <td><code>rejected</code></td>
+              <td><code>pr_rejected</code></td>
+              <td><code>rejected</code></td>
+            </tr>
+            <tr>
+              <td><code>risk_accepted</code></td>
+              <td><code>risk_accepted</code></td>
+              <td><code>risk_accepted</code></td>
+            </tr>
+            <tr>
+              <td><code>requested_tests</code></td>
+              <td><code>approval_requested</code></td>
+              <td><code>pending</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Audit row metadata includes
+          <code>{ decision, note, approvalStatus }</code>. Structured ops
+          logging uses <code>logEvent</code> with
+          <code>area: approval</code> separately from the durable
+          <code>AuditEvent</code> row.
+        </p>
+      </section>
+
+      <section id="retention">
+        <h2>5. Plan-Gated Retention</h2>
+        <p>
+          <code>getAuditRetentionStart(planKey, now)</code> in
+          <code>lib/audit-export.ts</code> computes the earliest
+          <code>createdAt</code> included in UI lists and exports:
+        </p>
+        <pre><code>retentionDays = getPlanEntitlements(planKey).auditRetentionDays
 if retentionDays === null → no cutoff (Enterprise unlimited)
 else → now - retentionDays (UTC calendar days)</code></pre>
 
-      <table>
-        <thead><tr><th>Plan</th><th>auditRetentionDays</th><th>auditExport feature</th></tr></thead>
-        <tbody>
-          <tr><td>free</td><td>7</td><td>No</td></tr>
-          <tr><td>starter</td><td>30</td><td>No</td></tr>
-          <tr><td>team</td><td>180</td><td>No</td></tr>
-          <tr><td>growth</td><td>365</td><td>Yes</td></tr>
-          <tr><td>enterprise</td><td>null (unlimited)</td><td>Yes</td></tr>
-        </tbody>
-      </table>
-      <p>
-        <code>app/audit-log/page.tsx</code> and review packet API pass
-        <code>since: getAuditRetentionStart(planKey)</code> to <code>listAuditEvents()</code>.
-      </p>
-    </section>
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>auditRetentionDays</th>
+              <th>auditExport feature</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>free</td>
+              <td>7</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>starter</td>
+              <td>30</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>team</td>
+              <td>180</td>
+              <td>No</td>
+            </tr>
+            <tr>
+              <td>growth</td>
+              <td>365</td>
+              <td>Yes</td>
+            </tr>
+            <tr>
+              <td>enterprise</td>
+              <td>null (unlimited)</td>
+              <td>Yes</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <code>app/audit-log/page.tsx</code> and review packet API pass
+          <code>since: getAuditRetentionStart(planKey)</code> to
+          <code>listAuditEvents()</code>.
+        </p>
+      </section>
 
-    <section id="export">
-      <h2>6. CSV Export — <code>GET /api/audit-log/export</code></h2>
+      <section id="export">
+        <h2>6. CSV Export — <code>GET /api/audit-log/export</code></h2>
 
-      <h3>6.1 Authorization layers</h3>
-      <ol>
-        <li>Session + database — 401 if missing</li>
-        <li>RBAC — <code>canExportAudit(role)</code> (owner/admin only) — 403</li>
-        <li>Plan — <code>isFeatureAvailable(planKey, 'auditExport')</code> — 403 unless Growth or Enterprise</li>
-      </ol>
+        <h3>6.1 Authorization layers</h3>
+        <ol>
+          <li>Session + database — 401 if missing</li>
+          <li>
+            RBAC — <code>canExportAudit(role)</code> (owner/admin only) — 403
+          </li>
+          <li>
+            Plan — <code>isFeatureAvailable(planKey, 'auditExport')</code> — 403
+            unless Growth or Enterprise
+          </li>
+        </ol>
 
-      <h3>6.2 Query parameters</h3>
-      <p>Filters mirror audit log search: <code>query</code>, <code>eventType</code>, <code>actor</code>, <code>repositoryId</code>, <code>pullRequestNumber</code>, <code>severity</code>, <code>from</code>, <code>to</code>. Hard cap: <code>take: 10_000</code> events. Always applies plan retention <code>since</code> cutoff.</p>
+        <h3>6.2 Query parameters</h3>
+        <p>
+          Filters mirror audit log search: <code>query</code>,
+          <code>eventType</code>, <code>actor</code>, <code>repositoryId</code>,
+          <code>pullRequestNumber</code>, <code>severity</code>,
+          <code>from</code>, <code>to</code>. Hard cap:
+          <code>take: 10_000</code> events. Always applies plan retention
+          <code>since</code> cutoff.
+        </p>
 
-      <h3>6.3 CSV serialization (<code>lib/audit-export.ts</code>)</h3>
-      <p><code>serializeAuditEventsToCsv(events)</code> produces RFC-style quoted CSV:</p>
-      <table>
-        <thead><tr><th>Column</th><th>Source</th></tr></thead>
-        <tbody>
-          <tr><td><code>created_at</code></td><td><code>event.createdAt</code></td></tr>
-          <tr><td><code>event_type</code></td><td><code>event.eventType</code></td></tr>
-          <tr><td><code>summary</code></td><td><code>event.summary</code></td></tr>
-          <tr><td><code>actor</code></td><td><code>event.actor ?? 'system'</code></td></tr>
-          <tr><td><code>repository</code></td><td><code>event.repositoryName ?? ''</code></td></tr>
-          <tr><td><code>pull_request</code></td><td><code>#${number}</code> if present</td></tr>
-          <tr><td><code>metadata</code></td><td><code>JSON.stringify(event.metadata)</code></td></tr>
-        </tbody>
-      </table>
-      <p>
-        <code>csvCell()</code> escapes quotes and prefixes cells starting with
-        <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab, or CR with
-        <code>'</code> to reduce CSV injection when opened in spreadsheets.
-      </p>
-      <p>
-        Response: <code>Content-Type: text/csv</code>,
-        <code>Content-Disposition: attachment; filename="agentgate-audit-YYYY-MM-DD.csv"</code>.
-        CSV bytes are streamed to the client — not persisted server-side.
-      </p>
-    </section>
+        <h3>6.3 CSV serialization (<code>lib/audit-export.ts</code>)</h3>
+        <p>
+          <code>serializeAuditEventsToCsv(events)</code> produces RFC-style
+          quoted CSV:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>created_at</code></td>
+              <td><code>event.createdAt</code></td>
+            </tr>
+            <tr>
+              <td><code>event_type</code></td>
+              <td><code>event.eventType</code></td>
+            </tr>
+            <tr>
+              <td><code>summary</code></td>
+              <td><code>event.summary</code></td>
+            </tr>
+            <tr>
+              <td><code>actor</code></td>
+              <td><code>event.actor ?? 'system'</code></td>
+            </tr>
+            <tr>
+              <td><code>repository</code></td>
+              <td><code>event.repositoryName ?? ''</code></td>
+            </tr>
+            <tr>
+              <td><code>pull_request</code></td>
+              <td><code>#${number}</code> if present</td>
+            </tr>
+            <tr>
+              <td><code>metadata</code></td>
+              <td><code>JSON.stringify(event.metadata)</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <code>csvCell()</code> escapes quotes and prefixes cells starting with
+          <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab,
+          or CR with <code>'</code> to reduce CSV injection when opened in
+          spreadsheets.
+        </p>
+        <p>
+          Response: <code>Content-Type: text/csv</code>,
+          <code
+            >Content-Disposition: attachment;
+            filename="agentgate-audit-YYYY-MM-DD.csv"</code
+          >. CSV bytes are streamed to the client — not persisted server-side.
+        </p>
+      </section>
 
-    <section id="audit-export-table">
-      <h2>7. AuditExport Metadata Table</h2>
-      <p>
-        After generating CSV, the route inserts an <code>AuditExport</code> row recording
-        <em>that an export happened</em> — not the file contents.
-      </p>
-      <table>
-        <thead><tr><th>Field</th><th>Stored value</th></tr></thead>
-        <tbody>
-          <tr><td><code>fileName</code></td><td>e.g. <code>agentgate-audit-2026-06-03.csv</code></td></tr>
-          <tr><td><code>format</code></td><td><code>csv</code> (default)</td></tr>
-          <tr><td><code>filters</code></td><td>JSON object of applied query filters (dates as ISO strings)</td></tr>
-          <tr><td><code>eventCount</code></td><td>Number of rows in the export</td></tr>
-          <tr><td><code>createdById</code></td><td>Exporting user's ID</td></tr>
-          <tr><td><code>organizationId</code></td><td>Tenant scope</td></tr>
-          <tr><td><code>createdAt</code></td><td>Export timestamp</td></tr>
-        </tbody>
-      </table>
-      <div class="callout good">
-        <strong>No CSV blobs in the database</strong>
-        The export artifact lives only in the downloader's browser/session. The
-        <code>AuditExport</code> table provides an audit-of-audit trail (who exported what
-        filters, how many events) without storing PII-heavy file payloads.
-      </div>
-      <p>
-        <code>listAuditExports(organizationId)</code> in <code>lib/data/app-data.ts</code> powers
-        the export history panel on <code>/audit-log</code>.
-      </p>
-    </section>
+      <section id="audit-export-table">
+        <h2>7. AuditExport Metadata Table</h2>
+        <p>
+          After generating CSV, the route inserts an
+          <code>AuditExport</code> row recording
+          <em>that an export happened</em> — not the file contents.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Stored value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>fileName</code></td>
+              <td>e.g. <code>agentgate-audit-2026-06-03.csv</code></td>
+            </tr>
+            <tr>
+              <td><code>format</code></td>
+              <td><code>csv</code> (default)</td>
+            </tr>
+            <tr>
+              <td><code>filters</code></td>
+              <td>
+                JSON object of applied query filters (dates as ISO strings)
+              </td>
+            </tr>
+            <tr>
+              <td><code>eventCount</code></td>
+              <td>Number of rows in the export</td>
+            </tr>
+            <tr>
+              <td><code>createdById</code></td>
+              <td>Exporting user's ID</td>
+            </tr>
+            <tr>
+              <td><code>organizationId</code></td>
+              <td>Tenant scope</td>
+            </tr>
+            <tr>
+              <td><code>createdAt</code></td>
+              <td>Export timestamp</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout good">
+          <strong>No CSV blobs in the database</strong>
+          The export artifact lives only in the downloader's browser/session.
+          The
+          <code>AuditExport</code> table provides an audit-of-audit trail (who
+          exported what filters, how many events) without storing PII-heavy file
+          payloads.
+        </div>
+        <p>
+          <code>listAuditExports(organizationId)</code> in
+          <code>lib/data/app-data.ts</code> powers the export history panel on
+          <code>/audit-log</code>.
+        </p>
+      </section>
 
-    <section id="cleanup">
-      <h2>8. Retention Cleanup Job (<code>lib/retention.ts</code>)</h2>
-      <p>
-        <code>cleanupOperationalData()</code> runs via <code>POST /api/jobs/retention</code>
-        (Bearer-authenticated cron). Deletes:
-      </p>
-      <table>
-        <thead><tr><th>Data</th><th>Retention rule</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>AuditEvent</code></td>
-            <td>Per-org: older than plan's <code>auditRetentionDays</code> (skipped if null)</td>
-          </tr>
-          <tr>
-            <td><code>GitHubWebhookDelivery</code></td>
-            <td>Processed/ignored &gt; 30 days</td>
-          </tr>
-          <tr>
-            <td><code>BillingWebhookEvent</code></td>
-            <td>Processed/ignored &gt; 365 days</td>
-          </tr>
-          <tr>
-            <td><code>AuditExport</code> metadata rows</td>
-            <td>&gt; 30 days</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>Returns counts:</p>
-      <pre><code>{
+      <section id="cleanup">
+        <h2>8. Retention Cleanup Job (<code>lib/retention.ts</code>)</h2>
+        <p>
+          <code>cleanupOperationalData()</code> runs via
+          <code>POST /api/jobs/retention</code>
+          (Bearer-authenticated cron). Deletes:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Retention rule</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuditEvent</code></td>
+              <td>
+                Per-org: older than plan's
+                <code>auditRetentionDays</code> (skipped if null)
+              </td>
+            </tr>
+            <tr>
+              <td><code>GitHubWebhookDelivery</code></td>
+              <td>Processed/ignored &gt; 30 days</td>
+            </tr>
+            <tr>
+              <td><code>BillingWebhookEvent</code></td>
+              <td>Processed/ignored &gt; 365 days</td>
+            </tr>
+            <tr>
+              <td><code>AuditExport</code> metadata rows</td>
+              <td>&gt; 30 days</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Returns counts:</p>
+        <pre><code>{
   "auditEventsDeleted": 0,
   "webhookDeliveriesDeleted": 0,
   "billingEventsDeleted": 0,
   "auditExportsDeleted": 0
 }</code></pre>
-      <p>
-        Diagnostics (<code>lib/diagnostics.ts</code>) warns when stale processed webhook
-        deliveries or audit export records exceed 30 days — indicating the retention job may not
-        be running. Billing identifiers and usage records are not removed by this job.
-      </p>
-    </section>
+        <p>
+          Diagnostics (<code>lib/diagnostics.ts</code>) warns when stale
+          processed webhook deliveries or audit export records exceed 30 days —
+          indicating the retention job may not be running. Billing identifiers
+          and usage records are not removed by this job.
+        </p>
+      </section>
 
-    <section id="files">
-      <h2>9. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/audit-export.ts</code></td><td>CSV serialization, <code>getAuditRetentionStart</code></td></tr>
-          <tr><td><code>lib/retention.ts</code></td><td><code>cleanupOperationalData</code> job logic</td></tr>
-          <tr><td><code>lib/approvals.ts</code></td><td>Decision → audit event type mapping</td></tr>
-          <tr><td><code>lib/entitlements.ts</code></td><td>Plan retention days + <code>auditExport</code> flag</td></tr>
-          <tr><td><code>lib/plans.ts</code></td><td><code>isFeatureAvailable(planKey, 'auditExport')</code></td></tr>
-          <tr><td><code>lib/collaboration.ts</code></td><td><code>canExportAudit(role)</code></td></tr>
-          <tr><td><code>lib/data/app-data.ts</code></td><td><code>listAuditEvents</code>, <code>listAuditExports</code></td></tr>
-          <tr><td><code>app/api/audit-log/export/route.ts</code></td><td>Export HTTP handler</td></tr>
-          <tr><td><code>app/audit-log/page.tsx</code></td><td>Audit log UI + export history</td></tr>
-          <tr><td><code>app/api/jobs/retention/route.ts</code></td><td>Cron entry for cleanup</td></tr>
-          <tr><td><code>prisma/schema.prisma</code></td><td><code>AuditEvent</code>, <code>AgentActivity</code>, <code>AuditExport</code> models</td></tr>
-          <tr><td><code>tests/audit-export.test.ts</code></td><td>CSV + retention cutoff tests</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <section id="files">
+        <h2>9. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/audit-export.ts</code></td>
+              <td>CSV serialization, <code>getAuditRetentionStart</code></td>
+            </tr>
+            <tr>
+              <td><code>lib/retention.ts</code></td>
+              <td><code>cleanupOperationalData</code> job logic</td>
+            </tr>
+            <tr>
+              <td><code>lib/approvals.ts</code></td>
+              <td>Decision → audit event type mapping</td>
+            </tr>
+            <tr>
+              <td><code>lib/entitlements.ts</code></td>
+              <td>Plan retention days + <code>auditExport</code> flag</td>
+            </tr>
+            <tr>
+              <td><code>lib/plans.ts</code></td>
+              <td><code>isFeatureAvailable(planKey, 'auditExport')</code></td>
+            </tr>
+            <tr>
+              <td><code>lib/collaboration.ts</code></td>
+              <td><code>canExportAudit(role)</code></td>
+            </tr>
+            <tr>
+              <td><code>lib/data/app-data.ts</code></td>
+              <td>
+                <code>listAuditEvents</code>, <code>listAuditExports</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>app/api/audit-log/export/route.ts</code></td>
+              <td>Export HTTP handler</td>
+            </tr>
+            <tr>
+              <td><code>app/audit-log/page.tsx</code></td>
+              <td>Audit log UI + export history</td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/retention/route.ts</code></td>
+              <td>Cron entry for cleanup</td>
+            </tr>
+            <tr>
+              <td><code>prisma/schema.prisma</code></td>
+              <td>
+                <code>AuditEvent</code>, <code>AgentActivity</code>,
+                <code>AuditExport</code> models
+              </td>
+            </tr>
+            <tr>
+              <td><code>tests/audit-export.test.ts</code></td>
+              <td>CSV + retention cutoff tests</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
 
-  <footer>
-    AgentGate audit &amp; compliance architecture reference · June 2026
-  </footer>
-</body>
+    <footer>
+      AgentGate audit &amp; compliance architecture reference · June 2026
+    </footer>
+  </body>
 </html>

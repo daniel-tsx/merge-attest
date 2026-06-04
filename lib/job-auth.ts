@@ -4,7 +4,11 @@ export function authorizeJobRequest(request: Request) {
   const secret = process.env.JOB_RUNNER_SECRET?.trim()
   if (!secret) {
     return isProduction()
-      ? { ok: false as const, status: 503, message: 'Job runner secret is not configured.' }
+      ? {
+          ok: false as const,
+          status: 503,
+          message: 'Job runner secret is not configured.',
+        }
       : { ok: true as const }
   }
 

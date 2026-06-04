@@ -25,9 +25,9 @@ describe('sortPullRequests', () => {
       pr({ number: 2, riskScore: 80 }),
       pr({ number: 3, riskScore: 50 }),
     ]
-    expect(
-      sortPullRequests(list, 'risk', 'desc').map((p) => p.number),
-    ).toEqual([2, 3, 1])
+    expect(sortPullRequests(list, 'risk', 'desc').map((p) => p.number)).toEqual(
+      [2, 3, 1],
+    )
     expect(sortPullRequests(list, 'risk', 'asc').map((p) => p.number)).toEqual([
       1, 3, 2,
     ])

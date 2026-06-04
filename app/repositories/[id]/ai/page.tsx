@@ -33,7 +33,8 @@ const statusMessages: Record<
   updated: { tone: 'success', message: 'AI review settings updated.' },
   forbidden: {
     tone: 'danger',
-    message: 'Only organization owners and admins can manage AI review settings.',
+    message:
+      'Only organization owners and admins can manage AI review settings.',
   },
   auth_required: {
     tone: 'danger',
@@ -113,7 +114,10 @@ function ToggleField({
         className="mt-0.5"
       />
       <div className="min-w-0">
-        <Label htmlFor={name} className="block text-sm font-medium text-foreground">
+        <Label
+          htmlFor={name}
+          className="block text-sm font-medium text-foreground"
+        >
           {title}
         </Label>
         <span className="mt-1 block text-sm text-muted-foreground">
@@ -188,7 +192,10 @@ export default async function RepositoryAiSettingsPage({
               AI reviews
             </div>
             <div className="mt-2">
-              <Badge tone={settings.aiReviewsEnabled ? 'green' : 'slate'} withDot>
+              <Badge
+                tone={settings.aiReviewsEnabled ? 'green' : 'slate'}
+                withDot
+              >
                 {settings.aiReviewsEnabled ? 'enabled' : 'disabled'}
               </Badge>
             </div>

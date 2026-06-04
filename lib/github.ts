@@ -163,6 +163,29 @@ export async function listGitHubPullRequestFiles(repository: {
   )
 }
 
+export async function listGitHubPullRequestCommits(repository: {
+  owner: string
+  name: string
+  pullNumber: number
+  installationId: string
+}) {
+  const octokit = getInstallationOctokit(repository.installationId)
+  if (!octokit) return null
+
+  // Attribution needs representative commit metadata, not an unbounded history.
+  // Keep this to one GitHub page so large PRs do not exhaust sync rate limits.
+  const response = await octokit.request(
+    'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
+    {
+      owner: repository.owner,
+      repo: repository.name,
+      pull_number: repository.pullNumber,
+      per_page: 100,
+    },
+  )
+  return response.data
+}
+
 export async function syncPullRequests(repository: {
   owner: string
   name: string

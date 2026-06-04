@@ -152,8 +152,9 @@ export default async function TeamSettingsPage({
         <CardHeader>
           <CardTitle>Members</CardTitle>
           <p className="text-xs text-muted-foreground">
-            {members.length} {members.length === 1 ? 'person has' : 'people have'}{' '}
-            access to this workspace.
+            {members.length}{' '}
+            {members.length === 1 ? 'person has' : 'people have'} access to this
+            workspace.
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -224,7 +225,11 @@ export default async function TeamSettingsPage({
                             </Button>
                           </form>
                           <form action={mutateMember.bind(null, member.id)}>
-                            <input type="hidden" name="_action" value="remove" />
+                            <input
+                              type="hidden"
+                              name="_action"
+                              value="remove"
+                            />
                             <Button
                               type="submit"
                               size="sm"
@@ -307,16 +312,16 @@ export default async function TeamSettingsPage({
                               name="_action"
                               value="refresh"
                             />
-                            <Button
-                              type="submit"
-                              size="sm"
-                              variant="secondary"
-                            >
+                            <Button type="submit" size="sm" variant="secondary">
                               Refresh
                             </Button>
                           </form>
                           <form action={mutateInvite.bind(null, invite.id)}>
-                            <input type="hidden" name="_action" value="revoke" />
+                            <input
+                              type="hidden"
+                              name="_action"
+                              value="revoke"
+                            />
                             <Button type="submit" size="sm" variant="danger">
                               Revoke
                             </Button>

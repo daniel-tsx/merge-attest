@@ -29,9 +29,7 @@ describe('OpenRouter verification', () => {
   it('rejects empty keys without calling OpenRouter', async () => {
     const fetchImpl = vi.fn()
 
-    await expect(
-      verifyOpenRouterKey('', fetchImpl as never),
-    ).resolves.toEqual({
+    await expect(verifyOpenRouterKey('', fetchImpl as never)).resolves.toEqual({
       valid: false,
       modelCount: 0,
       message: 'OpenRouter API key is required.',
@@ -44,7 +42,10 @@ describe('OpenRouter verification', () => {
     expect(normalizeOpenRouterKey('  sk-or-v1-test  ')).toBe('sk-or-v1-test')
 
     await expect(
-      verifyOpenRouterKey('x'.repeat(MAX_OPENROUTER_KEY_LENGTH + 1), fetchImpl as never),
+      verifyOpenRouterKey(
+        'x'.repeat(MAX_OPENROUTER_KEY_LENGTH + 1),
+        fetchImpl as never,
+      ),
     ).resolves.toEqual({
       valid: false,
       modelCount: 0,
@@ -54,7 +55,9 @@ describe('OpenRouter verification', () => {
   })
 
   it('returns invalid when OpenRouter rejects the key', async () => {
-    const fetchImpl = vi.fn().mockResolvedValue(new Response(null, { status: 401 }))
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 401 }))
 
     await expect(
       verifyOpenRouterKey('bad-key', fetchImpl as never),

@@ -81,17 +81,17 @@ flowchart TB
 
 ## Runtime Layers
 
-| Layer         | Location                        | Responsibility                                                                                        |
-| ------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-agentgate-pathname` header |
+| Layer         | Location                        | Responsibility                                                                                                                   |
+| ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-agentgate-pathname` header                            |
 | Root layout   | `app/layout.tsx`                | Fonts, `ThemeProvider` (next-themes), `TooltipProvider`, `Toaster` (Sonner), `NuqsAdapter`, org context for shell, `globals.css` |
-| Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                             |
-| App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                              |
-| Pages         | `app/**/page.tsx`               | Server-rendered product surfaces; async `searchParams` + `params`                                     |
-| API           | `app/api/**/route.ts`           | Webhooks, jobs, billing, exports, mutations                                                           |
-| Data access   | `lib/data/app-data.ts`          | Cached org context, org-scoped lists/detail reads, demo fallback                                      |
-| Domain logic  | `lib/*.ts`                      | Pure or service-boundary modules (risk, billing, github, ai, jobs)                                    |
-| Persistence   | `prisma/schema.prisma`          | Multi-tenant schema; migrations under `prisma/migrations`                                             |
+| Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                                                        |
+| App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                                                         |
+| Pages         | `app/**/page.tsx`               | Server-rendered product surfaces; async `searchParams` + `params`                                                                |
+| API           | `app/api/**/route.ts`           | Webhooks, jobs, billing, exports, mutations                                                                                      |
+| Data access   | `lib/data/app-data.ts`          | Cached org context, org-scoped lists/detail reads, demo fallback                                                                 |
+| Domain logic  | `lib/*.ts`                      | Pure or service-boundary modules (risk, billing, github, ai, jobs)                                                               |
+| Persistence   | `prisma/schema.prisma`          | Multi-tenant schema; migrations under `prisma/migrations`                                                                        |
 
 ## Request Lifecycle
 
@@ -139,12 +139,15 @@ Webhook deliveries hit `/api/github/webhook`, dedupe by delivery id, queue for `
 
 On PR ingest or update:
 
-| Signal     | Module                         | Output                                |
-| ---------- | ------------------------------ | ------------------------------------- |
-| Risk score | `lib/risk.ts`                  | `RiskLevel`, path/title heuristics    |
-| Test gap   | `lib/test-gap.ts`              | `TestGapStatus`, suggested test paths |
-| Rules      | `lib/rules.ts`                 | Violations, required actions          |
-| Activity   | `lib/data/app-data.ts` mappers | Timeline events                       |
+| Signal      | Module                         | Output                                            |
+| ----------- | ------------------------------ | ------------------------------------------------- |
+| Attribution | `lib/agents/attribution.ts`    | `agentSource`, `aiAssisted`, confidence, evidence |
+| Risk score  | `lib/risk.ts`                  | `RiskLevel`, path/title heuristics                |
+| Test gap    | `lib/test-gap.ts`              | `TestGapStatus`, suggested test paths             |
+| Rules       | `lib/rules.ts`                 | Violations, required actions                      |
+| Activity    | `lib/data/app-data.ts` mappers | Timeline events                                   |
+
+Attribution is explainable (weighted evidence from commit trailers, bot accounts, emails, branch prefixes, labels) and configurable per organization via the Agent Identity Registry (`/settings/agents`). See [`features/AI_GOVERNANCE.md`](features/AI_GOVERNANCE.md).
 
 These signals drive badges, dashboards, and approval requirements — not LLM output.
 
@@ -194,26 +197,26 @@ app/**/page.tsx          ← route composition — data fetch + layout, almost n
 
 Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-authority` where variants are needed — but they are wired to **AgentGate's own semantic tokens**, not shadcn's default palette. `components.json` exists so the shadcn CLI is usable, but anything produced by `npx shadcn add` must be re-tokenized before merge: this project redefines `accent` as brand indigo (stock shadcn treats `accent` as a neutral hover surface) and uses `surface-*`, `danger`, and `focus-ring` instead of `card` / `popover` / `destructive` / `ring`.
 
-| Primitive                                          | Basis              | Notes                                                          |
-| -------------------------------------------------- | ------------------ | -------------------------------------------------------------- |
-| `Button`                                           | cva + Radix Slot   | `default`, `secondary`, `ghost`, `accent`, `danger`, `outline` |
-| `Badge` / `StatusDot`                              | tokens             | domain tones (see status badges below)                         |
-| `Card` (+ Header/Title/Description/Content/Footer) | tokens             | framed data panels                                             |
-| `Input`, `Textarea`                                | tokens             | form controls with `aria-invalid` styling                      |
-| `Select`                                           | native `<select>`  | **form primitive** for uncontrolled `FormData` forms           |
-| `Table` (+ subcomponents)                          | tokens             | dense scan-and-review tables                                   |
-| `Skeleton`                                         | tokens             | shimmer / pulse loading                                        |
-| `Sheet`                                            | Radix Dialog       | side drawer (mobile navigation)                                |
-| `DropdownMenu`                                     | Radix DropdownMenu | row / overflow action menus                                    |
-| `Tabs`                                             | Radix Tabs         | tabbed panels                                                  |
-| `Switch`                                           | Radix Switch       | boolean form toggles (submits `on` when checked)               |
-| `Separator`                                        | Radix Separator    | standalone dividers                                            |
-| `Avatar` (+ Image/Fallback)                        | Radix Avatar       | identity initials                                              |
-| `Progress`                                         | Radix Progress     | usage / completion meters (`indicatorClassName` for tone)      |
-| `Label`                                            | Radix Label        | explicit control labels                                        |
-| `Tooltip`                                          | Radix Tooltip      | hover/focus labels; one root `TooltipProvider` in the layout   |
-| `Toaster`                                          | Sonner             | transient mutation feedback; theme-synced via `next-themes`    |
-| `Command`                                          | cmdk + Radix Dialog | ⌘K command palette (`components/app/command-palette.tsx`)     |
+| Primitive                                          | Basis               | Notes                                                          |
+| -------------------------------------------------- | ------------------- | -------------------------------------------------------------- |
+| `Button`                                           | cva + Radix Slot    | `default`, `secondary`, `ghost`, `accent`, `danger`, `outline` |
+| `Badge` / `StatusDot`                              | tokens              | domain tones (see status badges below)                         |
+| `Card` (+ Header/Title/Description/Content/Footer) | tokens              | framed data panels                                             |
+| `Input`, `Textarea`                                | tokens              | form controls with `aria-invalid` styling                      |
+| `Select`                                           | native `<select>`   | **form primitive** for uncontrolled `FormData` forms           |
+| `Table` (+ subcomponents)                          | tokens              | dense scan-and-review tables                                   |
+| `Skeleton`                                         | tokens              | shimmer / pulse loading                                        |
+| `Sheet`                                            | Radix Dialog        | side drawer (mobile navigation)                                |
+| `DropdownMenu`                                     | Radix DropdownMenu  | row / overflow action menus                                    |
+| `Tabs`                                             | Radix Tabs          | tabbed panels                                                  |
+| `Switch`                                           | Radix Switch        | boolean form toggles (submits `on` when checked)               |
+| `Separator`                                        | Radix Separator     | standalone dividers                                            |
+| `Avatar` (+ Image/Fallback)                        | Radix Avatar        | identity initials                                              |
+| `Progress`                                         | Radix Progress      | usage / completion meters (`indicatorClassName` for tone)      |
+| `Label`                                            | Radix Label         | explicit control labels                                        |
+| `Tooltip`                                          | Radix Tooltip       | hover/focus labels; one root `TooltipProvider` in the layout   |
+| `Toaster`                                          | Sonner              | transient mutation feedback; theme-synced via `next-themes`    |
+| `Command`                                          | cmdk + Radix Dialog | ⌘K command palette (`components/app/command-palette.tsx`)      |
 
 Theming: light tokens in `:root`, a `.dark` scale overrides the same vars, and
 `@theme inline` maps `--color-* → var(--*)` so the `.dark` class re-themes all

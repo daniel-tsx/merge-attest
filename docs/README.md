@@ -16,24 +16,24 @@ Root [`README.md`](../README.md) has the quick start only.
 
 ## Folder Guide
 
-| Folder                                 | Purpose                                                                     |
-| -------------------------------------- | --------------------------------------------------------------------------- |
+| Folder                                 | Purpose                                                                                                                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`architecture/`](architecture/)       | Deep-dive HTML architecture references (auth, database, governance, GitHub, jobs, billing, AI, frontend, security, ops) — start at [`architecture/index.html`](architecture/index.html) |
-| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) | Cross-cutting architecture, domain flows, UI composition model              |
-| [`features/`](features/)               | Current feature and system reference docs                                   |
-| [`operations/`](operations/)           | Setup, production, runbooks, privacy, and support                           |
-| [`strategy/`](strategy/)               | Roadmap and product direction that still guides decisions                   |
-| [`archive/`](archive/)                 | Historical plans, reviews, and superseded documents — **not current truth** |
+| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) | Cross-cutting architecture, domain flows, UI composition model                                                                                                                          |
+| [`features/`](features/)               | Current feature and system reference docs                                                                                                                                               |
+| [`operations/`](operations/)           | Setup, production, runbooks, privacy, and support                                                                                                                                       |
+| [`strategy/`](strategy/)               | Roadmap and product direction that still guides decisions                                                                                                                               |
+| [`archive/`](archive/)                 | Historical plans, reviews, and superseded documents — **not current truth**                                                                                                             |
 
 ## Current Docs
 
 ### Core
 
-| Doc                                          | Status    | Summary                                                        |
-| -------------------------------------------- | --------- | -------------------------------------------------------------- |
-| [`architecture/index.html`](architecture/index.html) | `current` | Architecture hub — links to all deep-dive HTML references |
-| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)       | `current` | Architecture layers, tenancy, domain flows, UI component model |
-| [`AGENT_START_HERE.md`](AGENT_START_HERE.md) | `current` | Agent session entry point and source-of-truth map              |
+| Doc                                                  | Status    | Summary                                                        |
+| ---------------------------------------------------- | --------- | -------------------------------------------------------------- |
+| [`architecture/index.html`](architecture/index.html) | `current` | Architecture hub — links to all deep-dive HTML references      |
+| [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)               | `current` | Architecture layers, tenancy, domain flows, UI component model |
+| [`AGENT_START_HERE.md`](AGENT_START_HERE.md)         | `current` | Agent session entry point and source-of-truth map              |
 
 ### Features
 
@@ -41,6 +41,7 @@ Root [`README.md`](../README.md) has the quick start only.
 | -------------------------------------------------------- | --------- | --------------------------------------------------------------------- |
 | [`features/API.md`](features/API.md)                     | `current` | HTTP endpoints: health, diagnostics, webhooks, billing, jobs, exports |
 | [`features/ADMIN.md`](features/ADMIN.md)                 | `current` | Platform admin dashboard: gating, cross-tenant data, pages, actions   |
+| [`features/AI_GOVERNANCE.md`](features/AI_GOVERNANCE.md) | `current` | Agent attribution engine and identity registry (AI authorship)        |
 | [`features/DESIGN_SYSTEM.md`](features/DESIGN_SYSTEM.md) | `current` | UI tokens (`app/globals.css`), components, accessibility patterns     |
 
 ### Operations

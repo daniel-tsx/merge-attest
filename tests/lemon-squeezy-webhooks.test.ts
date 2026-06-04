@@ -83,9 +83,8 @@ describe('Lemon Squeezy subscription helpers', () => {
   })
 
   it('maps subscription custom data to plan keys', async () => {
-    const { getPlanKeyFromLemonSqueezyEvent } = await import(
-      '../lib/lemon-squeezy-webhooks'
-    )
+    const { getPlanKeyFromLemonSqueezyEvent } =
+      await import('../lib/lemon-squeezy-webhooks')
 
     expect(
       getPlanKeyFromLemonSqueezyEvent({
@@ -99,9 +98,8 @@ describe('Lemon Squeezy subscription helpers', () => {
 
   it('maps configured Lemon Squeezy variant ids to plan keys', async () => {
     vi.stubEnv('LEMON_SQUEEZY_GROWTH_VARIANT_ID', '123')
-    const { getPlanKeyForLemonSqueezyVariantId } = await import(
-      '../lib/billing'
-    )
+    const { getPlanKeyForLemonSqueezyVariantId } =
+      await import('../lib/billing')
 
     expect(getPlanKeyForLemonSqueezyVariantId('123')).toBe('growth')
     expect(getPlanKeyForLemonSqueezyVariantId('999')).toBeNull()
@@ -115,9 +113,8 @@ describe('Lemon Squeezy subscription helpers', () => {
   })
 
   it('maps Lemon Squeezy subscription states to billing lifecycle states', async () => {
-    const { getBillingStatusForLemonSqueezySubscription } = await import(
-      '../lib/lemon-squeezy-webhooks'
-    )
+    const { getBillingStatusForLemonSqueezySubscription } =
+      await import('../lib/lemon-squeezy-webhooks')
 
     expect(
       getBillingStatusForLemonSqueezySubscription(
@@ -146,9 +143,8 @@ describe('Lemon Squeezy subscription helpers', () => {
   })
 
   it('identifies processed webhook deliveries as duplicates', async () => {
-    const { isProcessedBillingWebhookStatus } = await import(
-      '../lib/lemon-squeezy-webhooks'
-    )
+    const { isProcessedBillingWebhookStatus } =
+      await import('../lib/lemon-squeezy-webhooks')
 
     expect(isProcessedBillingWebhookStatus('processed')).toBe(true)
     expect(isProcessedBillingWebhookStatus('processing')).toBe(false)
@@ -156,9 +152,8 @@ describe('Lemon Squeezy subscription helpers', () => {
   })
 
   it('verifies Lemon Squeezy webhook signatures', async () => {
-    const { verifyLemonSqueezyWebhookSignature } = await import(
-      '../lib/lemon-squeezy-webhooks'
-    )
+    const { verifyLemonSqueezyWebhookSignature } =
+      await import('../lib/lemon-squeezy-webhooks')
     const rawBody = JSON.stringify({
       meta: { event_name: 'subscription_created' },
       data: { type: 'subscriptions', id: '1', attributes: {} },
@@ -178,9 +173,9 @@ describe('Lemon Squeezy subscription helpers', () => {
         'secret',
       ),
     ).toBe(true)
-    expect(
-      verifyLemonSqueezyWebhookSignature(rawBody, 'bad', 'secret'),
-    ).toBe(false)
+    expect(verifyLemonSqueezyWebhookSignature(rawBody, 'bad', 'secret')).toBe(
+      false,
+    )
   })
 
   it('processes subscription events without requiring database transactions', async () => {

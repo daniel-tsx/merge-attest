@@ -1,9 +1,14 @@
 import { calculateRisk } from '@/lib/risk'
 import { evaluateRepoRules } from '@/lib/rules'
+import {
+  attributeAgent,
+  type AttributionCommit,
+} from '@/lib/agents/attribution'
 import { defaultReviewDueAt } from '@/lib/collaboration'
 import { detectTestGap } from '@/lib/test-gap'
 import {
   getGitHubPullRequest,
+  listGitHubPullRequestCommits,
   listGitHubPullRequestFiles,
   listGitHubPullRequests,
   listInstallationRepositories,
@@ -19,11 +24,21 @@ import {
   recordPrChecks,
 } from '@/lib/usage'
 import type {
+  AgentIdentityRule,
   ApprovalStatus,
   PlanKey,
   PullRequestFileInput,
   RepoRule,
 } from '@/lib/types'
+
+type GitHubPullRequestCommit = {
+  commit?: {
+    message?: string | null
+    author?: { email?: string | null } | null
+    committer?: { email?: string | null } | null
+  } | null
+  author?: { login?: string | null } | null
+}
 
 type GitHubOwner = {
   login: string
@@ -169,6 +184,36 @@ function mapRules(
   }))
 }
 
+function mapAttributionCommits(
+  rows: GitHubPullRequestCommit[],
+): AttributionCommit[] {
+  return rows.map((row) => ({
+    message: row.commit?.message ?? null,
+    authorEmail: row.commit?.author?.email ?? null,
+    committerEmail: row.commit?.committer?.email ?? null,
+    authorLogin: row.author?.login ?? null,
+  }))
+}
+
+async function loadAgentIdentityRules(
+  organizationId: string,
+): Promise<AgentIdentityRule[]> {
+  const prisma = getPrismaClient()
+  if (!prisma) return []
+  const rows = await prisma.agentIdentityRule.findMany({
+    where: { organizationId, enabled: true },
+  })
+  return rows.map((row) => ({
+    id: row.id,
+    agentSource: row.agentSource as AgentIdentityRule['agentSource'],
+    matchType: row.matchType as AgentIdentityRule['matchType'],
+    pattern: row.pattern,
+    enabled: row.enabled,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }))
+}
+
 export function getPrCheckSourceKey(input: {
   repositoryId: string
   pullNumber: number
@@ -273,16 +318,23 @@ async function syncGitHubPullRequestRecord(input: {
     }),
   )
   const author = input.pullRequest.user?.login ?? 'unknown'
-  const agentSource = inferAgentSource({
+  const commits = mapAttributionCommits(
+    ((await listGitHubPullRequestCommits({
+      owner: input.owner,
+      name: input.name,
+      pullNumber: input.pullRequest.number,
+      installationId: input.installationId,
+    })) ?? []) as GitHubPullRequestCommit[],
+  )
+  const registry = await loadAgentIdentityRules(input.organizationId)
+  const attribution = attributeAgent({
     author,
     title: input.pullRequest.title,
     branch: input.pullRequest.head.ref,
+    commits,
+    registry,
   })
-  const aiAssisted = inferAiAssisted({
-    author,
-    title: input.pullRequest.title,
-    branch: input.pullRequest.head.ref,
-  })
+  const { agentSource, aiAssisted } = attribution
   const risk = calculateRisk({ aiAssisted, ciStatus: 'unknown', files })
   const testGap = detectTestGap({ title: input.pullRequest.title, files })
   const violations = evaluateRepoRules(rules, {
@@ -347,6 +399,8 @@ async function syncGitHubPullRequestRecord(input: {
       status: mapPullRequestStatus(input.pullRequest),
       aiAssisted,
       agentSource,
+      attributionConfidence: attribution.confidence,
+      attributionEvidence: attribution.evidence,
       riskScore: risk.score,
       riskLevel: risk.level,
       testGapStatus: testGap.status,
@@ -371,6 +425,8 @@ async function syncGitHubPullRequestRecord(input: {
       status: mapPullRequestStatus(input.pullRequest),
       aiAssisted,
       agentSource,
+      attributionConfidence: attribution.confidence,
+      attributionEvidence: attribution.evidence,
       riskScore: risk.score,
       riskLevel: risk.level,
       testGapStatus: testGap.status,
@@ -495,7 +551,10 @@ async function syncGitHubPullRequestRecord(input: {
     select: { planKey: true },
   })
 
-  if (!organization || !shouldPublishGitHubCheckRun(organization.planKey as PlanKey)) {
+  if (
+    !organization ||
+    !shouldPublishGitHubCheckRun(organization.planKey as PlanKey)
+  ) {
     return true
   }
 

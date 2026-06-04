@@ -1,6 +1,8 @@
 import type {
   ActivityEvent,
+  AgentIdentityRule,
   AgentSource,
+  AttributionEvidence,
   AuditEvent,
   Approval,
   ApprovalStatus,
@@ -485,6 +487,43 @@ function file(
   }
 }
 
+function demoAttribution(agentSource: AgentSource): {
+  confidence: number
+  evidence: AttributionEvidence[]
+} {
+  if (agentSource === 'manual') return { confidence: 0, evidence: [] }
+  if (agentSource === 'unknown') {
+    return {
+      confidence: 88,
+      evidence: [
+        {
+          signal: 'bot_account',
+          agentSource: 'unknown',
+          detail: 'Bot account agent-bot',
+          weight: 88,
+        },
+      ],
+    }
+  }
+  return {
+    confidence: 95,
+    evidence: [
+      {
+        signal: 'commit_trailer',
+        agentSource,
+        detail: 'Co-authored-by trailer on 2 commits',
+        weight: 95,
+      },
+      {
+        signal: 'bot_account',
+        agentSource,
+        detail: `Account ${agentSource}[bot]`,
+        weight: 88,
+      },
+    ],
+  }
+}
+
 export const pullRequests: PullRequest[] = prInputs.map((input, index) => {
   const repository = repositories.find(
     (item) => item.id === input.repositoryId,
@@ -495,6 +534,7 @@ export const pullRequests: PullRequest[] = prInputs.map((input, index) => {
     files: input.files,
   })
   const testGap = detectTestGap({ title: input.title, files: input.files })
+  const attribution = demoAttribution(input.agentSource)
   const base: PullRequest = {
     id: `pr-${input.repositoryId}-${input.number}`,
     repositoryId: input.repositoryId,
@@ -507,6 +547,8 @@ export const pullRequests: PullRequest[] = prInputs.map((input, index) => {
     status: input.status,
     aiAssisted: input.aiAssisted,
     agentSource: input.agentSource,
+    attributionConfidence: attribution.confidence,
+    attributionEvidence: attribution.evidence,
     riskScore: risk.score,
     riskLevel: risk.level,
     testGapStatus: testGap.status,
@@ -725,4 +767,38 @@ export function getRepositoryPullRequests(repositoryId: string) {
 
 export function getRepositoryRules(repositoryId: string) {
   return repoRules.filter((ruleItem) => ruleItem.repositoryId === repositoryId)
+}
+
+export const agentIdentityRules: AgentIdentityRule[] = [
+  {
+    id: 'air-claude-trailer',
+    agentSource: 'claude_code',
+    matchType: 'commit_trailer',
+    pattern: 'noreply@anthropic.com',
+    enabled: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'air-cursor-branch',
+    agentSource: 'cursor',
+    matchType: 'branch_prefix',
+    pattern: 'cursor/',
+    enabled: true,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'air-devin-login',
+    agentSource: 'devin',
+    matchType: 'bot_login',
+    pattern: 'devin-ai-integration',
+    enabled: false,
+    createdAt: now,
+    updatedAt: now,
+  },
+]
+
+export function getAgentIdentityRules() {
+  return agentIdentityRules
 }

@@ -124,28 +124,22 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
       metadata: { queued, failed },
     })
 
-    const [
-      aiQueued,
-      aiActive,
-      aiBlocked,
-      aiFailed,
-      staleAiReviewJobs,
-    ] = await Promise.all([
-      prisma.aiReviewJob.count({ where: { status: 'queued' } }),
-      prisma.aiReviewJob.count({ where: { status: 'in_progress' } }),
-      prisma.aiReviewJob.count({ where: { status: 'blocked' } }),
-      prisma.aiReviewJob.count({ where: { status: 'failed' } }),
-      prisma.aiReviewJob.count({
-        where: {
-          status: { in: ['queued', 'in_progress'] },
-          updatedAt: { lt: staleAiReviewCutoff },
-        },
-      }),
-    ])
+    const [aiQueued, aiActive, aiBlocked, aiFailed, staleAiReviewJobs] =
+      await Promise.all([
+        prisma.aiReviewJob.count({ where: { status: 'queued' } }),
+        prisma.aiReviewJob.count({ where: { status: 'in_progress' } }),
+        prisma.aiReviewJob.count({ where: { status: 'blocked' } }),
+        prisma.aiReviewJob.count({ where: { status: 'failed' } }),
+        prisma.aiReviewJob.count({
+          where: {
+            status: { in: ['queued', 'in_progress'] },
+            updatedAt: { lt: staleAiReviewCutoff },
+          },
+        }),
+      ])
     checks.push({
       name: 'ai_review_jobs',
-      status:
-        aiFailed > 0 || staleAiReviewJobs > 0 ? 'warning' : 'ok',
+      status: aiFailed > 0 || staleAiReviewJobs > 0 ? 'warning' : 'ok',
       message:
         aiFailed > 0 || staleAiReviewJobs > 0
           ? 'AI review jobs need attention.'

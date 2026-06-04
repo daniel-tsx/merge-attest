@@ -41,6 +41,39 @@ export type RiskSignal = {
   filePaths: string[]
 }
 
+export type AttributionSignal =
+  | 'commit_trailer'
+  | 'bot_account'
+  | 'email_domain'
+  | 'branch_prefix'
+  | 'label'
+  | 'title_keyword'
+  | 'registry_rule'
+
+export type AttributionEvidence = {
+  signal: AttributionSignal
+  agentSource: AgentSource
+  detail: string
+  weight: number
+}
+
+export type AgentIdentityMatchType =
+  | 'bot_login'
+  | 'email_domain'
+  | 'branch_prefix'
+  | 'label'
+  | 'commit_trailer'
+
+export type AgentIdentityRule = {
+  id: string
+  agentSource: AgentSource
+  matchType: AgentIdentityMatchType
+  pattern: string
+  enabled: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export type Repository = {
   id: string
   name: string
@@ -69,6 +102,8 @@ export type PullRequest = {
   status: PullRequestStatus
   aiAssisted: boolean | null
   agentSource: AgentSource
+  attributionConfidence: number
+  attributionEvidence: AttributionEvidence[]
   riskScore: number
   riskLevel: RiskLevel
   testGapStatus: TestGapStatus
@@ -242,6 +277,7 @@ export type AuditEvent = {
     | 'github_comment_posted'
     | 'github_check_run_published'
     | 'settings_changed'
+    | 'agent_identity_rule_changed'
   repositoryId?: string
   pullRequestId?: string
   actor?: string

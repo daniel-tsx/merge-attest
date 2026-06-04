@@ -225,7 +225,7 @@ Verification:
 
 Prioritized product upgrades:
 
-- Agent identity registry: let admins map GitHub users, bot accounts, labels, branch prefixes, and commit trailers to Cursor, Codex, Claude Code, Copilot, Devin, or custom agents.
+- Agent identity registry: let admins map GitHub users, bot accounts, labels, branch prefixes, and commit trailers to Cursor, Codex, Claude Code, Copilot, Devin, or custom agents. **(shipped — see `features/AI_GOVERNANCE.md`; explainable attribution engine + per-org registry)**
 - PR risk timeline: show how risk changed across pushes, tests, comments, approvals, and merges.
 - Managed GitHub check: publish pass/warn/fail status with links back to risk details and required approvals.
 - Review packet: summarize risky files, missing tests, policy hits, reviewer notes, and recommended next action.
@@ -233,7 +233,7 @@ Prioritized product upgrades:
 - Policy simulator: test a new rule against recent PRs before enabling it.
 - Test recommendation workflow: convert detected test gaps into concrete requested tests and track whether later commits resolve them.
 - Approval SLA: show aging approvals, owner, reviewer, and escalation status.
-- Compliance export: package audit events for a date range or PR into a CSV/JSON bundle.
+- Compliance export: package audit events for a date range or PR into a CSV/JSON bundle. **(AI-authorship evidence bundle shipped — `GET /api/compliance/authorship/export`; see `features/AI_GOVERNANCE.md`)**
 - Executive summary dashboard: weekly AI-assisted PRs, high-risk rate, approval latency, test-gap rate, and avoided-risk stories.
 - Developer feedback loop: let reviewers mark risk signals as useful/noisy to tune rules over time.
 - Support diagnostics: a workspace-level page showing connected app, last webhook, last sync, plan, usage, and recent failures.

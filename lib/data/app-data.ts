@@ -8,6 +8,7 @@ import {
   getRepository as getDemoRepository,
   getRepositoryPullRequests as getDemoRepositoryPullRequests,
   getRepositoryRules as getDemoRepositoryRules,
+  getAgentIdentityRules as getDemoAgentIdentityRules,
   pullRequests as demoPullRequests,
   repositories as demoRepositories,
   users as demoUsers,
@@ -27,6 +28,8 @@ import { getPrismaClient } from '@/lib/prisma'
 import type { PrismaClient } from '@/lib/generated/prisma/client'
 import type {
   ActivityEvent,
+  AgentIdentityRule,
+  AttributionEvidence,
   AuditExport,
   AuditEvent,
   BillingStatus,
@@ -164,6 +167,8 @@ type PullRequestRow = {
   status: string
   aiAssisted: boolean | null
   agentSource: string
+  attributionConfidence: number
+  attributionEvidence: unknown
   riskScore: number
   riskLevel: string
   testGapStatus: string
@@ -362,6 +367,33 @@ function stringArrayFromJson(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
     : []
+}
+
+const attributionSignals = new Set<AttributionEvidence['signal']>([
+  'commit_trailer',
+  'bot_account',
+  'email_domain',
+  'branch_prefix',
+  'label',
+  'title_keyword',
+  'registry_rule',
+])
+
+function attributionEvidenceFromJson(value: unknown): AttributionEvidence[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is AttributionEvidence => {
+    if (!item || typeof item !== 'object') return false
+    const candidate = item as Record<string, unknown>
+    return (
+      typeof candidate.signal === 'string' &&
+      attributionSignals.has(
+        candidate.signal as AttributionEvidence['signal'],
+      ) &&
+      typeof candidate.agentSource === 'string' &&
+      typeof candidate.detail === 'string' &&
+      typeof candidate.weight === 'number'
+    )
+  })
 }
 
 function recordFromJson(
@@ -667,8 +699,7 @@ function mapOrganization(
     billingStatus: (row.billingStatus ?? 'active') as BillingStatus,
     lemonSqueezyCustomerId: row.lemonSqueezyCustomerId ?? null,
     lemonSqueezySubscriptionId: row.lemonSqueezySubscriptionId ?? null,
-    lemonSqueezySubscriptionStatus:
-      row.lemonSqueezySubscriptionStatus ?? null,
+    lemonSqueezySubscriptionStatus: row.lemonSqueezySubscriptionStatus ?? null,
     trialEndsAt: row.trialEndsAt ? toIso(row.trialEndsAt) : undefined,
     cancellationEffectiveAt: row.cancellationEffectiveAt
       ? toIso(row.cancellationEffectiveAt)
@@ -693,8 +724,7 @@ export const getCurrentOrganization = cache(
         planKey: sessionOrganization.planKey,
         githubInstallationId: sessionOrganization.githubInstallationId,
         billingStatus: sessionOrganization.billingStatus,
-        lemonSqueezyCustomerId:
-          sessionOrganization.lemonSqueezyCustomerId,
+        lemonSqueezyCustomerId: sessionOrganization.lemonSqueezyCustomerId,
         lemonSqueezySubscriptionId:
           sessionOrganization.lemonSqueezySubscriptionId,
         lemonSqueezySubscriptionStatus:
@@ -849,6 +879,8 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
     status: row.status as PullRequest['status'],
     aiAssisted: row.aiAssisted,
     agentSource: row.agentSource as PullRequest['agentSource'],
+    attributionConfidence: row.attributionConfidence,
+    attributionEvidence: attributionEvidenceFromJson(row.attributionEvidence),
     riskScore: row.riskScore,
     riskLevel: row.riskLevel as PullRequest['riskLevel'],
     testGapStatus: row.testGapStatus as PullRequest['testGapStatus'],
@@ -1075,6 +1107,40 @@ export async function getRepositoryRules(
     },
     () => getDemoRepositoryRules(repositoryId),
     'repository rules',
+  )
+}
+
+export function mapAgentIdentityRule(row: {
+  id: string
+  agentSource: string
+  matchType: string
+  pattern: string
+  enabled: boolean
+  createdAt: Date
+  updatedAt: Date
+}): AgentIdentityRule {
+  return {
+    id: row.id,
+    agentSource: row.agentSource as AgentIdentityRule['agentSource'],
+    matchType: row.matchType as AgentIdentityRule['matchType'],
+    pattern: row.pattern,
+    enabled: row.enabled,
+    createdAt: toIso(row.createdAt),
+    updatedAt: toIso(row.updatedAt),
+  }
+}
+
+export async function listAgentIdentityRules(organizationId: string) {
+  return queryWithDemoFallback(
+    async (client) => {
+      const rows = await client.agentIdentityRule.findMany({
+        where: { organizationId },
+        orderBy: [{ enabled: 'desc' }, { updatedAt: 'desc' }],
+      })
+      return rows.map(mapAgentIdentityRule)
+    },
+    () => getDemoAgentIdentityRules(),
+    'agent identity rules',
   )
 }
 

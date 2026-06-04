@@ -260,7 +260,9 @@ async function RepositoriesContent({ searchParams }: PageProps) {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/repositories/${repository.id}/ai`}>
+                                <Link
+                                  href={`/repositories/${repository.id}/ai`}
+                                >
                                   <SettingsIcon aria-hidden="true" />
                                   AI settings
                                 </Link>

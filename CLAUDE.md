@@ -82,15 +82,15 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **Prefer `cmd.exe` for all terminal commands on Windows** — not PowerShell.
 
-| Do (cmd) | Don't (PowerShell) |
-| --- | --- |
-| `cmd /c "cd /d path && pnpm test"` | `cd path; pnpm test` |
-| `set FOO=bar && command` | `$env:FOO = "bar"; command` |
-| Chain with `&&` | Chain with `;` or pipelines when unnecessary |
+| Do (cmd)                           | Don't (PowerShell)                           |
+| ---------------------------------- | -------------------------------------------- |
+| `cmd /c "cd /d path && pnpm test"` | `cd path; pnpm test`                         |
+| `set FOO=bar && command`           | `$env:FOO = "bar"; command`                  |
+| Chain with `&&`                    | Chain with `;` or pipelines when unnecessary |
 
 Only use PowerShell when the user explicitly requests it.
 
-**Important:** This file guides command *syntax*. Cursor may still spawn PowerShell for the agent shell on Windows. To change that, see **Cursor shell setup** below and `.vscode/settings.json` in this repo.
+**Important:** This file guides command _syntax_. Cursor may still spawn PowerShell for the agent shell on Windows. To change that, see **Cursor shell setup** below and `.vscode/settings.json` in this repo.
 
 ### Cursor shell setup (Windows)
 

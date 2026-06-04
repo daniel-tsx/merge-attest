@@ -1,120 +1,416 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Architecture Documentation</title>
-  <style>
-    :root {
-      --bg: #fafafa; --surface: #fff; --border: #e4e4e7; --text: #18181b;
-      --muted: #71717a; --accent: #2563eb; --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5; --mono: ui-monospace, "Cascadia Code", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--sans); font-size: 15px; line-height: 1.65; color: var(--text); background: var(--bg); }
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 2rem 1.5rem; }
-    header h1 { margin: 0 0 0.35rem; font-size: 1.75rem; font-weight: 650; }
-    header p { margin: 0; color: var(--muted); max-width: 52rem; }
-    .meta { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
-    main { max-width: 56rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-    h2 { font-size: 1.25rem; font-weight: 650; margin: 2rem 0 1rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border); }
-    h2:first-child { margin-top: 0; }
-    p, ul { margin: 0 0 0.85rem; }
-    ul { padding-left: 1.35rem; }
-    code { font-family: var(--mono); font-size: 0.875em; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
-    .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.45; white-space: pre; overflow-x: auto; margin: 0 0 1rem; }
-    .grid { display: grid; gap: 0.75rem; }
-    @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
-    .card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; text-decoration: none; color: inherit; transition: border-color 0.15s; }
-    .card:hover { border-color: var(--accent); }
-    .card h3 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--accent); }
-    .card p { margin: 0; font-size: 0.875rem; color: var(--muted); line-height: 1.5; }
-    .tag { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-bottom: 0.4rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin: 0 0 1rem; }
-    th, td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-    th { background: var(--code-bg); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
-    tr:last-child td { border-bottom: none; }
-    footer { border-top: 1px solid var(--border); padding: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--muted); }
-    a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate Architecture Documentation</h1>
-    <p>
-      Deep-dive HTML references for system structure, domain flows, integrations, and operational
-      boundaries. Complements the markdown overview in
-      <code>docs/SYSTEM_DESIGN.md</code> and task-specific docs under <code>docs/features/</code>.
-    </p>
-    <p class="meta">Status: <strong>current</strong> &nbsp;·&nbsp; Last verified: June 2026</p>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Architecture Documentation</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #fff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --mono: ui-monospace, 'Cascadia Code', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 52rem;
+      }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 650;
+        margin: 2rem 0 1rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid var(--border);
+      }
+      h2:first-child {
+        margin-top: 0;
+      }
+      p,
+      ul {
+        margin: 0 0 0.85rem;
+      }
+      ul {
+        padding-left: 1.35rem;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.875em;
+        background: var(--code-bg);
+        padding: 0.1em 0.35em;
+        border-radius: 4px;
+      }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+      }
+      .grid {
+        display: grid;
+        gap: 0.75rem;
+      }
+      @media (min-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .card {
+        display: block;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.1rem;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s;
+      }
+      .card:hover {
+        border-color: var(--accent);
+      }
+      .card h3 {
+        margin: 0 0 0.35rem;
+        font-size: 1rem;
+        color: var(--accent);
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .tag {
+        display: inline-block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.1rem 0.4rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-bottom: 0.4rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 0 0 1rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        background: var(--code-bg);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate Architecture Documentation</h1>
+      <p>
+        Deep-dive HTML references for system structure, domain flows,
+        integrations, and operational boundaries. Complements the markdown
+        overview in
+        <code>docs/SYSTEM_DESIGN.md</code> and task-specific docs under
+        <code>docs/features/</code>.
+      </p>
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp; Last verified: June 2026
+      </p>
+    </header>
 
-  <main>
-    <h2>System context</h2>
-    <div class="diagram">Clients          Edge           App (Next.js)              Domain (lib/)           Data
-───────          ────           ─────────────              ─────────────           ────
-Browser    →   proxy.ts   →   RSC pages / API routes  →  app-data, risk,    →  PostgreSQL
-GitHub WH  →   rate limit →   auth session            →  github-sync,       →  (Prisma)
-Lemon WH   →   CSRF       →   org context             →  billing, jobs      →  demo fallback
-Job cron   →   headers    →   client islands          →  ai, audit          →</div>
+    <main>
+      <h2>System context</h2>
+      <div class="diagram">
+        Clients Edge App (Next.js) Domain (lib/) Data ─────── ──── ─────────────
+        ───────────── ──── Browser → proxy.ts → RSC pages / API routes →
+        app-data, risk, → PostgreSQL GitHub WH → rate limit → auth session →
+        github-sync, → (Prisma) Lemon WH → CSRF → org context → billing, jobs →
+        demo fallback Job cron → headers → client islands → ai, audit →
+      </div>
 
-    <h2>Read order</h2>
-    <table>
-      <thead><tr><th>Audience</th><th>Suggested path</th></tr></thead>
-      <tbody>
-        <tr><td>New engineer</td><td>index → <a href="authentication-architecture.html">Auth</a> → <a href="database-architecture.html">Database</a> → <a href="frontend-architecture.html">Frontend</a> → <a href="governance-architecture.html">Governance</a></td></tr>
-        <tr><td>Integration / backend</td><td><a href="github-integration-architecture.html">GitHub</a> → <a href="jobs-and-async-architecture.html">Jobs</a> → <a href="billing-and-entitlements-architecture.html">Billing</a></td></tr>
-        <tr><td>Production / SRE</td><td><a href="deployment-runtime-architecture.html">Deployment</a> → <a href="security-architecture.html">Security</a> → <a href="observability-architecture.html">Observability</a></td></tr>
-        <tr><td>Compliance</td><td><a href="audit-and-compliance-architecture.html">Audit</a> → <a href="database-architecture.html#retention">Database retention</a></td></tr>
-        <tr><td>AI features</td><td><a href="ai-review-architecture.html">AI review</a> (advisory layer; model execution disabled)</td></tr>
-      </tbody>
-    </table>
+      <h2>Read order</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Audience</th>
+            <th>Suggested path</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>New engineer</td>
+            <td>
+              index → <a href="authentication-architecture.html">Auth</a> →
+              <a href="database-architecture.html">Database</a> →
+              <a href="frontend-architecture.html">Frontend</a> →
+              <a href="governance-architecture.html">Governance</a>
+            </td>
+          </tr>
+          <tr>
+            <td>Integration / backend</td>
+            <td>
+              <a href="github-integration-architecture.html">GitHub</a> →
+              <a href="jobs-and-async-architecture.html">Jobs</a> →
+              <a href="billing-and-entitlements-architecture.html">Billing</a>
+            </td>
+          </tr>
+          <tr>
+            <td>Production / SRE</td>
+            <td>
+              <a href="deployment-runtime-architecture.html">Deployment</a> →
+              <a href="security-architecture.html">Security</a> →
+              <a href="observability-architecture.html">Observability</a>
+            </td>
+          </tr>
+          <tr>
+            <td>Compliance</td>
+            <td>
+              <a href="audit-and-compliance-architecture.html">Audit</a> →
+              <a href="database-architecture.html#retention"
+                >Database retention</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>AI features</td>
+            <td>
+              <a href="ai-review-architecture.html">AI review</a> (advisory
+              layer; model execution disabled)
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-    <h2>Question → document</h2>
-    <table>
-      <thead><tr><th>Question</th><th>Document</th></tr></thead>
-      <tbody>
-        <tr><td>How do users sign in and what can each role do?</td><td><a href="authentication-architecture.html">Authentication</a></td></tr>
-        <tr><td>What tables exist and how is data scoped?</td><td><a href="database-architecture.html">Database</a></td></tr>
-        <tr><td>How are risk scores and rules computed?</td><td><a href="governance-architecture.html">Governance</a></td></tr>
-        <tr><td>How do GitHub webhooks and sync work?</td><td><a href="github-integration-architecture.html">GitHub integration</a></td></tr>
-        <tr><td>How are background jobs triggered and retried?</td><td><a href="jobs-and-async-architecture.html">Jobs &amp; async</a></td></tr>
-        <tr><td>How do plans and usage limits work?</td><td><a href="billing-and-entitlements-architecture.html">Billing &amp; entitlements</a></td></tr>
-        <tr><td>How is AI review queued (not executed yet)?</td><td><a href="ai-review-architecture.html">AI review</a></td></tr>
-        <tr><td>How are pages and components structured?</td><td><a href="frontend-architecture.html">Frontend</a></td></tr>
-        <tr><td>What is the overall security model?</td><td><a href="security-architecture.html">Security</a></td></tr>
-        <tr><td>How do we log and diagnose issues?</td><td><a href="observability-architecture.html">Observability</a></td></tr>
-        <tr><td>How is the app deployed and configured?</td><td><a href="deployment-runtime-architecture.html">Deployment &amp; runtime</a></td></tr>
-        <tr><td>How is audit evidence stored and exported?</td><td><a href="audit-and-compliance-architecture.html">Audit &amp; compliance</a></td></tr>
-      </tbody>
-    </table>
+      <h2>Question → document</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th>
+            <th>Document</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>How do users sign in and what can each role do?</td>
+            <td>
+              <a href="authentication-architecture.html">Authentication</a>
+            </td>
+          </tr>
+          <tr>
+            <td>What tables exist and how is data scoped?</td>
+            <td><a href="database-architecture.html">Database</a></td>
+          </tr>
+          <tr>
+            <td>How are risk scores and rules computed?</td>
+            <td><a href="governance-architecture.html">Governance</a></td>
+          </tr>
+          <tr>
+            <td>How do GitHub webhooks and sync work?</td>
+            <td>
+              <a href="github-integration-architecture.html"
+                >GitHub integration</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>How are background jobs triggered and retried?</td>
+            <td>
+              <a href="jobs-and-async-architecture.html">Jobs &amp; async</a>
+            </td>
+          </tr>
+          <tr>
+            <td>How do plans and usage limits work?</td>
+            <td>
+              <a href="billing-and-entitlements-architecture.html"
+                >Billing &amp; entitlements</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>How is AI review queued (not executed yet)?</td>
+            <td><a href="ai-review-architecture.html">AI review</a></td>
+          </tr>
+          <tr>
+            <td>How are pages and components structured?</td>
+            <td><a href="frontend-architecture.html">Frontend</a></td>
+          </tr>
+          <tr>
+            <td>What is the overall security model?</td>
+            <td><a href="security-architecture.html">Security</a></td>
+          </tr>
+          <tr>
+            <td>How do we log and diagnose issues?</td>
+            <td><a href="observability-architecture.html">Observability</a></td>
+          </tr>
+          <tr>
+            <td>How is the app deployed and configured?</td>
+            <td>
+              <a href="deployment-runtime-architecture.html"
+                >Deployment &amp; runtime</a
+              >
+            </td>
+          </tr>
+          <tr>
+            <td>How is audit evidence stored and exported?</td>
+            <td>
+              <a href="audit-and-compliance-architecture.html"
+                >Audit &amp; compliance</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-    <h2>All architecture documents</h2>
-    <div class="grid">
-      <a class="card" href="authentication-architecture.html"><span class="tag">Foundation</span><h3>Authentication</h3><p>Sessions, RBAC, edge gate, webhooks &amp; job auth.</p></a>
-      <a class="card" href="database-architecture.html"><span class="tag">Foundation</span><h3>Database</h3><p>Schema, indexes, data flow, retention, Prisma setup.</p></a>
-      <a class="card" href="governance-architecture.html"><span class="tag">Core product</span><h3>Governance</h3><p>Risk scoring, test gaps, rules, approvals pipeline.</p></a>
-      <a class="card" href="github-integration-architecture.html"><span class="tag">Core product</span><h3>GitHub integration</h3><p>App install, sync, webhooks, GitHub output.</p></a>
-      <a class="card" href="jobs-and-async-architecture.html"><span class="tag">Core product</span><h3>Jobs &amp; async</h3><p>Webhook queue, AI worker, retention cron, idempotency.</p></a>
-      <a class="card" href="billing-and-entitlements-architecture.html"><span class="tag">Platform</span><h3>Billing &amp; entitlements</h3><p>Lemon Squeezy, plans, usage metering, feature gates.</p></a>
-      <a class="card" href="ai-review-architecture.html"><span class="tag">Platform</span><h3>AI review</h3><p>BYOK credentials, job lifecycle, diff guardrails.</p></a>
-      <a class="card" href="frontend-architecture.html"><span class="tag">Presentation</span><h3>Frontend</h3><p>RSC, shells, URL state, page composition patterns.</p></a>
-      <a class="card" href="security-architecture.html"><span class="tag">Cross-cutting</span><h3>Security</h3><p>Threat model, secrets, tenant isolation, CSRF.</p></a>
-      <a class="card" href="observability-architecture.html"><span class="tag">Cross-cutting</span><h3>Observability</h3><p>Structured logs, diagnostics, intentional gaps.</p></a>
-      <a class="card" href="deployment-runtime-architecture.html"><span class="tag">Cross-cutting</span><h3>Deployment &amp; runtime</h3><p>Vercel/serverless, env validation, demo vs prod.</p></a>
-      <a class="card" href="audit-and-compliance-architecture.html"><span class="tag">Cross-cutting</span><h3>Audit &amp; compliance</h3><p>Audit events, exports, retention, evidence chain.</p></a>
-    </div>
+      <h2>All architecture documents</h2>
+      <div class="grid">
+        <a class="card" href="authentication-architecture.html"
+          ><span class="tag">Foundation</span>
+          <h3>Authentication</h3>
+          <p>Sessions, RBAC, edge gate, webhooks &amp; job auth.</p></a
+        >
+        <a class="card" href="database-architecture.html"
+          ><span class="tag">Foundation</span>
+          <h3>Database</h3>
+          <p>Schema, indexes, data flow, retention, Prisma setup.</p></a
+        >
+        <a class="card" href="governance-architecture.html"
+          ><span class="tag">Core product</span>
+          <h3>Governance</h3>
+          <p>Risk scoring, test gaps, rules, approvals pipeline.</p></a
+        >
+        <a class="card" href="github-integration-architecture.html"
+          ><span class="tag">Core product</span>
+          <h3>GitHub integration</h3>
+          <p>App install, sync, webhooks, GitHub output.</p></a
+        >
+        <a class="card" href="jobs-and-async-architecture.html"
+          ><span class="tag">Core product</span>
+          <h3>Jobs &amp; async</h3>
+          <p>Webhook queue, AI worker, retention cron, idempotency.</p></a
+        >
+        <a class="card" href="billing-and-entitlements-architecture.html"
+          ><span class="tag">Platform</span>
+          <h3>Billing &amp; entitlements</h3>
+          <p>Lemon Squeezy, plans, usage metering, feature gates.</p></a
+        >
+        <a class="card" href="ai-review-architecture.html"
+          ><span class="tag">Platform</span>
+          <h3>AI review</h3>
+          <p>BYOK credentials, job lifecycle, diff guardrails.</p></a
+        >
+        <a class="card" href="frontend-architecture.html"
+          ><span class="tag">Presentation</span>
+          <h3>Frontend</h3>
+          <p>RSC, shells, URL state, page composition patterns.</p></a
+        >
+        <a class="card" href="security-architecture.html"
+          ><span class="tag">Cross-cutting</span>
+          <h3>Security</h3>
+          <p>Threat model, secrets, tenant isolation, CSRF.</p></a
+        >
+        <a class="card" href="observability-architecture.html"
+          ><span class="tag">Cross-cutting</span>
+          <h3>Observability</h3>
+          <p>Structured logs, diagnostics, intentional gaps.</p></a
+        >
+        <a class="card" href="deployment-runtime-architecture.html"
+          ><span class="tag">Cross-cutting</span>
+          <h3>Deployment &amp; runtime</h3>
+          <p>Vercel/serverless, env validation, demo vs prod.</p></a
+        >
+        <a class="card" href="audit-and-compliance-architecture.html"
+          ><span class="tag">Cross-cutting</span>
+          <h3>Audit &amp; compliance</h3>
+          <p>Audit events, exports, retention, evidence chain.</p></a
+        >
+      </div>
 
-    <h2>Related markdown docs</h2>
-    <ul>
-      <li><code>docs/SYSTEM_DESIGN.md</code> — living overview (layers, flows, UI model)</li>
-      <li><code>docs/features/API.md</code> — HTTP endpoint reference</li>
-      <li><code>docs/features/DESIGN_SYSTEM.md</code> — tokens and component rules</li>
-      <li><code>docs/operations/OPERATIONS_RUNBOOK.md</code> — cron jobs and incidents</li>
-    </ul>
-  </main>
+      <h2>Related markdown docs</h2>
+      <ul>
+        <li>
+          <code>docs/SYSTEM_DESIGN.md</code> — living overview (layers, flows,
+          UI model)
+        </li>
+        <li><code>docs/features/API.md</code> — HTTP endpoint reference</li>
+        <li>
+          <code>docs/features/DESIGN_SYSTEM.md</code> — tokens and component
+          rules
+        </li>
+        <li>
+          <code>docs/operations/OPERATIONS_RUNBOOK.md</code> — cron jobs and
+          incidents
+        </li>
+      </ul>
+    </main>
 
-  <footer>AgentGate architecture hub · June 2026</footer>
-</body>
+    <footer>AgentGate architecture hub · June 2026</footer>
+  </body>
 </html>

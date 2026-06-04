@@ -1,11 +1,22 @@
 import { Badge } from '@/components/ui/badge'
 import type {
+  AgentSource,
   AiReviewStatus,
   ApprovalStatus,
   CiStatus,
   RiskLevel,
   TestGapStatus,
 } from '@/lib/types'
+
+export function AgentBadge({ agentSource }: { agentSource: AgentSource }) {
+  const tone =
+    agentSource === 'manual' || agentSource === 'unknown' ? 'slate' : 'blue'
+  return (
+    <Badge tone={tone} withDot>
+      {agentSource.replaceAll('_', ' ')}
+    </Badge>
+  )
+}
 
 export function RiskBadge({ level }: { level: RiskLevel }) {
   const tone =

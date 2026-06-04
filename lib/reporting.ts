@@ -1,5 +1,6 @@
 import type {
   ActivityEvent,
+  AgentSource,
   AiReviewJobSummary,
   AuditEvent,
   PullRequest,
@@ -109,7 +110,9 @@ export function buildSignalTrends(
     keys.map((key) => {
       const series = counts[key]
       const earlier = series.slice(0, half).reduce((a, b) => a + b, 0)
-      const later = series.slice(series.length - half).reduce((a, b) => a + b, 0)
+      const later = series
+        .slice(series.length - half)
+        .reduce((a, b) => a + b, 0)
       const trend = later > earlier ? 'up' : later < earlier ? 'down' : 'flat'
       return [key, { series, trend }]
     }),
@@ -253,6 +256,179 @@ export function buildAiReviewMetrics(pullRequests: PullRequest[]) {
   }
 
   return metrics
+}
+
+export type AuthorshipLedger = {
+  totals: {
+    total: number
+    aiAuthored: number
+    aiAuthoredPct: number
+    humanAuthored: number
+    aiLinesAdded: number
+    totalLinesAdded: number
+    aiLinePct: number
+  }
+  reviewCoverage: {
+    aiMerged: number
+    aiMergedReviewed: number
+    aiMergedBypassed: number
+    reviewedPct: number
+  }
+  byAgent: Array<{
+    agentSource: AgentSource
+    count: number
+    pct: number
+    linesAdded: number
+    reviewedCount: number
+    bypassedCount: number
+    avgRiskScore: number
+  }>
+  trend: Array<{
+    date: string
+    aiAuthoredPct: number
+    aiCount: number
+    total: number
+  }>
+}
+
+function authorshipPercent(part: number, whole: number) {
+  return whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0
+}
+
+function isAiAuthored(pullRequest: PullRequest) {
+  return pullRequest.aiAssisted === true
+}
+
+function isHumanReviewed(pullRequest: PullRequest) {
+  return (
+    pullRequest.approvalStatus === 'approved' ||
+    pullRequest.approvalStatus === 'risk_accepted'
+  )
+}
+
+/**
+ * AI authorship ledger — what share of pull requests (and added lines) AI agents
+ * authored, how that splits by agent, and how much AI-authored merged work
+ * carried a human sign-off. Counts are PR- and line-volume based (not intra-file
+ * blame), so framing in the UI/export stays honest.
+ */
+export function buildAuthorshipLedger(
+  pullRequests: PullRequest[],
+  days = 14,
+): AuthorshipLedger {
+  const total = pullRequests.length
+  const aiPullRequests = pullRequests.filter(isAiAuthored)
+  const aiAuthored = aiPullRequests.length
+  const totalLinesAdded = pullRequests.reduce(
+    (sum, pr) => sum + pr.linesAdded,
+    0,
+  )
+  const aiLinesAdded = aiPullRequests.reduce(
+    (sum, pr) => sum + pr.linesAdded,
+    0,
+  )
+
+  const aiMergedPullRequests = aiPullRequests.filter(
+    (pr) => pr.status === 'merged',
+  )
+  const aiMergedReviewed = aiMergedPullRequests.filter(isHumanReviewed).length
+  const aiMerged = aiMergedPullRequests.length
+
+  const agentBuckets = new Map<
+    AgentSource,
+    {
+      count: number
+      linesAdded: number
+      reviewedCount: number
+      bypassedCount: number
+      riskTotal: number
+    }
+  >()
+  for (const pullRequest of pullRequests) {
+    const bucket = agentBuckets.get(pullRequest.agentSource) ?? {
+      count: 0,
+      linesAdded: 0,
+      reviewedCount: 0,
+      bypassedCount: 0,
+      riskTotal: 0,
+    }
+    bucket.count += 1
+    bucket.linesAdded += pullRequest.linesAdded
+    bucket.riskTotal += pullRequest.riskScore
+    if (pullRequest.status === 'merged') {
+      if (isHumanReviewed(pullRequest)) bucket.reviewedCount += 1
+      else bucket.bypassedCount += 1
+    }
+    agentBuckets.set(pullRequest.agentSource, bucket)
+  }
+
+  const byAgent = Array.from(agentBuckets.entries())
+    .map(([agentSource, bucket]) => ({
+      agentSource,
+      count: bucket.count,
+      pct: authorshipPercent(bucket.count, total),
+      linesAdded: bucket.linesAdded,
+      reviewedCount: bucket.reviewedCount,
+      bypassedCount: bucket.bypassedCount,
+      avgRiskScore: bucket.count
+        ? Math.round(bucket.riskTotal / bucket.count)
+        : 0,
+    }))
+    .sort((left, right) => right.count - left.count)
+
+  return {
+    totals: {
+      total,
+      aiAuthored,
+      aiAuthoredPct: authorshipPercent(aiAuthored, total),
+      humanAuthored: total - aiAuthored,
+      aiLinesAdded,
+      totalLinesAdded,
+      aiLinePct: authorshipPercent(aiLinesAdded, totalLinesAdded),
+    },
+    reviewCoverage: {
+      aiMerged,
+      aiMergedReviewed,
+      aiMergedBypassed: aiMerged - aiMergedReviewed,
+      reviewedPct: authorshipPercent(aiMergedReviewed, aiMerged),
+    },
+    byAgent,
+    trend: buildAuthorshipTrend(pullRequests, days),
+  }
+}
+
+function buildAuthorshipTrend(pullRequests: PullRequest[], days: number) {
+  const latest = pullRequests.reduce((max, pr) => {
+    const time = new Date(pr.updatedAt).getTime()
+    return Number.isFinite(time) ? Math.max(max, time) : max
+  }, 0)
+  const end = latest ? new Date(latest) : new Date()
+  const buckets = new Map<string, { total: number; aiCount: number }>()
+  for (let index = 0; index < days; index += 1) {
+    const day = new Date(
+      Date.UTC(
+        end.getUTCFullYear(),
+        end.getUTCMonth(),
+        end.getUTCDate() - (days - 1 - index),
+      ),
+    )
+    buckets.set(day.toISOString().slice(0, 10), { total: 0, aiCount: 0 })
+  }
+
+  for (const pullRequest of pullRequests) {
+    const key = new Date(pullRequest.updatedAt).toISOString().slice(0, 10)
+    const bucket = buckets.get(key)
+    if (!bucket) continue
+    bucket.total += 1
+    if (isAiAuthored(pullRequest)) bucket.aiCount += 1
+  }
+
+  return Array.from(buckets.entries()).map(([date, bucket]) => ({
+    date,
+    total: bucket.total,
+    aiCount: bucket.aiCount,
+    aiAuthoredPct: authorshipPercent(bucket.aiCount, bucket.total),
+  }))
 }
 
 export function buildPullRequestTimeline(input: {

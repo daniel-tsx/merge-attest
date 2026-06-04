@@ -1,839 +1,1334 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Governance Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Governance Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.1rem 0.45rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 0.25rem;
+      }
 
-    .tag.warn { background: var(--warn-bg); color: #b45309; }
+      .tag.warn {
+        background: var(--warn-bg);
+        color: #b45309;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    .related a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Governance Architecture</h1>
-    <p>
-      Deterministic pull-request governance: risk scoring from changed files and metadata,
-      test-gap heuristics, configurable repo rules, approval workflows, and persistence during
-      GitHub sync. Verified against code as of June 2026.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      Related: <a href="index.html">Architecture index</a>,
-      <a href="database-architecture.html">Database architecture</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#pipeline">Pipeline</a></li>
-      <li><a href="#risk">Risk scoring</a></li>
-      <li><a href="#test-gap">Test gap</a></li>
-      <li><a href="#rules">Rules engine</a></li>
-      <li><a href="#approvals">Approvals</a></li>
-      <li><a href="#persistence">Persistence</a></li>
-      <li><a href="#github-sync">GitHub sync</a></li>
-      <li><a href="#caveats">Caveats</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      .related a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Governance Architecture</h1>
       <p>
-        AgentGate governance is a <strong>deterministic, rule-based pipeline</strong> that runs
-        on every pull request sync. It inspects changed file paths, inferred agent metadata, and
-        (when available) CI status to produce a risk score, test-gap assessment, rule violations,
-        and approval requirement — all without calling an LLM.
+        Deterministic pull-request governance: risk scoring from changed files
+        and metadata, test-gap heuristics, configurable repo rules, approval
+        workflows, and persistence during GitHub sync. Verified against code as
+        of June 2026.
       </p>
-      <p>The pipeline has four core modules:</p>
-      <ol>
-        <li><strong>Risk scoring</strong> — <code>lib/risk.ts</code> aggregates weighted signals from path patterns and PR metadata.</li>
-        <li><strong>Test gap detection</strong> — <code>lib/test-gap.ts</code> flags source changes without accompanying test files.</li>
-        <li><strong>Rules engine</strong> — <code>lib/rules.ts</code> evaluates org/repo rules against the PR context.</li>
-        <li><strong>Approvals</strong> — <code>lib/approvals.ts</code> + <code>lib/collaboration.ts</code> map human decisions to status and audit events.</li>
-      </ol>
-      <div class="callout good">
-        <strong>Deterministic only — AI is separate</strong>
-        Risk, test gap, and rule evaluation use regex heuristics and thresholds only. After sync,
-        <code>enqueueAiReviewJob</code> may queue an optional LLM review (<a href="ai-review-architecture.html">AI review architecture</a>);
-        that layer is advisory and does not feed back into risk scores or rule matching.
-      </div>
-      <p>
-        Orchestration lives in <code>lib/github-sync.ts</code> inside
-        <code>syncGitHubPullRequestRecord</code>. Results are persisted to PostgreSQL via Prisma
-        and surfaced in the dashboard, approvals queue, and (on eligible plans) GitHub check runs.
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp; Related:
+        <a href="index.html">Architecture index</a>,
+        <a href="database-architecture.html">Database architecture</a>
       </p>
-    </section>
+    </header>
 
-    <section id="pipeline">
-      <h2>2. Pipeline Diagram</h2>
-
-      <div class="diagram">GitHub webhook / manual sync / backfill
-        │
-        ▼
-listGitHubPullRequestFiles()
-        │
-        ▼
-mapGitHubPullRequestFile()          ← path, additions, deletions, changeType
-        │
-        ├─ inferAgentSource()         ← author + title + branch heuristics
-        └─ inferAiAssisted()          ← agentSource !== 'manual'
-        │
-        ▼
-┌───────────────────────────────────────────────────────────────────┐
-│  calculateRisk({ aiAssisted, ciStatus, files })     lib/risk.ts   │
-│  detectTestGap({ title, files })                 lib/test-gap.ts  │
-│  evaluateRepoRules(rules, context)                  lib/rules.ts  │
-└───────────────────────────────────────────────────────────────────┘
-        │
-        ▼
-requiresApproval?                   ← violations + risk.score >= 50 + aiAssisted
-        │
-        ▼
-getNextApprovalState()              ← preserve decision if same headSha
-defaultReviewDueAt(riskLevel)       ← 1 day (high/critical) or 3 days
-        │
-        ▼
-prisma.pullRequest.upsert()         ← riskScore, riskLevel, testGapStatus, approvalStatus
-  + replace PullRequestFile, RiskSignal, RuleViolation, TestGapAnalysis rows
-  + AuditEvent (pr_synced | risk_score_calculated)
-        │
-        ├─ enqueueAiReviewJob()       ← separate async LLM path (optional)
-        └─ publishAgentGateCheckRun() ← plan-gated GitHub output</div>
-
-      <h3>2.1 Inputs and outputs</h3>
-      <table>
-        <thead>
-          <tr><th>Stage</th><th>Primary inputs</th><th>Primary outputs</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Risk</td>
-            <td>Changed files, <code>aiAssisted</code>, <code>ciStatus</code></td>
-            <td><code>score</code> (0–100), <code>level</code>, <code>signals[]</code></td>
-          </tr>
-          <tr>
-            <td>Test gap</td>
-            <td>Changed files, PR title</td>
-            <td><code>status</code> (none | warning | high), suggestions</td>
-          </tr>
-          <tr>
-            <td>Rules</td>
-            <td>Enabled <code>RepoRule</code> rows + PR context</td>
-            <td><code>RuleViolation[]</code> with action types</td>
-          </tr>
-          <tr>
-            <td>Approval state</td>
-            <td>Violations, risk score, existing PR row</td>
-            <td><code>approvalStatus</code>, <code>reviewDueAt</code></td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="risk">
-      <h2>3. Risk Scoring (<code>lib/risk.ts</code>)</h2>
-      <p>
-        <code>calculateRisk</code> builds an array of <code>RiskSignal</code> objects, each with a
-        fixed point contribution. The total score is the sum of signal scores, capped at
-        <strong>100</strong>. The aggregate level comes from <code>mapRiskLevel(score)</code>.
-      </p>
-
-      <h3>3.1 Level thresholds</h3>
-      <table>
-        <thead><tr><th>Score range</th><th><code>RiskLevel</code></th></tr></thead>
-        <tbody>
-          <tr><td>≥ 75</td><td><code>critical</code></td></tr>
-          <tr><td>≥ 50</td><td><code>high</code></td></tr>
-          <tr><td>≥ 25</td><td><code>medium</code></td></tr>
-          <tr><td>&lt; 25</td><td><code>low</code></td></tr>
-        </tbody>
-      </table>
-      <p>Each individual signal also gets its own level via the same <code>mapRiskLevel</code> helper applied to its score.</p>
-
-      <h3>3.2 Path pattern categories</h3>
-      <p>Signals are triggered when changed file paths match exported patterns in <code>riskPatterns</code>:</p>
-      <table>
-        <thead>
-          <tr><th>Pattern key</th><th>Matches (examples)</th><th>Signal key</th><th>Points</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>auth</code></td>
-            <td><code>auth</code>, <code>session</code>, <code>permission</code>, <code>policy</code>, <code>acl</code>, <code>rbac</code>, <code>middleware</code></td>
-            <td><code>auth_changed</code></td>
-            <td>25</td>
-          </tr>
-          <tr>
-            <td><code>billing</code></td>
-            <td><code>billing</code>, <code>stripe</code>, <code>lemonsqueezy</code>, <code>payment</code>, <code>checkout</code>, …</td>
-            <td><code>billing_changed</code></td>
-            <td>25</td>
-          </tr>
-          <tr>
-            <td><code>migration</code></td>
-            <td><code>prisma/migrations</code>, <code>schema.prisma</code>, …</td>
-            <td><code>db_migration</code></td>
-            <td>20</td>
-          </tr>
-          <tr>
-            <td><code>dependency</code></td>
-            <td><code>package.json</code>, lockfiles, <code>go.mod</code>, <code>Cargo.toml</code>, …</td>
-            <td><code>dependency_changed</code></td>
-            <td>15</td>
-          </tr>
-          <tr>
-            <td><code>infra</code></td>
-            <td><code>Dockerfile</code>, <code>.github/workflows</code>, <code>terraform</code>, <code>next.config</code>, …</td>
-            <td><code>infra_changed</code></td>
-            <td>15</td>
-          </tr>
-          <tr>
-            <td><code>api</code></td>
-            <td><code>app/api</code>, <code>pages/api</code>, <code>routes/</code>, <code>graphql</code>, …</td>
-            <td><code>api_changed</code></td>
-            <td>15</td>
-          </tr>
-          <tr>
-            <td><code>test</code></td>
-            <td><code>tests/</code>, <code>__tests__/</code>, <code>*.test.ts</code>, <code>*.spec.tsx</code>, …</td>
-            <td>— (used by <code>hasTestFiles</code>)</td>
-            <td>—</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>3.3 Non-path signals</h3>
-      <table>
-        <thead><tr><th>Condition</th><th>Signal key</th><th>Points</th></tr></thead>
-        <tbody>
-          <tr><td><code>aiAssisted === true</code></td><td><code>ai_assisted</code></td><td>10</td></tr>
-          <tr><td>No test files in diff</td><td><code>no_tests</code></td><td>15</td></tr>
-          <tr><td><code>ciStatus === 'failing'</code></td><td><code>failing_ci</code></td><td>20</td></tr>
-          <tr><td>≥ 500 changed lines or ≥ 12 files</td><td><code>large_diff</code></td><td>10</td></tr>
-          <tr>
-            <td>Dependency file + security package name in path or &gt; 20 line churn</td>
-            <td><code>security_package</code></td>
-            <td>15</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="callout warn">
-        <strong>CI status during sync</strong>
-        <code>syncGitHubPullRequestRecord</code> currently passes <code>ciStatus: 'unknown'</code>
-        into risk and rules evaluation. The <code>failing_ci</code> signal and
-        <code>failing_ci</code> rule trigger only fire when CI status is explicitly
-        <code>failing</code> — not during the default sync path.
-      </div>
-    </section>
-
-    <section id="test-gap">
-      <h2>4. Test Gap Detection (<code>lib/test-gap.ts</code>)</h2>
-      <p>
-        <code>detectTestGap</code> compares changed <em>source</em> files (TypeScript, JavaScript,
-        Go, Ruby, Python, Java, C# — excluding test paths) against whether any test files appear
-        in the same diff via <code>hasTestFiles</code>.
-      </p>
-
-      <h3>4.1 Status outcomes</h3>
-      <table>
-        <thead><tr><th>Status</th><th>When</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>none</code></td>
-            <td>No qualifying source files changed, <em>or</em> test files are present in the diff</td>
-          </tr>
-          <tr>
-            <td><code>warning</code></td>
-            <td>Source files changed without tests, but none are high-impact paths</td>
-          </tr>
-          <tr>
-            <td><code>high</code></td>
-            <td>Source files changed without tests, and at least one high-impact file matched</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>4.2 High-impact file detection</h3>
-      <p>A changed source file is high-impact when its path matches any of:</p>
+    <nav>
       <ul>
-        <li><code>riskPatterns.auth</code>, <code>billing</code>, <code>migration</code>, or <code>api</code></li>
-        <li><code>BUSINESS_PATTERN</code> — <code>services/</code>, <code>lib/</code>, <code>domain/</code>, <code>modules/</code>, <code>use-cases/</code></li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#pipeline">Pipeline</a></li>
+        <li><a href="#risk">Risk scoring</a></li>
+        <li><a href="#test-gap">Test gap</a></li>
+        <li><a href="#rules">Rules engine</a></li>
+        <li><a href="#approvals">Approvals</a></li>
+        <li><a href="#persistence">Persistence</a></li>
+        <li><a href="#github-sync">GitHub sync</a></li>
+        <li><a href="#caveats">Caveats</a></li>
+        <li><a href="#files">File map</a></li>
       </ul>
-      <p>
-        PR titles matching <code>/\b(fix|bug|regression|hotfix)\b/i</code> increase suggestion
-        confidence and add a regression-test recommendation, but do not alone change status from
-        <code>warning</code> to <code>high</code>.
-      </p>
+    </nav>
 
-      <h3>4.3 Suggestions</h3>
-      <p>For gaps, the function returns up to five suggested test file paths and contextual test cases:</p>
-      <ul>
-        <li>API routes → <code>tests/integration/api-routes.test.ts</code></li>
-        <li>UI paths (<code>components/</code>, <code>app/**/page.tsx</code>) → <code>tests/components/…</code></li>
-        <li>Other sources → sibling <code>.test.ts</code> under <code>tests/lib/</code></li>
-      </ul>
-      <p>
-        Additional case strings are appended for bug-fix titles, API changes, and UI file changes.
-        Confidence is <code>high</code> when high-impact files or bug-fix titles are present;
-        otherwise <code>medium</code>.
-      </p>
-    </section>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AgentGate governance is a
+          <strong>deterministic, rule-based pipeline</strong> that runs on every
+          pull request sync. It inspects changed file paths, inferred agent
+          metadata, and (when available) CI status to produce a risk score,
+          test-gap assessment, rule violations, and approval requirement — all
+          without calling an LLM.
+        </p>
+        <p>The pipeline has four core modules:</p>
+        <ol>
+          <li>
+            <strong>Risk scoring</strong> — <code>lib/risk.ts</code> aggregates
+            weighted signals from path patterns and PR metadata.
+          </li>
+          <li>
+            <strong>Test gap detection</strong> —
+            <code>lib/test-gap.ts</code> flags source changes without
+            accompanying test files.
+          </li>
+          <li>
+            <strong>Rules engine</strong> — <code>lib/rules.ts</code> evaluates
+            org/repo rules against the PR context.
+          </li>
+          <li>
+            <strong>Approvals</strong> — <code>lib/approvals.ts</code> +
+            <code>lib/collaboration.ts</code> map human decisions to status and
+            audit events.
+          </li>
+        </ol>
+        <div class="callout good">
+          <strong>Deterministic only — AI is separate</strong>
+          Risk, test gap, and rule evaluation use regex heuristics and
+          thresholds only. After sync,
+          <code>enqueueAiReviewJob</code> may queue an optional LLM review (<a
+            href="ai-review-architecture.html"
+            >AI review architecture</a
+          >); that layer is advisory and does not feed back into risk scores or
+          rule matching.
+        </div>
+        <p>
+          Orchestration lives in <code>lib/github-sync.ts</code> inside
+          <code>syncGitHubPullRequestRecord</code>. Results are persisted to
+          PostgreSQL via Prisma and surfaced in the dashboard, approvals queue,
+          and (on eligible plans) GitHub check runs.
+        </p>
+      </section>
 
-    <section id="rules">
-      <h2>5. Rules Engine (<code>lib/rules.ts</code>)</h2>
-      <p>
-        <code>evaluateRepoRules(rules, pr)</code> filters enabled <code>RepoRule</code> rows,
-        applies scope constraints, then checks trigger conditions. Each match produces an in-memory
-        <code>RuleViolation</code> (persisted separately during sync).
-      </p>
+      <section id="pipeline">
+        <h2>2. Pipeline Diagram</h2>
 
-      <h3>5.1 Trigger types</h3>
-      <table>
-        <thead><tr><th><code>triggerType</code></th><th>Fires when</th></tr></thead>
-        <tbody>
-          <tr><td><code>ai_assisted</code></td><td><code>pr.aiAssisted === true</code></td></tr>
-          <tr><td><code>high_risk</code></td><td><code>riskLevel</code> is <code>high</code> or <code>critical</code></td></tr>
-          <tr><td><code>auth_changed</code></td><td>Risk signal key <code>auth_changed</code> present</td></tr>
-          <tr><td><code>billing_changed</code></td><td>Risk signal key <code>billing_changed</code> present</td></tr>
-          <tr><td><code>database_migration</code></td><td>Risk signal key <code>db_migration</code> present</td></tr>
-          <tr><td><code>dependency_changed</code></td><td>Risk signal key <code>dependency_changed</code> present</td></tr>
-          <tr><td><code>high_test_gap</code></td><td><code>testGapStatus === 'high'</code></td></tr>
-          <tr><td><code>failing_ci</code></td><td><code>ciStatus === 'failing'</code></td></tr>
-        </tbody>
-      </table>
+        <div class="diagram">
+          GitHub webhook / manual sync / backfill │ ▼
+          listGitHubPullRequestFiles() │ ▼ mapGitHubPullRequestFile() ← path,
+          additions, deletions, changeType │ ├─ inferAgentSource() ← author +
+          title + branch heuristics └─ inferAiAssisted() ← agentSource !==
+          'manual' │ ▼
+          ┌───────────────────────────────────────────────────────────────────┐
+          │ calculateRisk({ aiAssisted, ciStatus, files }) lib/risk.ts │ │
+          detectTestGap({ title, files }) lib/test-gap.ts │ │
+          evaluateRepoRules(rules, context) lib/rules.ts │
+          └───────────────────────────────────────────────────────────────────┘
+          │ ▼ requiresApproval? ← violations + risk.score >= 50 + aiAssisted │ ▼
+          getNextApprovalState() ← preserve decision if same headSha
+          defaultReviewDueAt(riskLevel) ← 1 day (high/critical) or 3 days │ ▼
+          prisma.pullRequest.upsert() ← riskScore, riskLevel, testGapStatus,
+          approvalStatus + replace PullRequestFile, RiskSignal, RuleViolation,
+          TestGapAnalysis rows + AuditEvent (pr_synced | risk_score_calculated)
+          │ ├─ enqueueAiReviewJob() ← separate async LLM path (optional) └─
+          publishAgentGateCheckRun() ← plan-gated GitHub output
+        </div>
 
-      <h3>5.2 Scope filters (<code>matchesScope</code>)</h3>
-      <p>All configured scopes on a rule must pass before the trigger is evaluated:</p>
-      <table>
-        <thead><tr><th>Scope field</th><th>Behavior</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>branchPattern</code></td>
-            <td>Comma-separated substrings or <code>*</code> globs matched against head branch name</td>
-          </tr>
-          <tr>
-            <td><code>pathPattern</code></td>
-            <td>Must match at least one changed file path or risk signal <code>filePaths</code> entry</td>
-          </tr>
-          <tr>
-            <td><code>labelPattern</code></td>
-            <td>Must match at least one PR label (labels are empty during default GitHub sync)</td>
-          </tr>
-          <tr>
-            <td><code>agentSource</code></td>
-            <td>Exact match; skipped when rule value is <code>unknown</code></td>
-          </tr>
-          <tr>
-            <td><code>minimumRiskLevel</code></td>
-            <td>PR risk rank must meet or exceed rule minimum (<code>low</code> &lt; <code>medium</code> &lt; <code>high</code> &lt; <code>critical</code>)</td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>2.1 Inputs and outputs</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Primary inputs</th>
+              <th>Primary outputs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Risk</td>
+              <td>
+                Changed files, <code>aiAssisted</code>, <code>ciStatus</code>
+              </td>
+              <td>
+                <code>score</code> (0–100), <code>level</code>,
+                <code>signals[]</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Test gap</td>
+              <td>Changed files, PR title</td>
+              <td><code>status</code> (none | warning | high), suggestions</td>
+            </tr>
+            <tr>
+              <td>Rules</td>
+              <td>Enabled <code>RepoRule</code> rows + PR context</td>
+              <td><code>RuleViolation[]</code> with action types</td>
+            </tr>
+            <tr>
+              <td>Approval state</td>
+              <td>Violations, risk score, existing PR row</td>
+              <td><code>approvalStatus</code>, <code>reviewDueAt</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-      <h3>5.3 Action types</h3>
-      <table>
-        <thead><tr><th><code>actionType</code></th><th>Effect in pipeline</th></tr></thead>
-        <tbody>
-          <tr><td><code>warn</code></td><td>Recorded as violation; does not alone require approval</td></tr>
-          <tr><td><code>require_approval</code></td><td>Contributes to <code>requiresApproval</code></td></tr>
-          <tr><td><code>block_merge</code></td><td>Contributes to <code>requiresApproval</code></td></tr>
-          <tr><td><code>request_tests</code></td><td>Contributes to <code>requiresApproval</code></td></tr>
-          <tr><td><code>request_security_review</code></td><td>Contributes to <code>requiresApproval</code></td></tr>
-          <tr><td><code>publish_github_check</code></td><td>Rule metadata only; check run publishing is plan-gated separately</td></tr>
-        </tbody>
-      </table>
-      <p>
-        Optional <code>codeOwnerHint</code> on a rule is copied to violations and surfaced as
-        <code>reviewerSuggestion</code> via <code>suggestReviewerFromViolations</code> in
-        <code>lib/data/app-data.ts</code>.
-      </p>
-    </section>
+      <section id="risk">
+        <h2>3. Risk Scoring (<code>lib/risk.ts</code>)</h2>
+        <p>
+          <code>calculateRisk</code> builds an array of
+          <code>RiskSignal</code> objects, each with a fixed point contribution.
+          The total score is the sum of signal scores, capped at
+          <strong>100</strong>. The aggregate level comes from
+          <code>mapRiskLevel(score)</code>.
+        </p>
 
-    <section id="approvals">
-      <h2>6. Approvals</h2>
+        <h3>3.1 Level thresholds</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Score range</th>
+              <th><code>RiskLevel</code></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>≥ 75</td>
+              <td><code>critical</code></td>
+            </tr>
+            <tr>
+              <td>≥ 50</td>
+              <td><code>high</code></td>
+            </tr>
+            <tr>
+              <td>≥ 25</td>
+              <td><code>medium</code></td>
+            </tr>
+            <tr>
+              <td>&lt; 25</td>
+              <td><code>low</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Each individual signal also gets its own level via the same
+          <code>mapRiskLevel</code> helper applied to its score.
+        </p>
 
-      <h3>6.1 When approval is required</h3>
-      <p>In <code>syncGitHubPullRequestRecord</code>, <code>requiresApproval</code> is true when any of:</p>
-      <ul>
-        <li>A matched rule has action <code>require_approval</code>, <code>request_security_review</code>, <code>request_tests</code>, or <code>block_merge</code></li>
-        <li><code>risk.score >= 50</code> (high or critical level)</li>
-        <li><code>aiAssisted === true</code></li>
-      </ul>
+        <h3>3.2 Path pattern categories</h3>
+        <p>
+          Signals are triggered when changed file paths match exported patterns
+          in <code>riskPatterns</code>:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Pattern key</th>
+              <th>Matches (examples)</th>
+              <th>Signal key</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>auth</code></td>
+              <td>
+                <code>auth</code>, <code>session</code>,
+                <code>permission</code>, <code>policy</code>, <code>acl</code>,
+                <code>rbac</code>, <code>middleware</code>
+              </td>
+              <td><code>auth_changed</code></td>
+              <td>25</td>
+            </tr>
+            <tr>
+              <td><code>billing</code></td>
+              <td>
+                <code>billing</code>, <code>stripe</code>,
+                <code>lemonsqueezy</code>, <code>payment</code>,
+                <code>checkout</code>, …
+              </td>
+              <td><code>billing_changed</code></td>
+              <td>25</td>
+            </tr>
+            <tr>
+              <td><code>migration</code></td>
+              <td>
+                <code>prisma/migrations</code>, <code>schema.prisma</code>, …
+              </td>
+              <td><code>db_migration</code></td>
+              <td>20</td>
+            </tr>
+            <tr>
+              <td><code>dependency</code></td>
+              <td>
+                <code>package.json</code>, lockfiles, <code>go.mod</code>,
+                <code>Cargo.toml</code>, …
+              </td>
+              <td><code>dependency_changed</code></td>
+              <td>15</td>
+            </tr>
+            <tr>
+              <td><code>infra</code></td>
+              <td>
+                <code>Dockerfile</code>, <code>.github/workflows</code>,
+                <code>terraform</code>, <code>next.config</code>, …
+              </td>
+              <td><code>infra_changed</code></td>
+              <td>15</td>
+            </tr>
+            <tr>
+              <td><code>api</code></td>
+              <td>
+                <code>app/api</code>, <code>pages/api</code>,
+                <code>routes/</code>, <code>graphql</code>, …
+              </td>
+              <td><code>api_changed</code></td>
+              <td>15</td>
+            </tr>
+            <tr>
+              <td><code>test</code></td>
+              <td>
+                <code>tests/</code>, <code>__tests__/</code>,
+                <code>*.test.ts</code>, <code>*.spec.tsx</code>, …
+              </td>
+              <td>— (used by <code>hasTestFiles</code>)</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>6.2 Approval state transitions (<code>getNextApprovalState</code>)</h3>
-      <table>
-        <thead><tr><th>Condition</th><th><code>approvalStatus</code></th><th><code>reviewDueAt</code></th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Same <code>headSha</code> and existing status is <code>approved</code>, <code>rejected</code>, or <code>risk_accepted</code></td>
-            <td>Preserved</td>
-            <td>Preserved if pending logic applies</td>
-          </tr>
-          <tr>
-            <td><code>requiresApproval</code> and no preserved decision</td>
-            <td><code>pending</code></td>
-            <td>Existing due date or <code>defaultReviewDueAt(riskLevel)</code></td>
-          </tr>
-          <tr>
-            <td>Not required</td>
-            <td><code>not_required</code></td>
-            <td><code>null</code></td>
-          </tr>
-        </tbody>
-      </table>
-      <p>
-        New commits (different <code>headSha</code>) reset approval to <code>pending</code> when
-        approval is still required, unless the PR no longer meets <code>requiresApproval</code>.
-      </p>
+        <h3>3.3 Non-path signals</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Condition</th>
+              <th>Signal key</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>aiAssisted === true</code></td>
+              <td><code>ai_assisted</code></td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td>No test files in diff</td>
+              <td><code>no_tests</code></td>
+              <td>15</td>
+            </tr>
+            <tr>
+              <td><code>ciStatus === 'failing'</code></td>
+              <td><code>failing_ci</code></td>
+              <td>20</td>
+            </tr>
+            <tr>
+              <td>≥ 500 changed lines or ≥ 12 files</td>
+              <td><code>large_diff</code></td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td>
+                Dependency file + security package name in path or &gt; 20 line
+                churn
+              </td>
+              <td><code>security_package</code></td>
+              <td>15</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>6.3 Review SLA helpers (<code>lib/collaboration.ts</code>)</h3>
-      <table>
-        <thead><tr><th>Function</th><th>Behavior</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>defaultReviewDueAt(riskLevel)</code></td>
-            <td>+1 day for <code>high</code>/<code>critical</code>; +3 days otherwise</td>
-          </tr>
-          <tr>
-            <td><code>getReviewSlaStatus(dueAt)</code></td>
-            <td><code>none</code> | <code>on_track</code> | <code>due_soon</code> (≤ 24h) | <code>overdue</code></td>
-          </tr>
-          <tr>
-            <td><code>suggestReviewerFromViolations</code></td>
-            <td>First violation with <code>codeOwnerHint</code></td>
-          </tr>
-          <tr>
-            <td><code>canRecordApproval(role)</code></td>
-            <td><code>owner</code>, <code>admin</code>, or <code>member</code> — not <code>viewer</code></td>
-          </tr>
-        </tbody>
-      </table>
+        <div class="callout warn">
+          <strong>CI status during sync</strong>
+          <code>syncGitHubPullRequestRecord</code> currently passes
+          <code>ciStatus: 'unknown'</code> into risk and rules evaluation. The
+          <code>failing_ci</code> signal and <code>failing_ci</code> rule
+          trigger only fire when CI status is explicitly <code>failing</code> —
+          not during the default sync path.
+        </div>
+      </section>
 
-      <h3>6.4 Decision mapping (<code>lib/approvals.ts</code>)</h3>
-      <p>Human reviewers submit one of four decisions via <code>recordApprovalDecision</code>:</p>
-      <table>
-        <thead>
-          <tr><th>Decision</th><th><code>approvalStatus</code></th><th><code>AuditEvent.eventType</code></th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>approved</code></td><td><code>approved</code></td><td><code>pr_approved</code></td></tr>
-          <tr><td><code>rejected</code></td><td><code>rejected</code></td><td><code>pr_rejected</code></td></tr>
-          <tr><td><code>risk_accepted</code></td><td><code>risk_accepted</code></td><td><code>risk_accepted</code></td></tr>
-          <tr><td><code>requested_tests</code></td><td><code>pending</code></td><td><code>approval_requested</code></td></tr>
-        </tbody>
-      </table>
-      <p>
-        Recording creates an <code>Approval</code> row, updates <code>PullRequest.approvalStatus</code>,
-        writes an <code>AuditEvent</code>, and (on eligible plans) posts a GitHub comment and
-        refreshes the check run. Approval workflows require the Team plan (<code>isFeatureAvailable(..., 'approvals')</code>).
-      </p>
-    </section>
+      <section id="test-gap">
+        <h2>4. Test Gap Detection (<code>lib/test-gap.ts</code>)</h2>
+        <p>
+          <code>detectTestGap</code> compares changed <em>source</em> files
+          (TypeScript, JavaScript, Go, Ruby, Python, Java, C# — excluding test
+          paths) against whether any test files appear in the same diff via
+          <code>hasTestFiles</code>.
+        </p>
 
-    <section id="persistence">
-      <h2>7. Persistence Mapping</h2>
-      <p>
-        Governance outputs map to Prisma models (see also
-        <a href="database-architecture.html">database architecture</a>). On each sync, child rows
-        for files, signals, violations, and test-gap analysis are deleted and recreated.
-      </p>
+        <h3>4.1 Status outcomes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>none</code></td>
+              <td>
+                No qualifying source files changed, <em>or</em> test files are
+                present in the diff
+              </td>
+            </tr>
+            <tr>
+              <td><code>warning</code></td>
+              <td>
+                Source files changed without tests, but none are high-impact
+                paths
+              </td>
+            </tr>
+            <tr>
+              <td><code>high</code></td>
+              <td>
+                Source files changed without tests, and at least one high-impact
+                file matched
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>7.1 PullRequest (governance fields)</h3>
-      <table>
-        <thead><tr><th>Field</th><th>Source</th></tr></thead>
-        <tbody>
-          <tr><td><code>aiAssisted</code>, <code>agentSource</code></td><td><code>inferAiAssisted</code> / <code>inferAgentSource</code></td></tr>
-          <tr><td><code>riskScore</code>, <code>riskLevel</code></td><td><code>calculateRisk</code></td></tr>
-          <tr><td><code>testGapStatus</code></td><td><code>detectTestGap().status</code></td></tr>
-          <tr><td><code>ciStatus</code></td><td>Stored; currently <code>unknown</code> on sync</td></tr>
-          <tr><td><code>approvalStatus</code>, <code>reviewDueAt</code></td><td><code>getNextApprovalState</code></td></tr>
-          <tr><td><code>filesChangedCount</code>, <code>linesAdded</code>, <code>linesDeleted</code></td><td>Aggregated from file list</td></tr>
-          <tr><td><code>assignedReviewerId</code></td><td>Manual assignment (not set by sync pipeline)</td></tr>
-        </tbody>
-      </table>
+        <h3>4.2 High-impact file detection</h3>
+        <p>
+          A changed source file is high-impact when its path matches any of:
+        </p>
+        <ul>
+          <li>
+            <code>riskPatterns.auth</code>, <code>billing</code>,
+            <code>migration</code>, or <code>api</code>
+          </li>
+          <li>
+            <code>BUSINESS_PATTERN</code> — <code>services/</code>,
+            <code>lib/</code>, <code>domain/</code>, <code>modules/</code>,
+            <code>use-cases/</code>
+          </li>
+        </ul>
+        <p>
+          PR titles matching
+          <code>/\b(fix|bug|regression|hotfix)\b/i</code> increase suggestion
+          confidence and add a regression-test recommendation, but do not alone
+          change status from <code>warning</code> to <code>high</code>.
+        </p>
 
-      <h3>7.2 Related models</h3>
-      <table>
-        <thead><tr><th>Model</th><th>Contents</th><th>Relation</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>PullRequestFile</code></td>
-            <td>Path, additions, deletions, changeType</td>
-            <td>Many per PR; replaced on sync</td>
-          </tr>
-          <tr>
-            <td><code>RiskSignal</code></td>
-            <td>key, label, score, level, filePaths (JSON)</td>
-            <td>Many per PR; one row per signal</td>
-          </tr>
-          <tr>
-            <td><code>TestGapAnalysis</code></td>
-            <td>status, summary, affectedFiles, confidence</td>
-            <td>One per PR (<code>@unique pullRequestId</code>)</td>
-          </tr>
-          <tr>
-            <td><code>TestGapSuggestion</code></td>
-            <td>Suggested testFile + testCase pairs</td>
-            <td>Children of TestGapAnalysis</td>
-          </tr>
-          <tr>
-            <td><code>RuleViolation</code></td>
-            <td>summary, resolved, FK to RepoRule</td>
-            <td>Many per PR; recreated on sync</td>
-          </tr>
-          <tr>
-            <td><code>Approval</code></td>
-            <td>decision, note, reviewerId</td>
-            <td>Append-only history; not cleared on sync</td>
-          </tr>
-          <tr>
-            <td><code>AuditEvent</code></td>
-            <td>Sync, risk, approval, check-run events</td>
-            <td>Append-only; scoped by organizationId</td>
-          </tr>
-          <tr>
-            <td><code>AgentActivity</code></td>
-            <td>Timeline events (actor, agentSource, riskLevel)</td>
-            <td>Optional FK to PullRequest; separate from sync writes</td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>4.3 Suggestions</h3>
+        <p>
+          For gaps, the function returns up to five suggested test file paths
+          and contextual test cases:
+        </p>
+        <ul>
+          <li>
+            API routes → <code>tests/integration/api-routes.test.ts</code>
+          </li>
+          <li>
+            UI paths (<code>components/</code>, <code>app/**/page.tsx</code>) →
+            <code>tests/components/…</code>
+          </li>
+          <li>
+            Other sources → sibling <code>.test.ts</code> under
+            <code>tests/lib/</code>
+          </li>
+        </ul>
+        <p>
+          Additional case strings are appended for bug-fix titles, API changes,
+          and UI file changes. Confidence is <code>high</code> when high-impact
+          files or bug-fix titles are present; otherwise <code>medium</code>.
+        </p>
+      </section>
 
-      <h3>7.3 RepoRule configuration</h3>
-      <p>
-        Rules are stored per repository with trigger, action, severity, and optional scope columns.
-        Managed via settings UI / server actions guarded by <code>canManageRules</code>
-        (owner or admin). Disabled rules are skipped by <code>evaluateRepoRules</code>.
-      </p>
-    </section>
+      <section id="rules">
+        <h2>5. Rules Engine (<code>lib/rules.ts</code>)</h2>
+        <p>
+          <code>evaluateRepoRules(rules, pr)</code> filters enabled
+          <code>RepoRule</code> rows, applies scope constraints, then checks
+          trigger conditions. Each match produces an in-memory
+          <code>RuleViolation</code> (persisted separately during sync).
+        </p>
 
-    <section id="github-sync">
-      <h2>8. Integration with GitHub Sync</h2>
-      <p>
-        <code>lib/github-sync.ts</code> is the sole orchestrator that runs the governance pipeline
-        in production. Entry points:
-      </p>
-      <ul>
-        <li><code>syncGitHubPullRequest</code> — single PR by number (webhook-driven)</li>
-        <li><code>syncGitHubRepository</code> — all open PRs for one repo</li>
-        <li><code>syncGitHubInstallation</code> — all installation repos</li>
-        <li><code>backfillStaleGitHubRepositories</code> — stale repo refresh</li>
-      </ul>
+        <h3>5.1 Trigger types</h3>
+        <table>
+          <thead>
+            <tr>
+              <th><code>triggerType</code></th>
+              <th>Fires when</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ai_assisted</code></td>
+              <td><code>pr.aiAssisted === true</code></td>
+            </tr>
+            <tr>
+              <td><code>high_risk</code></td>
+              <td>
+                <code>riskLevel</code> is <code>high</code> or
+                <code>critical</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>auth_changed</code></td>
+              <td>Risk signal key <code>auth_changed</code> present</td>
+            </tr>
+            <tr>
+              <td><code>billing_changed</code></td>
+              <td>Risk signal key <code>billing_changed</code> present</td>
+            </tr>
+            <tr>
+              <td><code>database_migration</code></td>
+              <td>Risk signal key <code>db_migration</code> present</td>
+            </tr>
+            <tr>
+              <td><code>dependency_changed</code></td>
+              <td>Risk signal key <code>dependency_changed</code> present</td>
+            </tr>
+            <tr>
+              <td><code>high_test_gap</code></td>
+              <td><code>testGapStatus === 'high'</code></td>
+            </tr>
+            <tr>
+              <td><code>failing_ci</code></td>
+              <td><code>ciStatus === 'failing'</code></td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>8.1 Agent inference</h3>
-      <table>
-        <thead><tr><th><code>agentSource</code></th><th>Heuristic</th></tr></thead>
-        <tbody>
-          <tr><td><code>cursor</code></td><td>Author, title, or branch contains "cursor"</td></tr>
-          <tr><td><code>codex</code></td><td>Contains "codex"</td></tr>
-          <tr><td><code>claude_code</code></td><td>Contains "claude"</td></tr>
-          <tr><td><code>copilot</code></td><td>Contains "copilot"</td></tr>
-          <tr><td><code>devin</code></td><td>Contains "devin"</td></tr>
-          <tr><td><code>unknown</code></td><td><code>agent/</code>, <code>-bot</code>, or <code>[ai]</code> in combined string</td></tr>
-          <tr><td><code>manual</code></td><td>Default when no agent markers match</td></tr>
-        </tbody>
-      </table>
-      <p><code>inferAiAssisted</code> returns true for any non-<code>manual</code> source.</p>
+        <h3>5.2 Scope filters (<code>matchesScope</code>)</h3>
+        <p>
+          All configured scopes on a rule must pass before the trigger is
+          evaluated:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Scope field</th>
+              <th>Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>branchPattern</code></td>
+              <td>
+                Comma-separated substrings or <code>*</code> globs matched
+                against head branch name
+              </td>
+            </tr>
+            <tr>
+              <td><code>pathPattern</code></td>
+              <td>
+                Must match at least one changed file path or risk signal
+                <code>filePaths</code> entry
+              </td>
+            </tr>
+            <tr>
+              <td><code>labelPattern</code></td>
+              <td>
+                Must match at least one PR label (labels are empty during
+                default GitHub sync)
+              </td>
+            </tr>
+            <tr>
+              <td><code>agentSource</code></td>
+              <td>
+                Exact match; skipped when rule value is <code>unknown</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>minimumRiskLevel</code></td>
+              <td>
+                PR risk rank must meet or exceed rule minimum (<code>low</code>
+                &lt; <code>medium</code> &lt; <code>high</code> &lt;
+                <code>critical</code>)
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>8.2 Usage metering</h3>
-      <p>
-        Each unique <code>repositoryId:pullNumber:headSha</code> consumes one PR check against
-        plan limits via <code>recordPrChecks</code>. Repeat syncs for the same SHA are idempotent
-        for billing (<code>canRunPrCheck</code> allows re-runs when usage row exists).
-      </p>
+        <h3>5.3 Action types</h3>
+        <table>
+          <thead>
+            <tr>
+              <th><code>actionType</code></th>
+              <th>Effect in pipeline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>warn</code></td>
+              <td>Recorded as violation; does not alone require approval</td>
+            </tr>
+            <tr>
+              <td><code>require_approval</code></td>
+              <td>Contributes to <code>requiresApproval</code></td>
+            </tr>
+            <tr>
+              <td><code>block_merge</code></td>
+              <td>Contributes to <code>requiresApproval</code></td>
+            </tr>
+            <tr>
+              <td><code>request_tests</code></td>
+              <td>Contributes to <code>requiresApproval</code></td>
+            </tr>
+            <tr>
+              <td><code>request_security_review</code></td>
+              <td>Contributes to <code>requiresApproval</code></td>
+            </tr>
+            <tr>
+              <td><code>publish_github_check</code></td>
+              <td>
+                Rule metadata only; check run publishing is plan-gated
+                separately
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Optional <code>codeOwnerHint</code> on a rule is copied to violations
+          and surfaced as <code>reviewerSuggestion</code> via
+          <code>suggestReviewerFromViolations</code> in
+          <code>lib/data/app-data.ts</code>.
+        </p>
+      </section>
 
-      <h3>8.3 GitHub check run output</h3>
-      <p>
-        When the org plan includes <code>githubComments</code>, sync publishes an AgentGate check
-        run with risk score, level, test gap status, CI status, and approval status. Failures to
-        publish are logged but do not roll back persisted governance data.
-      </p>
+      <section id="approvals">
+        <h2>6. Approvals</h2>
 
-      <h3>8.4 Post-sync AI review</h3>
-      <p>
-        After persistence, <code>enqueueAiReviewJob</code> queues optional LLM analysis. This job
-        does not mutate risk scores, rules, or approval state — it is a parallel advisory channel
-        documented separately.
-      </p>
-    </section>
+        <h3>6.1 When approval is required</h3>
+        <p>
+          In <code>syncGitHubPullRequestRecord</code>,
+          <code>requiresApproval</code> is true when any of:
+        </p>
+        <ul>
+          <li>
+            A matched rule has action <code>require_approval</code>,
+            <code>request_security_review</code>, <code>request_tests</code>, or
+            <code>block_merge</code>
+          </li>
+          <li><code>risk.score >= 50</code> (high or critical level)</li>
+          <li><code>aiAssisted === true</code></li>
+        </ul>
 
-    <section id="caveats">
-      <h2>9. Caveats</h2>
+        <h3>
+          6.2 Approval state transitions (<code>getNextApprovalState</code>)
+        </h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Condition</th>
+              <th><code>approvalStatus</code></th>
+              <th><code>reviewDueAt</code></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Same <code>headSha</code> and existing status is
+                <code>approved</code>, <code>rejected</code>, or
+                <code>risk_accepted</code>
+              </td>
+              <td>Preserved</td>
+              <td>Preserved if pending logic applies</td>
+            </tr>
+            <tr>
+              <td><code>requiresApproval</code> and no preserved decision</td>
+              <td><code>pending</code></td>
+              <td>
+                Existing due date or <code>defaultReviewDueAt(riskLevel)</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Not required</td>
+              <td><code>not_required</code></td>
+              <td><code>null</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          New commits (different <code>headSha</code>) reset approval to
+          <code>pending</code> when approval is still required, unless the PR no
+          longer meets <code>requiresApproval</code>.
+        </p>
 
-      <table>
-        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Heuristic, not semantic</td>
-            <td>Risk and test gap use path regexes only. Renamed or unconventional directory layouts may miss or false-positive.</td>
-          </tr>
-          <tr>
-            <td>CI not wired on sync</td>
-            <td><code>ciStatus</code> is stored as <code>unknown</code> during sync; <code>failing_ci</code> signals/rules need explicit CI integration.</td>
-          </tr>
-          <tr>
-            <td>Labels empty on sync</td>
-            <td><code>evaluateRepoRules</code> receives <code>labels: []</code>; label-scoped rules never match until labels are fetched.</td>
-          </tr>
-          <tr>
-            <td>AI-assisted by string match</td>
-            <td>Agent detection is substring heuristics on author/title/branch — not cryptographically verified agent identity.</td>
-          </tr>
-          <tr>
-            <td>Approval reset on new SHA</td>
-            <td>New commits clear prior approval when approval is still required; reviewers must re-approve.</td>
-          </tr>
-          <tr>
-            <td>Violations replaced each sync</td>
-            <td><code>resolved</code> state on violations is lost on resync because rows are deleted and recreated.</td>
-          </tr>
-          <tr>
-            <td>Plan gating</td>
-            <td>Recording approvals and GitHub check output require Team+ entitlements; scoring still runs on all plans within PR check limits.</td>
-          </tr>
-          <tr>
-            <td>Separate from LLM review</td>
-            <td>AI review jobs may comment on code quality but do not change deterministic governance outputs.</td>
-          </tr>
-          <tr>
-            <td><code>block_merge</code> is logical</td>
-            <td>Sets approval requirement in AgentGate; actual GitHub branch protection merge blocking is external.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <h3>6.3 Review SLA helpers (<code>lib/collaboration.ts</code>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>defaultReviewDueAt(riskLevel)</code></td>
+              <td>
+                +1 day for <code>high</code>/<code>critical</code>; +3 days
+                otherwise
+              </td>
+            </tr>
+            <tr>
+              <td><code>getReviewSlaStatus(dueAt)</code></td>
+              <td>
+                <code>none</code> | <code>on_track</code> |
+                <code>due_soon</code> (≤ 24h) | <code>overdue</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>suggestReviewerFromViolations</code></td>
+              <td>First violation with <code>codeOwnerHint</code></td>
+            </tr>
+            <tr>
+              <td><code>canRecordApproval(role)</code></td>
+              <td>
+                <code>owner</code>, <code>admin</code>, or <code>member</code> —
+                not <code>viewer</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-    <section id="files">
-      <h2>10. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/risk.ts</code></td><td>Path patterns, <code>calculateRisk</code>, <code>mapRiskLevel</code>, <code>hasTestFiles</code></td></tr>
-          <tr><td><code>lib/test-gap.ts</code></td><td><code>detectTestGap</code>, source/test classification, suggestions</td></tr>
-          <tr><td><code>lib/rules.ts</code></td><td>Scope matching, trigger evaluation, <code>evaluateRepoRules</code></td></tr>
-          <tr><td><code>lib/approvals.ts</code></td><td>Decision validation, status and audit event mapping</td></tr>
-          <tr><td><code>lib/collaboration.ts</code></td><td><code>canRecordApproval</code>, review SLA, reviewer suggestion</td></tr>
-          <tr><td><code>lib/github-sync.ts</code></td><td>Pipeline orchestration, persistence, check runs, AI job enqueue</td></tr>
-          <tr><td><code>lib/types.ts</code></td><td>Shared governance types (RiskLevel, RepoRule, RuleViolation, …)</td></tr>
-          <tr><td><code>lib/data/app-data.ts</code></td><td>Maps DB rows to UI PullRequest with SLA and reviewer hint</td></tr>
-          <tr><td><code>app/pull-requests/actions.ts</code></td><td><code>recordApprovalDecision</code> server action</td></tr>
-          <tr><td><code>components/app/approval-actions.tsx</code></td><td>Approval decision UI</td></tr>
-          <tr><td><code>prisma/schema.prisma</code></td><td>PullRequest, RiskSignal, TestGapAnalysis, RuleViolation, Approval, AuditEvent, AgentActivity</td></tr>
-          <tr><td><code>tests/risk.test.ts</code>, <code>tests/test-gap.test.ts</code>, <code>tests/rules.test.ts</code></td><td>Unit tests for deterministic modules</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+        <h3>6.4 Decision mapping (<code>lib/approvals.ts</code>)</h3>
+        <p>
+          Human reviewers submit one of four decisions via
+          <code>recordApprovalDecision</code>:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Decision</th>
+              <th><code>approvalStatus</code></th>
+              <th><code>AuditEvent.eventType</code></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>approved</code></td>
+              <td><code>approved</code></td>
+              <td><code>pr_approved</code></td>
+            </tr>
+            <tr>
+              <td><code>rejected</code></td>
+              <td><code>rejected</code></td>
+              <td><code>pr_rejected</code></td>
+            </tr>
+            <tr>
+              <td><code>risk_accepted</code></td>
+              <td><code>risk_accepted</code></td>
+              <td><code>risk_accepted</code></td>
+            </tr>
+            <tr>
+              <td><code>requested_tests</code></td>
+              <td><code>pending</code></td>
+              <td><code>approval_requested</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Recording creates an <code>Approval</code> row, updates
+          <code>PullRequest.approvalStatus</code>, writes an
+          <code>AuditEvent</code>, and (on eligible plans) posts a GitHub
+          comment and refreshes the check run. Approval workflows require the
+          Team plan (<code>isFeatureAvailable(..., 'approvals')</code>).
+        </p>
+      </section>
 
-  <footer>
-    AgentGate governance architecture reference · June 2026
-  </footer>
-</body>
+      <section id="persistence">
+        <h2>7. Persistence Mapping</h2>
+        <p>
+          Governance outputs map to Prisma models (see also
+          <a href="database-architecture.html">database architecture</a>). On
+          each sync, child rows for files, signals, violations, and test-gap
+          analysis are deleted and recreated.
+        </p>
+
+        <h3>7.1 PullRequest (governance fields)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>aiAssisted</code>, <code>agentSource</code></td>
+              <td>
+                <code>inferAiAssisted</code> / <code>inferAgentSource</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>riskScore</code>, <code>riskLevel</code></td>
+              <td><code>calculateRisk</code></td>
+            </tr>
+            <tr>
+              <td><code>testGapStatus</code></td>
+              <td><code>detectTestGap().status</code></td>
+            </tr>
+            <tr>
+              <td><code>ciStatus</code></td>
+              <td>Stored; currently <code>unknown</code> on sync</td>
+            </tr>
+            <tr>
+              <td><code>approvalStatus</code>, <code>reviewDueAt</code></td>
+              <td><code>getNextApprovalState</code></td>
+            </tr>
+            <tr>
+              <td>
+                <code>filesChangedCount</code>, <code>linesAdded</code>,
+                <code>linesDeleted</code>
+              </td>
+              <td>Aggregated from file list</td>
+            </tr>
+            <tr>
+              <td><code>assignedReviewerId</code></td>
+              <td>Manual assignment (not set by sync pipeline)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>7.2 Related models</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Contents</th>
+              <th>Relation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>PullRequestFile</code></td>
+              <td>Path, additions, deletions, changeType</td>
+              <td>Many per PR; replaced on sync</td>
+            </tr>
+            <tr>
+              <td><code>RiskSignal</code></td>
+              <td>key, label, score, level, filePaths (JSON)</td>
+              <td>Many per PR; one row per signal</td>
+            </tr>
+            <tr>
+              <td><code>TestGapAnalysis</code></td>
+              <td>status, summary, affectedFiles, confidence</td>
+              <td>One per PR (<code>@unique pullRequestId</code>)</td>
+            </tr>
+            <tr>
+              <td><code>TestGapSuggestion</code></td>
+              <td>Suggested testFile + testCase pairs</td>
+              <td>Children of TestGapAnalysis</td>
+            </tr>
+            <tr>
+              <td><code>RuleViolation</code></td>
+              <td>summary, resolved, FK to RepoRule</td>
+              <td>Many per PR; recreated on sync</td>
+            </tr>
+            <tr>
+              <td><code>Approval</code></td>
+              <td>decision, note, reviewerId</td>
+              <td>Append-only history; not cleared on sync</td>
+            </tr>
+            <tr>
+              <td><code>AuditEvent</code></td>
+              <td>Sync, risk, approval, check-run events</td>
+              <td>Append-only; scoped by organizationId</td>
+            </tr>
+            <tr>
+              <td><code>AgentActivity</code></td>
+              <td>Timeline events (actor, agentSource, riskLevel)</td>
+              <td>Optional FK to PullRequest; separate from sync writes</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>7.3 RepoRule configuration</h3>
+        <p>
+          Rules are stored per repository with trigger, action, severity, and
+          optional scope columns. Managed via settings UI / server actions
+          guarded by <code>canManageRules</code> (owner or admin). Disabled
+          rules are skipped by <code>evaluateRepoRules</code>.
+        </p>
+      </section>
+
+      <section id="github-sync">
+        <h2>8. Integration with GitHub Sync</h2>
+        <p>
+          <code>lib/github-sync.ts</code> is the sole orchestrator that runs the
+          governance pipeline in production. Entry points:
+        </p>
+        <ul>
+          <li>
+            <code>syncGitHubPullRequest</code> — single PR by number
+            (webhook-driven)
+          </li>
+          <li><code>syncGitHubRepository</code> — all open PRs for one repo</li>
+          <li><code>syncGitHubInstallation</code> — all installation repos</li>
+          <li>
+            <code>backfillStaleGitHubRepositories</code> — stale repo refresh
+          </li>
+        </ul>
+
+        <h3>8.1 Agent inference</h3>
+        <table>
+          <thead>
+            <tr>
+              <th><code>agentSource</code></th>
+              <th>Heuristic</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>cursor</code></td>
+              <td>Author, title, or branch contains "cursor"</td>
+            </tr>
+            <tr>
+              <td><code>codex</code></td>
+              <td>Contains "codex"</td>
+            </tr>
+            <tr>
+              <td><code>claude_code</code></td>
+              <td>Contains "claude"</td>
+            </tr>
+            <tr>
+              <td><code>copilot</code></td>
+              <td>Contains "copilot"</td>
+            </tr>
+            <tr>
+              <td><code>devin</code></td>
+              <td>Contains "devin"</td>
+            </tr>
+            <tr>
+              <td><code>unknown</code></td>
+              <td>
+                <code>agent/</code>, <code>-bot</code>, or <code>[ai]</code> in
+                combined string
+              </td>
+            </tr>
+            <tr>
+              <td><code>manual</code></td>
+              <td>Default when no agent markers match</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <code>inferAiAssisted</code> returns true for any non-<code
+            >manual</code
+          >
+          source.
+        </p>
+
+        <h3>8.2 Usage metering</h3>
+        <p>
+          Each unique <code>repositoryId:pullNumber:headSha</code> consumes one
+          PR check against plan limits via <code>recordPrChecks</code>. Repeat
+          syncs for the same SHA are idempotent for billing (<code
+            >canRunPrCheck</code
+          >
+          allows re-runs when usage row exists).
+        </p>
+
+        <h3>8.3 GitHub check run output</h3>
+        <p>
+          When the org plan includes <code>githubComments</code>, sync publishes
+          an AgentGate check run with risk score, level, test gap status, CI
+          status, and approval status. Failures to publish are logged but do not
+          roll back persisted governance data.
+        </p>
+
+        <h3>8.4 Post-sync AI review</h3>
+        <p>
+          After persistence, <code>enqueueAiReviewJob</code> queues optional LLM
+          analysis. This job does not mutate risk scores, rules, or approval
+          state — it is a parallel advisory channel documented separately.
+        </p>
+      </section>
+
+      <section id="caveats">
+        <h2>9. Caveats</h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Heuristic, not semantic</td>
+              <td>
+                Risk and test gap use path regexes only. Renamed or
+                unconventional directory layouts may miss or false-positive.
+              </td>
+            </tr>
+            <tr>
+              <td>CI not wired on sync</td>
+              <td>
+                <code>ciStatus</code> is stored as <code>unknown</code> during
+                sync; <code>failing_ci</code> signals/rules need explicit CI
+                integration.
+              </td>
+            </tr>
+            <tr>
+              <td>Labels empty on sync</td>
+              <td>
+                <code>evaluateRepoRules</code> receives <code>labels: []</code>;
+                label-scoped rules never match until labels are fetched.
+              </td>
+            </tr>
+            <tr>
+              <td>AI-assisted by string match</td>
+              <td>
+                Agent detection is substring heuristics on author/title/branch —
+                not cryptographically verified agent identity.
+              </td>
+            </tr>
+            <tr>
+              <td>Approval reset on new SHA</td>
+              <td>
+                New commits clear prior approval when approval is still
+                required; reviewers must re-approve.
+              </td>
+            </tr>
+            <tr>
+              <td>Violations replaced each sync</td>
+              <td>
+                <code>resolved</code> state on violations is lost on resync
+                because rows are deleted and recreated.
+              </td>
+            </tr>
+            <tr>
+              <td>Plan gating</td>
+              <td>
+                Recording approvals and GitHub check output require Team+
+                entitlements; scoring still runs on all plans within PR check
+                limits.
+              </td>
+            </tr>
+            <tr>
+              <td>Separate from LLM review</td>
+              <td>
+                AI review jobs may comment on code quality but do not change
+                deterministic governance outputs.
+              </td>
+            </tr>
+            <tr>
+              <td><code>block_merge</code> is logical</td>
+              <td>
+                Sets approval requirement in AgentGate; actual GitHub branch
+                protection merge blocking is external.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="files">
+        <h2>10. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/risk.ts</code></td>
+              <td>
+                Path patterns, <code>calculateRisk</code>,
+                <code>mapRiskLevel</code>, <code>hasTestFiles</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/test-gap.ts</code></td>
+              <td>
+                <code>detectTestGap</code>, source/test classification,
+                suggestions
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/rules.ts</code></td>
+              <td>
+                Scope matching, trigger evaluation,
+                <code>evaluateRepoRules</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/approvals.ts</code></td>
+              <td>Decision validation, status and audit event mapping</td>
+            </tr>
+            <tr>
+              <td><code>lib/collaboration.ts</code></td>
+              <td>
+                <code>canRecordApproval</code>, review SLA, reviewer suggestion
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/github-sync.ts</code></td>
+              <td>
+                Pipeline orchestration, persistence, check runs, AI job enqueue
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/types.ts</code></td>
+              <td>
+                Shared governance types (RiskLevel, RepoRule, RuleViolation, …)
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/data/app-data.ts</code></td>
+              <td>Maps DB rows to UI PullRequest with SLA and reviewer hint</td>
+            </tr>
+            <tr>
+              <td><code>app/pull-requests/actions.ts</code></td>
+              <td><code>recordApprovalDecision</code> server action</td>
+            </tr>
+            <tr>
+              <td><code>components/app/approval-actions.tsx</code></td>
+              <td>Approval decision UI</td>
+            </tr>
+            <tr>
+              <td><code>prisma/schema.prisma</code></td>
+              <td>
+                PullRequest, RiskSignal, TestGapAnalysis, RuleViolation,
+                Approval, AuditEvent, AgentActivity
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>tests/risk.test.ts</code>,
+                <code>tests/test-gap.test.ts</code>,
+                <code>tests/rules.test.ts</code>
+              </td>
+              <td>Unit tests for deterministic modules</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <footer>AgentGate governance architecture reference · June 2026</footer>
+  </body>
 </html>

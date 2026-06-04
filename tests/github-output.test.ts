@@ -83,7 +83,9 @@ describe('GitHub AI review output', () => {
 
     expect(body).toContain('## AgentGate AI review')
     expect(body).toContain('Risk: 72 (high)')
-    expect(body).toContain('[Open in AgentGate](https://app.example.test/pull-requests/pr_1)')
+    expect(body).toContain(
+      '[Open in AgentGate](https://app.example.test/pull-requests/pr_1)',
+    )
   })
 
   it('sanitizes AI-authored GitHub markdown before publishing', () => {

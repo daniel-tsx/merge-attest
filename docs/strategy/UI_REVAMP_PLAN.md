@@ -36,11 +36,13 @@ design DNA documented in [`../features/DESIGN_SYSTEM.md`](../features/DESIGN_SYS
 Each phase is independently shippable after Phase 1.
 
 ### Phase 0 — Baseline & guardrails
+
 - Capture before-screenshots of every key surface (light).
 - Confirm `pnpm lint / typecheck / test / build` green as the regression baseline.
 - _Verify:_ baseline green; surfaces inventoried.
 
 ### Phase 1 — Theming foundation: dark mode + elevation scale ✅ shipped
+
 - Added a tuned `.dark` token scale in `globals.css`; `@theme inline` indirection
   lets the `.dark` class re-theme every utility at runtime.
 - Enriched the light + dark elevation scale (`--shadow-card`/`-hover`) for real
@@ -61,6 +63,7 @@ Each phase is independently shippable after Phase 1.
   credentials are available (matters most before Phases 5–6).
 
 ### Phase 2 — Typographic & spacing system ✅ shipped
+
 - Added a `--text-display` theme size (size/leading/tracking/weight bundled) for
   page titles; `PageHeader` title now uses `text-display` instead of `text-[26px]`.
 - Added a single `@utility text-eyebrow` (11px / 500 / uppercase / 0.08em) for the
@@ -78,6 +81,7 @@ Each phase is independently shippable after Phase 1.
   use their own treatment — candidate for the Phase 9 polish pass.)
 
 ### Phase 3 — Primitive depth & state polish + Tooltip/Toast ✅ shipped
+
 - Added `components/ui/tooltip.tsx` (tokenized Radix tooltip, `surface-elevated`
   chip, dark-aware) + a single root `TooltipProvider` in the layout.
 - Added `components/ui/sonner.tsx` (Sonner `Toaster`, theme-synced via
@@ -95,6 +99,7 @@ Each phase is independently shippable after Phase 1.
   delivery not configured, so no verification needed) to verify in-app surfaces.
 
 ### Phase 4 — Command palette (⌘K) ✅ shipped
+
 - Added `components/ui/command.tsx`: tokenized `cmdk` wrapper (Command,
   CommandDialog via Radix Dialog, Input/List/Empty/Group/Item/Separator),
   dark-aware, with an `sr-only` dialog title.
@@ -107,6 +112,7 @@ Each phase is independently shippable after Phase 1.
   can be layered on later.)
 
 ### Phase 5 — Dashboard as a command center ✅ shipped
+
 - Added `buildSignalTrends` (`lib/reporting.ts`, unit-tested): per-signal 7-day
   daily series (bucketed by `updatedAt`) + trend direction, derived from the
   already-loaded PR list — no extra query.
@@ -124,6 +130,7 @@ Each phase is independently shippable after Phase 1.
   typecheck + lint + 220 tests green.
 
 ### Phase 6 — Mutation feedback via toasts ✅ shipped (table interactions → 6b)
+
 - Added `components/app/mutation-toasts.tsx`: reads the `assignment` / `comment`
   result params on PR detail, fires themed Sonner toasts, and strips the params
   via `router.replace` so they don't re-fire on refresh/back. Replaced the inline
@@ -134,6 +141,7 @@ Each phase is independently shippable after Phase 1.
   from the URL; PR detail renders correctly in dark; typecheck + lint + 220 tests.
 
 ### Phase 6b — Table scan interactions (deferred)
+
 - Sortable headers bound to a new `nuqs` sort/dir param (in-memory sort after the
   single fetch), sticky first column, and keyboard row navigation on the scan
   tables. Split out of Phase 6: it adds new URL-state params and carries more
@@ -141,6 +149,7 @@ Each phase is independently shippable after Phase 1.
   server-side filtering authoritative and URL keys export-route-compatible.
 
 ### Phase 7 — Motion & route transitions ✅ shipped (View Transitions deferred)
+
 - Added a reduced-motion-safe `route-enter` animation (subtle fade + 6px rise),
   applied to a `key={pathname}` content wrapper in the app shell so page content
   arrives gracefully on each route change. Uses `backwards` fill (not `both`) so
@@ -156,6 +165,7 @@ Each phase is independently shippable after Phase 1.
   the animation (sticky-safe); no console errors; typecheck + lint + 220 tests.
 
 ### Phase 8 — Marketing + auth elevation ✅ shipped (focused)
+
 - Added the theme toggle to the public surfaces: the landing header nav and a
   top-right control on the auth shell, so visitors aren't stuck on system pref.
 - The marketing landing + auth already re-theme via the token system (verified
@@ -169,6 +179,7 @@ Each phase is independently shippable after Phase 1.
   border-beam / scan-panel hero already reads well in both themes.
 
 ### Phase 9 — QA, a11y, docs ✅ shipped
+
 - Updated `features/DESIGN_SYSTEM.md` (theming, dark scale, `brand-surface`/`scrim`,
   elevation, `text-display`/`text-eyebrow` + the Tailwind v4 `@utility` note,
   Tooltip/Toast/Command primitives, re-scoped deferred list) and `SYSTEM_DESIGN.md`
@@ -181,6 +192,7 @@ Each phase is independently shippable after Phase 1.
   GitHub App env vars (pre-existing fail-closed env validation, not a revamp change).
 
 ### Phase 6b — Table scan interactions ✅ shipped (pull request monitor)
+
 - Added `sort` + `dir` to `app/pull-requests/search-params.ts` and a tested pure
   `sortPullRequests` helper (`app/pull-requests/sort.ts`, in-memory after the
   single fetch — no data-layer change). Comparators rank risk/test/CI/approval so
@@ -197,6 +209,7 @@ Each phase is independently shippable after Phase 1.
   parser/serializer/sort tests pass (225 total).
 
 ## Deferred follow-ups
+
 - Apply the same sort/sticky pattern to the other scan tables (repositories,
   activity, approvals, audit log) if desired.
 - **React `<ViewTransition>`** — once it stabilizes outside Next's experimental channel.

@@ -205,7 +205,8 @@ export function parseUnifiedDiff(diff: string): DiffFile[] {
     }
 
     if (line.startsWith('+++ ')) {
-      currentFile.path = normalizeDiffPath(line.slice(4).trim()) ?? currentFile.path
+      currentFile.path =
+        normalizeDiffPath(line.slice(4).trim()) ?? currentFile.path
       continue
     }
 

@@ -81,7 +81,9 @@ export function HeroScanPanel() {
     const root = rootRef.current
     if (!root) return
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
 
     const stop = () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
@@ -277,7 +279,11 @@ export function HeroScanPanel() {
                   </p>
                 </div>
                 <div style={ringStyle} className="shrink-0">
-                  <ScoreRing score={score} reveal={scoreReveal} settled={settled} />
+                  <ScoreRing
+                    score={score}
+                    reveal={scoreReveal}
+                    settled={settled}
+                  />
                 </div>
               </div>
 
@@ -361,7 +367,10 @@ export function HeroScanPanel() {
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 z-20"
-              style={{ top: `${(beam * 100).toFixed(2)}%`, opacity: beamOpacity }}
+              style={{
+                top: `${(beam * 100).toFixed(2)}%`,
+                opacity: beamOpacity,
+              }}
             >
               <div className="absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(to_top,color-mix(in_srgb,var(--accent)_16%,transparent),transparent)]" />
               <div className="absolute inset-x-0 h-0.5 -translate-y-1/2 bg-accent shadow-[0_0_16px_2px_color-mix(in_srgb,var(--accent)_55%,transparent)]" />

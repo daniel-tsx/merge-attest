@@ -57,9 +57,7 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : 'Invalid Lemon Squeezy webhook.'
+      error instanceof Error ? error.message : 'Invalid Lemon Squeezy webhook.'
     const status = getWebhookErrorStatus(error)
     reportError({
       area: 'billing',
@@ -70,9 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          status === 500
-            ? 'Lemon Squeezy webhook processing failed.'
-            : message,
+          status === 500 ? 'Lemon Squeezy webhook processing failed.' : message,
       },
       { status },
     )

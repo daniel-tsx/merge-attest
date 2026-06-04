@@ -48,6 +48,15 @@ describe('Prisma data mappers', () => {
       status: 'open',
       aiAssisted: true,
       agentSource: 'cursor',
+      attributionConfidence: 95,
+      attributionEvidence: [
+        {
+          signal: 'commit_trailer',
+          agentSource: 'cursor',
+          detail: 'Co-authored-by trailer on 2 commits',
+          weight: 95,
+        },
+      ],
       riskScore: 65,
       riskLevel: 'high',
       testGapStatus: 'high',

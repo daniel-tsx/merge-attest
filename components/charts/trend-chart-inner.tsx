@@ -15,6 +15,7 @@ import {
 type ChartPalette = {
   risk: string
   testGaps: string
+  aiAuthored: string
   grid: string
   axis: string
   surface: string
@@ -27,6 +28,7 @@ type ChartPalette = {
 const fallbackPalette: ChartPalette = {
   risk: 'oklch(0.505 0.17 25)',
   testGaps: 'oklch(0.545 0.145 45)',
+  aiAuthored: 'oklch(0.55 0.18 264)',
   grid: 'oklch(0.873 0.012 264)',
   axis: 'oklch(0.57 0.026 264)',
   surface: 'oklch(0.998 0.001 264)',
@@ -42,6 +44,7 @@ function readPalette(): ChartPalette {
   return {
     risk: read('--danger', fallbackPalette.risk),
     testGaps: read('--attention', fallbackPalette.testGaps),
+    aiAuthored: read('--accent', fallbackPalette.aiAuthored),
     grid: read('--border', fallbackPalette.grid),
     axis: read('--subtle-foreground', fallbackPalette.axis),
     surface: read('--surface-elevated', fallbackPalette.surface),
@@ -55,7 +58,7 @@ export function TrendChartInner({
   metric,
 }: {
   data: Array<Record<string, string | number>>
-  metric: 'risk' | 'testGaps'
+  metric: 'risk' | 'testGaps' | 'aiAuthoredPct'
 }) {
   // Re-read tokens whenever the resolved theme changes so the chart recolors
   // on light/dark toggle. readPalette() reads CSS custom properties that flip
@@ -66,7 +69,12 @@ export function TrendChartInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [resolvedTheme],
   )
-  const color = metric === 'risk' ? palette.risk : palette.testGaps
+  const color =
+    metric === 'risk'
+      ? palette.risk
+      : metric === 'testGaps'
+        ? palette.testGaps
+        : palette.aiAuthored
 
   return (
     <div className="h-64 w-full">

@@ -62,7 +62,9 @@ export function verifyGitHubInstallationState(
   }
 
   try {
-    const parsed = JSON.parse(base64UrlDecode(payload)) as InstallationStatePayload
+    const parsed = JSON.parse(
+      base64UrlDecode(payload),
+    ) as InstallationStatePayload
     if (parsed.organizationId !== expectedOrganizationId) {
       return { ok: false as const, reason: 'organization_mismatch' as const }
     }

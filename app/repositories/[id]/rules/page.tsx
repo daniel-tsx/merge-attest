@@ -402,10 +402,7 @@ export default async function RepositoryRulesPage({
           </p>
         </CardHeader>
         <CardContent>
-          <form
-            action={createRule.bind(null, id)}
-            className="space-y-4"
-          >
+          <form action={createRule.bind(null, id)} className="space-y-4">
             <input type="hidden" name="_action" value="create" />
             <RuleFields />
             <SubmitButton
@@ -515,9 +512,7 @@ async function RulesPolicySections({
                       </Badge>
                     ) : null}
                     {rule.codeOwnerHint ? (
-                      <Badge tone="slate">
-                        Reviewer: {rule.codeOwnerHint}
-                      </Badge>
+                      <Badge tone="slate">Reviewer: {rule.codeOwnerHint}</Badge>
                     ) : null}
                   </div>
                   <div className="text-xs text-subtle-foreground">
@@ -617,10 +612,7 @@ async function RulesPolicySections({
                       </span>
                     </div>
                   </div>
-                  <Badge
-                    tone={violations.length ? 'orange' : 'green'}
-                    withDot
-                  >
+                  <Badge tone={violations.length ? 'orange' : 'green'} withDot>
                     {violations.length
                       ? `${violations.length} ${violations.length === 1 ? 'rule' : 'rules'} fire`
                       : 'No rules fire'}
@@ -657,7 +649,11 @@ async function RulesPolicySections({
 
 function RulesPolicySkeleton() {
   return (
-    <div className="space-y-6" role="status" aria-label="Loading repository policy">
+    <div
+      className="space-y-6"
+      role="status"
+      aria-label="Loading repository policy"
+    >
       {Array.from({ length: 2 }).map((_, card) => (
         <Card key={card}>
           <CardContent className="space-y-3 p-4">

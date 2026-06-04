@@ -1,16 +1,10 @@
 import { reportError } from '@/lib/observability'
 import { getPrismaClient } from '@/lib/prisma'
-import {
-  shouldEnqueueAiReview,
-  stringListFromJson,
-} from '@/lib/ai/settings'
+import { shouldEnqueueAiReview, stringListFromJson } from '@/lib/ai/settings'
 import { getAiReviewTransitionData } from '@/lib/jobs/pr-review-lifecycle'
 import { getOrganizationOpenRouterCredential } from '@/lib/ai/credentials'
 import { getGitHubPullRequestDiff } from '@/lib/github'
-import {
-  filterDiffFiles,
-  parseUnifiedDiff,
-} from '@/lib/github/diff'
+import { filterDiffFiles, parseUnifiedDiff } from '@/lib/github/diff'
 
 export type AiReviewQueueProcessResult = {
   processed: number

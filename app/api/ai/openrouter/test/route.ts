@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import { canManageSettings } from '@/lib/collaboration'
-import { normalizeOpenRouterKey, verifyOpenRouterKey } from '@/lib/ai/openrouter'
+import {
+  normalizeOpenRouterKey,
+  verifyOpenRouterKey,
+} from '@/lib/ai/openrouter'
 import { getPrismaClient } from '@/lib/prisma'
 
 const MAX_OPENROUTER_TEST_BODY_BYTES = 8192
@@ -46,11 +49,11 @@ export async function POST(request: Request) {
     )
   }
 
-  const body = (rawBody
-    ? await Promise.resolve().then(
-        () => JSON.parse(rawBody) as { apiKey?: unknown } | null,
-      ).catch(() => null)
-    : null)
+  const body = rawBody
+    ? await Promise.resolve()
+        .then(() => JSON.parse(rawBody) as { apiKey?: unknown } | null)
+        .catch(() => null)
+    : null
   const apiKey = normalizeOpenRouterKey(body?.apiKey)
   const result = await verifyOpenRouterKey(apiKey)
 

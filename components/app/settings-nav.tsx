@@ -6,6 +6,7 @@ import {
   Bell,
   BrainCircuit,
   Database,
+  Fingerprint,
   GitPullRequest,
   KeyRound,
   Receipt,
@@ -44,6 +45,12 @@ const items: Array<{
     label: 'AI reviews',
     icon: BrainCircuit,
     description: 'Review provider access',
+  },
+  {
+    href: '/settings/agents',
+    label: 'Agent registry',
+    icon: Fingerprint,
+    description: 'AI authorship attribution',
   },
   {
     href: '/settings/billing',

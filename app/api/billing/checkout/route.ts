@@ -36,8 +36,7 @@ export async function POST(request: Request) {
   if (getBillingMode() === 'unconfigured') {
     return NextResponse.json(
       {
-        error:
-          'Lemon Squeezy must be configured before production checkout.',
+        error: 'Lemon Squeezy must be configured before production checkout.',
       },
       { status: 503 },
     )

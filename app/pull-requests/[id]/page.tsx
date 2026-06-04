@@ -12,6 +12,7 @@ import {
   UserCircle2,
 } from 'lucide-react'
 import { EmptyState } from '@/components/app/empty-state'
+import { AttributionPanel } from '@/components/app/attribution-panel'
 import { ApprovalActions } from '@/components/app/approval-actions'
 import { MutationToasts } from '@/components/app/mutation-toasts'
 import { addReviewNote, assignReviewer } from '@/app/pull-requests/actions'
@@ -86,10 +87,7 @@ export default async function PullRequestDetailPage({
       <PageHeader
         eyebrow={
           <span className="inline-flex items-center gap-1.5">
-            <GitPullRequest
-              className="size-3.5"
-              aria-hidden="true"
-            />
+            <GitPullRequest className="size-3.5" aria-hidden="true" />
             {pr.repositoryName}
           </span>
         }
@@ -127,9 +125,7 @@ export default async function PullRequestDetailPage({
                 Risk score
               </div>
               <div className="mt-1 text-sm text-foreground">
-                <span className="font-semibold capitalize">
-                  {pr.riskLevel}
-                </span>{' '}
+                <span className="font-semibold capitalize">{pr.riskLevel}</span>{' '}
                 <span className="text-muted-foreground">
                   · {pr.riskSignals.length}{' '}
                   {pr.riskSignals.length === 1 ? 'signal' : 'signals'}
@@ -218,9 +214,7 @@ export default async function PullRequestDetailPage({
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="font-semibold text-foreground">
-                  AI review
-                </div>
+                <div className="font-semibold text-foreground">AI review</div>
                 <AiReviewBadge status={latestAiReview?.status} />
               </div>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -258,6 +252,13 @@ export default async function PullRequestDetailPage({
 
       <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
+          <AttributionPanel
+            agentSource={pr.agentSource}
+            aiAssisted={pr.aiAssisted}
+            confidence={pr.attributionConfidence}
+            evidence={pr.attributionEvidence}
+          />
+
           <Card>
             <CardHeader>
               <CardTitle>Risk summary</CardTitle>
@@ -647,9 +648,7 @@ export default async function PullRequestDetailPage({
   )
 }
 
-type LoadedPullRequest = NonNullable<
-  Awaited<ReturnType<typeof getPullRequest>>
->
+type LoadedPullRequest = NonNullable<Awaited<ReturnType<typeof getPullRequest>>>
 
 async function ReviewTimeline({
   organizationId,

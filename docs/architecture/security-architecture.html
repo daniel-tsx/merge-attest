@@ -1,628 +1,976 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Security Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Security Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.1rem 0.45rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 0.25rem;
+      }
 
-    .tag.warn { background: var(--warn-bg); color: #b45309; }
+      .tag.warn {
+        background: var(--warn-bg);
+        color: #b45309;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    .related a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Security Architecture</h1>
-    <p>
-      Holistic security beyond authentication: tenant isolation, edge protections, webhook
-      verification, secrets at rest, production fail-closed configuration, and operational
-      limitations. Complements the session and RBAC model in
-      <a href="authentication-architecture.html">authentication architecture</a>.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a>
-      &nbsp;·&nbsp;
-      <a href="authentication-architecture.html">Authentication</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#model">Threat model</a></li>
-      <li><a href="#tenant">Tenant isolation</a></li>
-      <li><a href="#edge">Edge (proxy.ts)</a></li>
-      <li><a href="#webhooks">Webhooks</a></li>
-      <li><a href="#secrets">Secrets at rest</a></li>
-      <li><a href="#admin">Admin 404</a></li>
-      <li><a href="#headers">Security headers</a></li>
-      <li><a href="#env">Production env</a></li>
-      <li><a href="#limits">Known limits</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      .related a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Security Architecture</h1>
       <p>
-        AgentGate security is layered: edge middleware (<code>proxy.ts</code>) applies rate
-        limits, CSRF-style origin checks, and response headers; application code enforces
-        session auth, RBAC, and plan entitlements; external callers use HMAC webhooks or
-        Bearer job tokens. Sensitive values are never stored in plaintext where hashing or
-        encryption is available.
+        Holistic security beyond authentication: tenant isolation, edge
+        protections, webhook verification, secrets at rest, production
+        fail-closed configuration, and operational limitations. Complements the
+        session and RBAC model in
+        <a href="authentication-architecture.html"
+          >authentication architecture</a
+        >.
       </p>
-      <div class="diagram">Request
-  │
-  ▼
-proxy.ts                 rate limits · origin check · security headers · page cookie gate
-  │
-  ├─ Browser API (session)     → ensureCurrentUserOrganization + canManage* + organizationId scope
-  ├─ GitHub / Lemon WH         → HMAC verification before enqueue/process
-  ├─ Job cron                  → Authorization: Bearer JOB_RUNNER_SECRET
-  └─ Platform admin            → session + ADMIN_EMAILS → 404 if not allowlisted</div>
-      <div class="callout good">
-        <strong>Fail closed in production</strong>
-        <code>validateProductionEnv()</code> throws when core secrets and integration vars are
-        missing. Webhook verification rejects unsigned requests. Job endpoints return 503 without
-        <code>JOB_RUNNER_SECRET</code>.
-      </div>
-    </section>
-
-    <section id="model">
-      <h2>2. Threat Model (Practical Scope)</h2>
-      <table>
-        <thead><tr><th>Threat</th><th>Mitigation</th><th>Residual risk</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Cross-tenant data access</td>
-            <td>All app reads/writes scoped by <code>organizationId</code> from session context</td>
-            <td>New endpoints must remember to scope; no DB RLS</td>
-          </tr>
-          <tr>
-            <td>CSRF on mutating APIs</td>
-            <td>Same-origin check on POST/PUT/PATCH/DELETE (<code>lib/security.ts</code>)</td>
-            <td>Exempt paths (auth, jobs, webhooks) rely on other auth</td>
-          </tr>
-          <tr>
-            <td>Webhook spoofing</td>
-            <td>HMAC-SHA256 with timing-safe compare</td>
-            <td>Dev/demo modes may accept unsigned GitHub webhooks</td>
-          </tr>
-          <tr>
-            <td>Secret leakage at rest</td>
-            <td>AI keys encrypted; invite tokens hashed; passwords via Better Auth</td>
-            <td><code>ApiKey.hashedKey</code> schema exists; no request auth yet</td>
-          </tr>
-          <tr>
-            <td>Admin surface enumeration</td>
-            <td><code>/admin/*</code> returns 404 for non-admins</td>
-            <td>Allowlist emails visible to operators who know <code>ADMIN_EMAILS</code></td>
-          </tr>
-          <tr>
-            <td>Abuse / DoS</td>
-            <td>In-memory rate limits at edge</td>
-            <td>Per-instance buckets on serverless; not global</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="tenant">
-      <h2>3. Tenant Isolation</h2>
-      <p>
-        AgentGate is multi-tenant at the <strong>organization</strong> level. After session
-        resolution, <code>ensureCurrentUserOrganization()</code> binds the request to one
-        organization and role. Normal product data — repositories, pull requests, rules,
-        audit events, billing state — is always queried with that
-        <code>organizationId</code>.
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a>
+        &nbsp;·&nbsp;
+        <a href="authentication-architecture.html">Authentication</a>
       </p>
-      <h3>3.1 Enforcement patterns</h3>
+    </header>
+
+    <nav>
       <ul>
-        <li><strong>Never trust IDs alone</strong> — handlers load by primary key <em>and</em> verify <code>organizationId</code> matches session context.</li>
-        <li><strong>Server actions</strong> — <code>getCurrentOrganization()</code> then role checks via <code>lib/collaboration.ts</code>.</li>
-        <li><strong>API routes</strong> — <code>ensureCurrentUserOrganization()</code>; 401 if null.</li>
-        <li><strong>Plan entitlements</strong> — separate from RBAC; enforced in <code>lib/entitlements.ts</code> and <code>lib/plans.ts</code>.</li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#model">Threat model</a></li>
+        <li><a href="#tenant">Tenant isolation</a></li>
+        <li><a href="#edge">Edge (proxy.ts)</a></li>
+        <li><a href="#webhooks">Webhooks</a></li>
+        <li><a href="#secrets">Secrets at rest</a></li>
+        <li><a href="#admin">Admin 404</a></li>
+        <li><a href="#headers">Security headers</a></li>
+        <li><a href="#env">Production env</a></li>
+        <li><a href="#limits">Known limits</a></li>
+        <li><a href="#files">File map</a></li>
       </ul>
-      <h3>3.2 Cross-tenant exceptions (intentional)</h3>
-      <table>
-        <thead><tr><th>Surface</th><th>Scope</th><th>Guard</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Platform admin console</td>
-            <td>All organizations</td>
-            <td><code>ADMIN_EMAILS</code> allowlist + <code>requirePlatformAdmin()</code></td>
-          </tr>
-          <tr>
-            <td>GitHub webhooks</td>
-            <td>Resolved after delivery processing</td>
-            <td>Installation → organization mapping in webhook pipeline</td>
-          </tr>
-          <tr>
-            <td>Job runner endpoints</td>
-            <td>Global queue processing</td>
-            <td><code>JOB_RUNNER_SECRET</code> Bearer token</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="callout warn">
-        <strong>Single-org session</strong>
-        Session context uses the user's earliest membership. Accepting an invite to another org
-        does not switch active tenant until multi-org switching is implemented.
-      </div>
-    </section>
+    </nav>
 
-    <section id="edge">
-      <h2>4. Edge Security (<code>proxy.ts</code>)</h2>
-      <p>
-        Next.js edge middleware runs on almost all routes (excluding static assets). It runs
-        before route handlers and complements — but does not replace — server-side auth.
-      </p>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AgentGate security is layered: edge middleware (<code>proxy.ts</code>)
+          applies rate limits, CSRF-style origin checks, and response headers;
+          application code enforces session auth, RBAC, and plan entitlements;
+          external callers use HMAC webhooks or Bearer job tokens. Sensitive
+          values are never stored in plaintext where hashing or encryption is
+          available.
+        </p>
+        <div class="diagram">
+          Request │ ▼ proxy.ts rate limits · origin check · security headers ·
+          page cookie gate │ ├─ Browser API (session) →
+          ensureCurrentUserOrganization + canManage* + organizationId scope ├─
+          GitHub / Lemon WH → HMAC verification before enqueue/process ├─ Job
+          cron → Authorization: Bearer JOB_RUNNER_SECRET └─ Platform admin →
+          session + ADMIN_EMAILS → 404 if not allowlisted
+        </div>
+        <div class="callout good">
+          <strong>Fail closed in production</strong>
+          <code>validateProductionEnv()</code> throws when core secrets and
+          integration vars are missing. Webhook verification rejects unsigned
+          requests. Job endpoints return 503 without
+          <code>JOB_RUNNER_SECRET</code>.
+        </div>
+      </section>
 
-      <h3>4.1 CSRF / origin validation</h3>
-      <p>
-        Mutating API requests (<code>POST</code>, <code>PUT</code>, <code>PATCH</code>,
-        <code>DELETE</code>) under <code>/api/*</code> must pass
-        <code>isTrustedMutationOrigin()</code> in <code>lib/security.ts</code>: the
-        <code>Origin</code> header (preferred) or <code>Referer</code> must match the request URL
-        origin.
-      </p>
-      <table>
-        <thead><tr><th>Exemption</th><th>Reason</th></tr></thead>
-        <tbody>
-          <tr><td><code>/api/auth/*</code></td><td>Better Auth handles its own CSRF/trusted origins</td></tr>
-          <tr><td><code>/api/jobs/*</code></td><td>External cron uses Bearer token, not browser cookies</td></tr>
-          <tr><td>Paths containing <code>/webhook</code></td><td>GitHub and Lemon Squeezy cannot send browser Origin</td></tr>
-        </tbody>
-      </table>
-      <p>Failed origin checks return <strong>403</strong> with <code>{ error: 'Invalid request origin.' }</code>.</p>
+      <section id="model">
+        <h2>2. Threat Model (Practical Scope)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Threat</th>
+              <th>Mitigation</th>
+              <th>Residual risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cross-tenant data access</td>
+              <td>
+                All app reads/writes scoped by <code>organizationId</code> from
+                session context
+              </td>
+              <td>New endpoints must remember to scope; no DB RLS</td>
+            </tr>
+            <tr>
+              <td>CSRF on mutating APIs</td>
+              <td>
+                Same-origin check on POST/PUT/PATCH/DELETE
+                (<code>lib/security.ts</code>)
+              </td>
+              <td>Exempt paths (auth, jobs, webhooks) rely on other auth</td>
+            </tr>
+            <tr>
+              <td>Webhook spoofing</td>
+              <td>HMAC-SHA256 with timing-safe compare</td>
+              <td>Dev/demo modes may accept unsigned GitHub webhooks</td>
+            </tr>
+            <tr>
+              <td>Secret leakage at rest</td>
+              <td>
+                AI keys encrypted; invite tokens hashed; passwords via Better
+                Auth
+              </td>
+              <td>
+                <code>ApiKey.hashedKey</code> schema exists; no request auth yet
+              </td>
+            </tr>
+            <tr>
+              <td>Admin surface enumeration</td>
+              <td><code>/admin/*</code> returns 404 for non-admins</td>
+              <td>
+                Allowlist emails visible to operators who know
+                <code>ADMIN_EMAILS</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Abuse / DoS</td>
+              <td>In-memory rate limits at edge</td>
+              <td>Per-instance buckets on serverless; not global</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-      <h3>4.2 Rate limiting</h3>
-      <p>In-memory sliding window per IP + method + pathname (<code>lib/rate-limit.ts</code>):</p>
-      <table>
-        <thead><tr><th>Rule</th><th>Limit</th><th>Applies to</th></tr></thead>
-        <tbody>
-          <tr><td>auth</td><td>30 / minute</td><td><code>/api/auth/*</code></td></tr>
-          <tr><td>webhook</td><td>300 / minute</td><td>Paths containing <code>/webhook</code></td></tr>
-          <tr><td>mutation</td><td>90 / minute</td><td>Non-GET API routes</td></tr>
-          <tr><td>public</td><td>120 / minute</td><td>Everything else</td></tr>
-        </tbody>
-      </table>
-      <p>Responses include <code>X-RateLimit-*</code> headers. Exceeded limits return <strong>429</strong>.</p>
-      <div class="callout warn">
-        <strong>Rate limits are process-local</strong>
-        Buckets live in a module-level <code>Map</code>. On Vercel serverless / multi-instance
-        deployments, each instance maintains separate counters. Use shared storage (Redis, edge KV)
-        for global limits at scale.
-      </div>
+      <section id="tenant">
+        <h2>3. Tenant Isolation</h2>
+        <p>
+          AgentGate is multi-tenant at the <strong>organization</strong> level.
+          After session resolution,
+          <code>ensureCurrentUserOrganization()</code> binds the request to one
+          organization and role. Normal product data — repositories, pull
+          requests, rules, audit events, billing state — is always queried with
+          that <code>organizationId</code>.
+        </p>
+        <h3>3.1 Enforcement patterns</h3>
+        <ul>
+          <li>
+            <strong>Never trust IDs alone</strong> — handlers load by primary
+            key <em>and</em> verify <code>organizationId</code> matches session
+            context.
+          </li>
+          <li>
+            <strong>Server actions</strong> —
+            <code>getCurrentOrganization()</code> then role checks via
+            <code>lib/collaboration.ts</code>.
+          </li>
+          <li>
+            <strong>API routes</strong> —
+            <code>ensureCurrentUserOrganization()</code>; 401 if null.
+          </li>
+          <li>
+            <strong>Plan entitlements</strong> — separate from RBAC; enforced in
+            <code>lib/entitlements.ts</code> and <code>lib/plans.ts</code>.
+          </li>
+        </ul>
+        <h3>3.2 Cross-tenant exceptions (intentional)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Surface</th>
+              <th>Scope</th>
+              <th>Guard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Platform admin console</td>
+              <td>All organizations</td>
+              <td>
+                <code>ADMIN_EMAILS</code> allowlist +
+                <code>requirePlatformAdmin()</code>
+              </td>
+            </tr>
+            <tr>
+              <td>GitHub webhooks</td>
+              <td>Resolved after delivery processing</td>
+              <td>Installation → organization mapping in webhook pipeline</td>
+            </tr>
+            <tr>
+              <td>Job runner endpoints</td>
+              <td>Global queue processing</td>
+              <td><code>JOB_RUNNER_SECRET</code> Bearer token</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout warn">
+          <strong>Single-org session</strong>
+          Session context uses the user's earliest membership. Accepting an
+          invite to another org does not switch active tenant until multi-org
+          switching is implemented.
+        </div>
+      </section>
 
-      <h3>4.3 Page auth gate (coarse)</h3>
-      <p>
-        App pages require a session cookie unless public or dev demo mode (no
-        <code>DATABASE_URL</code>). API routes pass through; handlers validate auth themselves.
-        See <a href="authentication-architecture.html#edge">authentication architecture §7</a>.
-      </p>
-    </section>
+      <section id="edge">
+        <h2>4. Edge Security (<code>proxy.ts</code>)</h2>
+        <p>
+          Next.js edge middleware runs on almost all routes (excluding static
+          assets). It runs before route handlers and complements — but does not
+          replace — server-side auth.
+        </p>
 
-    <section id="webhooks">
-      <h2>5. Webhook HMAC Verification</h2>
-      <p>External webhooks are authenticated by shared-secret HMAC before any business logic runs.</p>
+        <h3>4.1 CSRF / origin validation</h3>
+        <p>
+          Mutating API requests (<code>POST</code>, <code>PUT</code>,
+          <code>PATCH</code>, <code>DELETE</code>) under
+          <code>/api/*</code> must pass
+          <code>isTrustedMutationOrigin()</code> in
+          <code>lib/security.ts</code>: the <code>Origin</code> header
+          (preferred) or <code>Referer</code> must match the request URL origin.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Exemption</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/api/auth/*</code></td>
+              <td>Better Auth handles its own CSRF/trusted origins</td>
+            </tr>
+            <tr>
+              <td><code>/api/jobs/*</code></td>
+              <td>External cron uses Bearer token, not browser cookies</td>
+            </tr>
+            <tr>
+              <td>Paths containing <code>/webhook</code></td>
+              <td>GitHub and Lemon Squeezy cannot send browser Origin</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Failed origin checks return <strong>403</strong> with
+          <code>{ error: 'Invalid request origin.' }</code>.
+        </p>
 
-      <table>
-        <thead>
-          <tr><th>Provider</th><th>Header</th><th>Algorithm</th><th>Module</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>GitHub</td>
-            <td><code>x-hub-signature-256</code></td>
-            <td>HMAC-SHA256 over raw body; prefix <code>sha256=</code></td>
-            <td><code>lib/github.ts</code> → <code>verifyGitHubWebhook()</code></td>
-          </tr>
-          <tr>
-            <td>Lemon Squeezy</td>
-            <td><code>x-signature</code></td>
-            <td>HMAC-SHA256 hex digest; timing-safe compare</td>
-            <td><code>lib/lemon-squeezy-webhooks.ts</code> → <code>verifyLemonSqueezyWebhookSignature()</code></td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>4.2 Rate limiting</h3>
+        <p>
+          In-memory sliding window per IP + method + pathname
+          (<code>lib/rate-limit.ts</code>):
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Rule</th>
+              <th>Limit</th>
+              <th>Applies to</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>auth</td>
+              <td>30 / minute</td>
+              <td><code>/api/auth/*</code></td>
+            </tr>
+            <tr>
+              <td>webhook</td>
+              <td>300 / minute</td>
+              <td>Paths containing <code>/webhook</code></td>
+            </tr>
+            <tr>
+              <td>mutation</td>
+              <td>90 / minute</td>
+              <td>Non-GET API routes</td>
+            </tr>
+            <tr>
+              <td>public</td>
+              <td>120 / minute</td>
+              <td>Everything else</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Responses include <code>X-RateLimit-*</code> headers. Exceeded limits
+          return <strong>429</strong>.
+        </p>
+        <div class="callout warn">
+          <strong>Rate limits are process-local</strong>
+          Buckets live in a module-level <code>Map</code>. On Vercel serverless
+          / multi-instance deployments, each instance maintains separate
+          counters. Use shared storage (Redis, edge KV) for global limits at
+          scale.
+        </div>
 
-      <h3>5.1 GitHub behavior</h3>
-      <ul>
-        <li>Production without <code>GITHUB_WEBHOOK_SECRET</code> → verification fails (<code>missing_secret</code>), 401.</li>
-        <li>Non-production without secret → <code>mode: 'demo'</code>, verification succeeds for local testing.</li>
-        <li>Invalid or missing signature → 401; logged at <code>warn</code> via <code>logEvent</code> (<code>webhook_verification_failed</code>).</li>
-        <li>Uses <code>timingSafeEqual</code> to reduce timing oracle risk.</li>
-      </ul>
+        <h3>4.3 Page auth gate (coarse)</h3>
+        <p>
+          App pages require a session cookie unless public or dev demo mode (no
+          <code>DATABASE_URL</code>). API routes pass through; handlers validate
+          auth themselves. See
+          <a href="authentication-architecture.html#edge"
+            >authentication architecture §7</a
+          >.
+        </p>
+      </section>
 
-      <h3>5.2 Lemon Squeezy behavior</h3>
-      <ul>
-        <li><code>unmarshalLemonSqueezyWebhook()</code> verifies signature before JSON parse.</li>
-        <li>Invalid signature throws → route returns 401; <code>reportError</code> with <code>lemon_squeezy_webhook_failed</code>.</li>
-        <li>Delivery id derived from SHA-256 hash of raw body for idempotency.</li>
-      </ul>
-    </section>
+      <section id="webhooks">
+        <h2>5. Webhook HMAC Verification</h2>
+        <p>
+          External webhooks are authenticated by shared-secret HMAC before any
+          business logic runs.
+        </p>
 
-    <section id="secrets">
-      <h2>6. Secrets at Rest</h2>
-      <table>
-        <thead><tr><th>Secret type</th><th>Storage</th><th>Implementation</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>User passwords</td>
-            <td><code>Account.password</code> (hashed)</td>
-            <td>Better Auth email/password provider</td>
-          </tr>
-          <tr>
-            <td>Session tokens</td>
-            <td><code>Session.token</code></td>
-            <td>Better Auth session management; cookie-bound</td>
-          </tr>
-          <tr>
-            <td>Team invite tokens</td>
-            <td><code>OrganizationInvite.token</code> = SHA-256 hex of raw token</td>
-            <td><code>hashInviteToken()</code> in <code>lib/collaboration.ts</code>; raw token only in URL/email</td>
-          </tr>
-          <tr>
-            <td>AI provider keys (OpenRouter)</td>
-            <td><code>AiProviderCredential.encryptedKey</code></td>
-            <td>AES-256-GCM (<code>v1:iv:authTag:ciphertext</code>) in <code>lib/ai/credentials.ts</code></td>
-          </tr>
-          <tr>
-            <td>API keys (future)</td>
-            <td><code>ApiKey.prefix</code> + <code>hashedKey</code></td>
-            <td>Schema present; no middleware validates API keys on requests yet</td>
-          </tr>
-        </tbody>
-      </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Header</th>
+              <th>Algorithm</th>
+              <th>Module</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GitHub</td>
+              <td><code>x-hub-signature-256</code></td>
+              <td>HMAC-SHA256 over raw body; prefix <code>sha256=</code></td>
+              <td>
+                <code>lib/github.ts</code> → <code>verifyGitHubWebhook()</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Lemon Squeezy</td>
+              <td><code>x-signature</code></td>
+              <td>HMAC-SHA256 hex digest; timing-safe compare</td>
+              <td>
+                <code>lib/lemon-squeezy-webhooks.ts</code> →
+                <code>verifyLemonSqueezyWebhookSignature()</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>6.1 AI key encryption</h3>
-      <ul>
-        <li>Encryption key derived: <code>SHA-256(AI_PROVIDER_ENCRYPTION_KEY || BETTER_AUTH_SECRET)</code>.</li>
-        <li>Prefer dedicated <code>AI_PROVIDER_ENCRYPTION_KEY</code> in production; falls back to auth secret in dev.</li>
-        <li><code>redactSecret()</code> masks keys in UI/logs (prefix + suffix only).</li>
-        <li>Rotation requires re-encrypting stored credentials — plan before changing the encryption key.</li>
-      </ul>
+        <h3>5.1 GitHub behavior</h3>
+        <ul>
+          <li>
+            Production without <code>GITHUB_WEBHOOK_SECRET</code> → verification
+            fails (<code>missing_secret</code>), 401.
+          </li>
+          <li>
+            Non-production without secret → <code>mode: 'demo'</code>,
+            verification succeeds for local testing.
+          </li>
+          <li>
+            Invalid or missing signature → 401; logged at <code>warn</code> via
+            <code>logEvent</code> (<code>webhook_verification_failed</code>).
+          </li>
+          <li>
+            Uses <code>timingSafeEqual</code> to reduce timing oracle risk.
+          </li>
+        </ul>
 
-      <h3>6.2 Invite token hashing</h3>
-      <p>
-        <code>createInviteToken()</code> generates a UUID without dashes. Only
-        <code>hashInviteToken(token)</code> is persisted. Accept route hashes the query param
-        before lookup — a DB leak does not expose usable invite links.
-      </p>
-    </section>
+        <h3>5.2 Lemon Squeezy behavior</h3>
+        <ul>
+          <li>
+            <code>unmarshalLemonSqueezyWebhook()</code> verifies signature
+            before JSON parse.
+          </li>
+          <li>
+            Invalid signature throws → route returns 401;
+            <code>reportError</code> with
+            <code>lemon_squeezy_webhook_failed</code>.
+          </li>
+          <li>
+            Delivery id derived from SHA-256 hash of raw body for idempotency.
+          </li>
+        </ul>
+      </section>
 
-    <section id="admin">
-      <h2>7. Platform Admin — 404 Pattern</h2>
-      <p>
-        The operator console at <code>/admin/*</code> uses least-disclosure authorization:
-        unauthorized users see <strong>404 Not Found</strong>, not 403 Forbidden.
-      </p>
-      <ul>
-        <li><code>requirePlatformAdmin()</code> in <code>lib/admin/access.ts</code> calls <code>notFound()</code> when session email is not in <code>ADMIN_EMAILS</code>.</li>
-        <li><code>app/admin/layout.tsx</code> invokes this guard for all admin pages.</li>
-        <li>Admin server actions re-check <code>context?.isAdmin</code> before mutations.</li>
-        <li>Cross-tenant reads intentionally go through <code>lib/admin/admin-data.ts</code>.</li>
-      </ul>
-      <div class="callout">
-        <strong>Rationale</strong>
-        Hiding admin routes reduces scanner noise and avoids confirming that an admin surface
-        exists to unauthenticated or non-admin users.
-      </div>
-    </section>
+      <section id="secrets">
+        <h2>6. Secrets at Rest</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Secret type</th>
+              <th>Storage</th>
+              <th>Implementation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>User passwords</td>
+              <td><code>Account.password</code> (hashed)</td>
+              <td>Better Auth email/password provider</td>
+            </tr>
+            <tr>
+              <td>Session tokens</td>
+              <td><code>Session.token</code></td>
+              <td>Better Auth session management; cookie-bound</td>
+            </tr>
+            <tr>
+              <td>Team invite tokens</td>
+              <td>
+                <code>OrganizationInvite.token</code> = SHA-256 hex of raw token
+              </td>
+              <td>
+                <code>hashInviteToken()</code> in
+                <code>lib/collaboration.ts</code>; raw token only in URL/email
+              </td>
+            </tr>
+            <tr>
+              <td>AI provider keys (OpenRouter)</td>
+              <td><code>AiProviderCredential.encryptedKey</code></td>
+              <td>
+                AES-256-GCM (<code>v1:iv:authTag:ciphertext</code>) in
+                <code>lib/ai/credentials.ts</code>
+              </td>
+            </tr>
+            <tr>
+              <td>API keys (future)</td>
+              <td><code>ApiKey.prefix</code> + <code>hashedKey</code></td>
+              <td>
+                Schema present; no middleware validates API keys on requests yet
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-    <section id="headers">
-      <h2>8. Security Headers (<code>lib/security.ts</code>)</h2>
-      <p><code>applySecurityHeaders()</code> runs on every response from <code>proxy.ts</code>:</p>
-      <table>
-        <thead><tr><th>Header</th><th>Value</th></tr></thead>
-        <tbody>
-          <tr><td><code>X-Content-Type-Options</code></td><td><code>nosniff</code></td></tr>
-          <tr><td><code>X-Frame-Options</code></td><td><code>DENY</code></td></tr>
-          <tr><td><code>Referrer-Policy</code></td><td><code>strict-origin-when-cross-origin</code></td></tr>
-          <tr><td><code>Permissions-Policy</code></td><td>camera, microphone, geolocation disabled</td></tr>
-          <tr><td><code>Cross-Origin-Opener-Policy</code></td><td><code>same-origin</code></td></tr>
-          <tr><td><code>Cross-Origin-Resource-Policy</code></td><td><code>same-origin</code></td></tr>
-          <tr><td><code>Strict-Transport-Security</code></td><td>Production only: <code>max-age=31536000; includeSubDomains; preload</code></td></tr>
-        </tbody>
-      </table>
-      <p>
-        Open redirect protection lives separately in <code>lib/redirects.ts</code>
-        (<code>safeRelativeRedirect</code>) for post-login and invite callbacks.
-      </p>
-    </section>
+        <h3>6.1 AI key encryption</h3>
+        <ul>
+          <li>
+            Encryption key derived:
+            <code
+              >SHA-256(AI_PROVIDER_ENCRYPTION_KEY || BETTER_AUTH_SECRET)</code
+            >.
+          </li>
+          <li>
+            Prefer dedicated <code>AI_PROVIDER_ENCRYPTION_KEY</code> in
+            production; falls back to auth secret in dev.
+          </li>
+          <li>
+            <code>redactSecret()</code> masks keys in UI/logs (prefix + suffix
+            only).
+          </li>
+          <li>
+            Rotation requires re-encrypting stored credentials — plan before
+            changing the encryption key.
+          </li>
+        </ul>
 
-    <section id="env">
-      <h2>9. Production Environment Validation</h2>
-      <p>
-        <code>validateProductionEnv()</code> in <code>lib/env.ts</code> is invoked from
-        <code>getPrismaClient()</code> on every database access attempt. In production
-        (<code>NODE_ENV=production</code>), missing required vars throw immediately:
-      </p>
-      <pre><code>DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, BETTER_AUTH_API_KEY,
+        <h3>6.2 Invite token hashing</h3>
+        <p>
+          <code>createInviteToken()</code> generates a UUID without dashes. Only
+          <code>hashInviteToken(token)</code> is persisted. Accept route hashes
+          the query param before lookup — a DB leak does not expose usable
+          invite links.
+        </p>
+      </section>
+
+      <section id="admin">
+        <h2>7. Platform Admin — 404 Pattern</h2>
+        <p>
+          The operator console at <code>/admin/*</code> uses least-disclosure
+          authorization: unauthorized users see <strong>404 Not Found</strong>,
+          not 403 Forbidden.
+        </p>
+        <ul>
+          <li>
+            <code>requirePlatformAdmin()</code> in
+            <code>lib/admin/access.ts</code> calls <code>notFound()</code> when
+            session email is not in <code>ADMIN_EMAILS</code>.
+          </li>
+          <li>
+            <code>app/admin/layout.tsx</code> invokes this guard for all admin
+            pages.
+          </li>
+          <li>
+            Admin server actions re-check <code>context?.isAdmin</code> before
+            mutations.
+          </li>
+          <li>
+            Cross-tenant reads intentionally go through
+            <code>lib/admin/admin-data.ts</code>.
+          </li>
+        </ul>
+        <div class="callout">
+          <strong>Rationale</strong>
+          Hiding admin routes reduces scanner noise and avoids confirming that
+          an admin surface exists to unauthenticated or non-admin users.
+        </div>
+      </section>
+
+      <section id="headers">
+        <h2>8. Security Headers (<code>lib/security.ts</code>)</h2>
+        <p>
+          <code>applySecurityHeaders()</code> runs on every response from
+          <code>proxy.ts</code>:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Header</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>X-Content-Type-Options</code></td>
+              <td><code>nosniff</code></td>
+            </tr>
+            <tr>
+              <td><code>X-Frame-Options</code></td>
+              <td><code>DENY</code></td>
+            </tr>
+            <tr>
+              <td><code>Referrer-Policy</code></td>
+              <td><code>strict-origin-when-cross-origin</code></td>
+            </tr>
+            <tr>
+              <td><code>Permissions-Policy</code></td>
+              <td>camera, microphone, geolocation disabled</td>
+            </tr>
+            <tr>
+              <td><code>Cross-Origin-Opener-Policy</code></td>
+              <td><code>same-origin</code></td>
+            </tr>
+            <tr>
+              <td><code>Cross-Origin-Resource-Policy</code></td>
+              <td><code>same-origin</code></td>
+            </tr>
+            <tr>
+              <td><code>Strict-Transport-Security</code></td>
+              <td>
+                Production only:
+                <code>max-age=31536000; includeSubDomains; preload</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Open redirect protection lives separately in
+          <code>lib/redirects.ts</code>
+          (<code>safeRelativeRedirect</code>) for post-login and invite
+          callbacks.
+        </p>
+      </section>
+
+      <section id="env">
+        <h2>9. Production Environment Validation</h2>
+        <p>
+          <code>validateProductionEnv()</code> in <code>lib/env.ts</code> is
+          invoked from <code>getPrismaClient()</code> on every database access
+          attempt. In production (<code>NODE_ENV=production</code>), missing
+          required vars throw immediately:
+        </p>
+        <pre><code>DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, BETTER_AUTH_API_KEY,
 GITHUB_APP_ID, GITHUB_APP_SLUG, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET</code></pre>
-      <p>
-        This fail-closed pattern prevents partially configured deployments from serving live traffic
-        with silent degradation. Development allows a hardcoded local auth secret fallback and
-        demo mode without <code>DATABASE_URL</code>.
-      </p>
-      <table>
-        <thead><tr><th>Variable</th><th>Security role</th></tr></thead>
-        <tbody>
-          <tr><td><code>JOB_RUNNER_SECRET</code></td><td>Bearer auth for cron job endpoints (503 if missing in prod)</td></tr>
-          <tr><td><code>GITHUB_WEBHOOK_SECRET</code></td><td>Webhook HMAC (required in prod validation list)</td></tr>
-          <tr><td><code>AI_PROVIDER_ENCRYPTION_KEY</code></td><td>Recommended separate key for AI credential encryption</td></tr>
-          <tr><td><code>ADMIN_EMAILS</code></td><td>Platform admin allowlist (optional but required for admin console access)</td></tr>
-          <tr><td><code>LEMON_SQUEZY_WEBHOOK_SECRET</code></td><td>Billing webhook HMAC (checked at billing boundary, not in core prod list)</td></tr>
-        </tbody>
-      </table>
-    </section>
+        <p>
+          This fail-closed pattern prevents partially configured deployments
+          from serving live traffic with silent degradation. Development allows
+          a hardcoded local auth secret fallback and demo mode without
+          <code>DATABASE_URL</code>.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Security role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>JOB_RUNNER_SECRET</code></td>
+              <td>
+                Bearer auth for cron job endpoints (503 if missing in prod)
+              </td>
+            </tr>
+            <tr>
+              <td><code>GITHUB_WEBHOOK_SECRET</code></td>
+              <td>Webhook HMAC (required in prod validation list)</td>
+            </tr>
+            <tr>
+              <td><code>AI_PROVIDER_ENCRYPTION_KEY</code></td>
+              <td>Recommended separate key for AI credential encryption</td>
+            </tr>
+            <tr>
+              <td><code>ADMIN_EMAILS</code></td>
+              <td>
+                Platform admin allowlist (optional but required for admin
+                console access)
+              </td>
+            </tr>
+            <tr>
+              <td><code>LEMON_SQUEZY_WEBHOOK_SECRET</code></td>
+              <td>
+                Billing webhook HMAC (checked at billing boundary, not in core
+                prod list)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="limits">
-      <h2>10. Known Limitations</h2>
-      <table>
-        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>In-memory rate limits</td>
-            <td>Not shared across serverless instances; effective limit scales with instance count.</td>
-          </tr>
-          <tr>
-            <td>Edge cookie gate</td>
-            <td>Cookie presence ≠ valid session; handlers must call <code>getServerSession()</code>.</td>
-          </tr>
-          <tr>
-            <td>RBAC not centralized</td>
-            <td>Each route/action checks permissions individually — review new endpoints carefully.</td>
-          </tr>
-          <tr>
-            <td>No API key auth middleware</td>
-            <td><code>ApiKey</code> model exists; session-only user auth today.</td>
-          </tr>
-          <tr>
-            <td>No database RLS</td>
-            <td>Tenant isolation enforced in application code, not PostgreSQL policies.</td>
-          </tr>
-          <tr>
-            <td>Dev demo bypass</td>
-            <td>Without DB in dev, pages load without login — not representative of production.</td>
-          </tr>
-          <tr>
-            <td>GitHub webhook demo mode</td>
-            <td>Unsigned webhooks accepted in non-production when secret unset.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+      <section id="limits">
+        <h2>10. Known Limitations</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>In-memory rate limits</td>
+              <td>
+                Not shared across serverless instances; effective limit scales
+                with instance count.
+              </td>
+            </tr>
+            <tr>
+              <td>Edge cookie gate</td>
+              <td>
+                Cookie presence ≠ valid session; handlers must call
+                <code>getServerSession()</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>RBAC not centralized</td>
+              <td>
+                Each route/action checks permissions individually — review new
+                endpoints carefully.
+              </td>
+            </tr>
+            <tr>
+              <td>No API key auth middleware</td>
+              <td>
+                <code>ApiKey</code> model exists; session-only user auth today.
+              </td>
+            </tr>
+            <tr>
+              <td>No database RLS</td>
+              <td>
+                Tenant isolation enforced in application code, not PostgreSQL
+                policies.
+              </td>
+            </tr>
+            <tr>
+              <td>Dev demo bypass</td>
+              <td>
+                Without DB in dev, pages load without login — not representative
+                of production.
+              </td>
+            </tr>
+            <tr>
+              <td>GitHub webhook demo mode</td>
+              <td>
+                Unsigned webhooks accepted in non-production when secret unset.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="files">
-      <h2>11. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>proxy.ts</code></td><td>Edge: origin check, rate limits, headers, page cookie gate</td></tr>
-          <tr><td><code>lib/security.ts</code></td><td>Security headers, mutation origin validation</td></tr>
-          <tr><td><code>lib/rate-limit.ts</code></td><td>In-memory sliding-window buckets</td></tr>
-          <tr><td><code>lib/env.ts</code></td><td>Env accessors, <code>validateProductionEnv()</code></td></tr>
-          <tr><td><code>lib/github.ts</code></td><td>GitHub webhook HMAC verification</td></tr>
-          <tr><td><code>lib/lemon-squeezy-webhooks.ts</code></td><td>Lemon Squeezy webhook HMAC + processing</td></tr>
-          <tr><td><code>lib/job-auth.ts</code></td><td>Job runner Bearer validation</td></tr>
-          <tr><td><code>lib/collaboration.ts</code></td><td>RBAC helpers, invite token hashing</td></tr>
-          <tr><td><code>lib/ai/credentials.ts</code></td><td>AI provider key encrypt/decrypt/redact</td></tr>
-          <tr><td><code>lib/admin/access.ts</code></td><td>Platform admin allowlist, 404 guard</td></tr>
-          <tr><td><code>lib/redirects.ts</code></td><td>Open redirect protection</td></tr>
-          <tr><td><code>lib/auth/session.ts</code></td><td>Session + org context for tenant scoping</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <section id="files">
+        <h2>11. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>proxy.ts</code></td>
+              <td>
+                Edge: origin check, rate limits, headers, page cookie gate
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/security.ts</code></td>
+              <td>Security headers, mutation origin validation</td>
+            </tr>
+            <tr>
+              <td><code>lib/rate-limit.ts</code></td>
+              <td>In-memory sliding-window buckets</td>
+            </tr>
+            <tr>
+              <td><code>lib/env.ts</code></td>
+              <td>Env accessors, <code>validateProductionEnv()</code></td>
+            </tr>
+            <tr>
+              <td><code>lib/github.ts</code></td>
+              <td>GitHub webhook HMAC verification</td>
+            </tr>
+            <tr>
+              <td><code>lib/lemon-squeezy-webhooks.ts</code></td>
+              <td>Lemon Squeezy webhook HMAC + processing</td>
+            </tr>
+            <tr>
+              <td><code>lib/job-auth.ts</code></td>
+              <td>Job runner Bearer validation</td>
+            </tr>
+            <tr>
+              <td><code>lib/collaboration.ts</code></td>
+              <td>RBAC helpers, invite token hashing</td>
+            </tr>
+            <tr>
+              <td><code>lib/ai/credentials.ts</code></td>
+              <td>AI provider key encrypt/decrypt/redact</td>
+            </tr>
+            <tr>
+              <td><code>lib/admin/access.ts</code></td>
+              <td>Platform admin allowlist, 404 guard</td>
+            </tr>
+            <tr>
+              <td><code>lib/redirects.ts</code></td>
+              <td>Open redirect protection</td>
+            </tr>
+            <tr>
+              <td><code>lib/auth/session.ts</code></td>
+              <td>Session + org context for tenant scoping</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
 
-  <footer>
-    AgentGate security architecture reference · June 2026
-  </footer>
-</body>
+    <footer>AgentGate security architecture reference · June 2026</footer>
+  </body>
 </html>

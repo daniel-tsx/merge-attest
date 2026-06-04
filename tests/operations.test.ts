@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { getJobRunnerDiagnostic, summarizeDiagnostics } from '../lib/diagnostics'
+import {
+  getJobRunnerDiagnostic,
+  summarizeDiagnostics,
+} from '../lib/diagnostics'
 import { getEmailDeliveryMode, isEmailDeliveryConfigured } from '../lib/email'
 import { authorizeJobRequest } from '../lib/job-auth'
 import {

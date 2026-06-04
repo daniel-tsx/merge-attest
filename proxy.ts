@@ -98,7 +98,8 @@ export function proxy(request: NextRequest) {
   }
 
   const sessionCookie = getSessionCookie(request.headers)
-  if (sessionCookie) return responseWithSecurity(nextWithPathname(request), request)
+  if (sessionCookie)
+    return responseWithSecurity(nextWithPathname(request), request)
 
   const signInUrl = request.nextUrl.clone()
   signInUrl.pathname = '/sign-in'

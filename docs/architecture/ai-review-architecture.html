@@ -1,594 +1,870 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — AI Review Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — AI Review Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.1rem 0.45rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 0.25rem;
+      }
 
-    .tag.warn { background: var(--warn-bg); color: #b45309; }
+      .tag.warn {
+        background: var(--warn-bg);
+        color: #b45309;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    .related a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — AI Review Architecture</h1>
-    <p>
-      Advisory AI review pipeline: per-repository settings (disabled by default), encrypted
-      OpenRouter credentials, idempotent job enqueue on PR sync, diff guardrails, and a worker
-      that validates prerequisites but does not yet call the model. Verified against code as of
-      June 2026.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
-      Related: <a href="github-integration-architecture.html">GitHub integration</a>,
-      <a href="jobs-and-async-architecture.html">Jobs</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#settings">Settings</a></li>
-      <li><a href="#credentials">Credentials</a></li>
-      <li><a href="#lifecycle">Job lifecycle</a></li>
-      <li><a href="#worker">Worker</a></li>
-      <li><a href="#diff">Diff filtering</a></li>
-      <li><a href="#status">Status machine</a></li>
-      <li><a href="#flow">End-to-end flow</a></li>
-      <li><a href="#caveats">Caveats</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      .related a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — AI Review Architecture</h1>
       <p>
-        AI review is an <strong>optional, per-repository</strong> feature layered on top of
-        GitHub PR sync. It prepares diffs and tracks job state but intentionally stops before
-        model inference — the worker ends in <code>skipped</code> with
-        <em>"AI model execution is not enabled yet."</em>
+        Advisory AI review pipeline: per-repository settings (disabled by
+        default), encrypted OpenRouter credentials, idempotent job enqueue on PR
+        sync, diff guardrails, and a worker that validates prerequisites but
+        does not yet call the model. Verified against code as of June 2026.
       </p>
-      <ol>
-        <li><strong>Settings</strong> — <code>RepositoryReviewSettings</code>; <code>aiReviewsEnabled</code> defaults to <code>false</code>.</li>
-        <li><strong>Enqueue</strong> — After PR sync, <code>enqueueAiReviewJob()</code> creates a job keyed by org/repo/PR/head SHA.</li>
-        <li><strong>Worker</strong> — Cron hits <code>POST /api/jobs/pr-reviews</code>; <code>processQueuedAiReviewJobs()</code> runs guardrails.</li>
-        <li><strong>Credentials</strong> — Organization-level OpenRouter key stored AES-256-GCM encrypted.</li>
-      </ol>
-      <div class="callout warn">
-        <strong>Disabled by default per repository</strong>
-        New repositories inherit <code>aiReviewsEnabled: false</code> from
-        <code>getDefaultRepositoryReviewSettings()</code>. Owners/admins must explicitly enable
-        AI reviews and configure OpenRouter credentials at the org level.
-      </div>
-    </section>
-
-    <section id="settings">
-      <h2>2. Repository Review Settings (<code>lib/ai/settings.ts</code>)</h2>
-      <p>
-        Settings live in <code>RepositoryReviewSettings</code> (one row per repository). The
-        module handles form parsing, defaults, normalization, and the enqueue gate.
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a> &nbsp;·&nbsp; Related:
+        <a href="github-integration-architecture.html">GitHub integration</a>,
+        <a href="jobs-and-async-architecture.html">Jobs</a>
       </p>
+    </header>
 
-      <table>
-        <thead><tr><th>Field</th><th>Default</th><th>Purpose</th></tr></thead>
-        <tbody>
-          <tr><td><code>aiReviewsEnabled</code></td><td><code>false</code></td><td>Master switch; required for enqueue and worker</td></tr>
-          <tr><td><code>reviewDepth</code></td><td><code>standard</code></td><td><code>standard</code> | <code>deep</code> (future model prompt tuning)</td></tr>
-          <tr><td><code>minimumSeverity</code></td><td><code>medium</code></td><td>Filter threshold for findings</td></tr>
-          <tr><td><code>model</code></td><td><code>undefined</code></td><td>Optional OpenRouter model override</td></tr>
-          <tr><td><code>ignoredPaths</code></td><td><code>[]</code></td><td>Path prefixes excluded from diff review</td></tr>
-          <tr><td><code>stackTags</code></td><td><code>[]</code></td><td>Stack hints for future prompts</td></tr>
-          <tr><td><code>publishInlineComments</code></td><td><code>true</code></td><td>Future GitHub inline comment output</td></tr>
-          <tr><td><code>publishManagedComment</code></td><td><code>true</code></td><td>Future summary comment output</td></tr>
-          <tr><td><code>publishCheckRun</code></td><td><code>true</code></td><td>Future AI check run output</td></tr>
-        </tbody>
-      </table>
-
-      <h3>2.1 shouldEnqueueAiReview</h3>
-      <p>
-        <code>shouldEnqueueAiReview(settings)</code> returns
-        <code>Boolean(settings?.aiReviewsEnabled)</code>. Called from:
-      </p>
+    <nav>
       <ul>
-        <li><code>enqueueAiReviewJob()</code> — skips job creation when disabled.</li>
-        <li><code>processQueuedAiReviewJobs()</code> — re-checks at worker time (settings may change after enqueue).</li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#settings">Settings</a></li>
+        <li><a href="#credentials">Credentials</a></li>
+        <li><a href="#lifecycle">Job lifecycle</a></li>
+        <li><a href="#worker">Worker</a></li>
+        <li><a href="#diff">Diff filtering</a></li>
+        <li><a href="#status">Status machine</a></li>
+        <li><a href="#flow">End-to-end flow</a></li>
+        <li><a href="#caveats">Caveats</a></li>
+        <li><a href="#files">File map</a></li>
       </ul>
+    </nav>
 
-      <h3>2.2 Form and UI</h3>
-      <p>
-        <code>parseRepositoryReviewSettingsForm()</code> reads server action FormData.
-        Settings UI: <code>app/repositories/[id]/ai/page.tsx</code>. Org-level OpenRouter key:
-        <code>app/settings/ai/page.tsx</code>.
-      </p>
-    </section>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AI review is an <strong>optional, per-repository</strong> feature
+          layered on top of GitHub PR sync. It prepares diffs and tracks job
+          state but intentionally stops before model inference — the worker ends
+          in <code>skipped</code> with
+          <em>"AI model execution is not enabled yet."</em>
+        </p>
+        <ol>
+          <li>
+            <strong>Settings</strong> — <code>RepositoryReviewSettings</code>;
+            <code>aiReviewsEnabled</code> defaults to <code>false</code>.
+          </li>
+          <li>
+            <strong>Enqueue</strong> — After PR sync,
+            <code>enqueueAiReviewJob()</code> creates a job keyed by
+            org/repo/PR/head SHA.
+          </li>
+          <li>
+            <strong>Worker</strong> — Cron hits
+            <code>POST /api/jobs/pr-reviews</code>;
+            <code>processQueuedAiReviewJobs()</code> runs guardrails.
+          </li>
+          <li>
+            <strong>Credentials</strong> — Organization-level OpenRouter key
+            stored AES-256-GCM encrypted.
+          </li>
+        </ol>
+        <div class="callout warn">
+          <strong>Disabled by default per repository</strong>
+          New repositories inherit <code>aiReviewsEnabled: false</code> from
+          <code>getDefaultRepositoryReviewSettings()</code>. Owners/admins must
+          explicitly enable AI reviews and configure OpenRouter credentials at
+          the org level.
+        </div>
+      </section>
 
-    <section id="credentials">
-      <h2>3. Provider Credentials (<code>lib/ai/credentials.ts</code>)</h2>
-      <p>
-        Organization OpenRouter API keys are stored in <code>AiProviderCredential</code>
-        (<code>provider: 'openrouter'</code>), encrypted at rest.
-      </p>
+      <section id="settings">
+        <h2>2. Repository Review Settings (<code>lib/ai/settings.ts</code>)</h2>
+        <p>
+          Settings live in <code>RepositoryReviewSettings</code> (one row per
+          repository). The module handles form parsing, defaults, normalization,
+          and the enqueue gate.
+        </p>
 
-      <h3>3.1 AES-256-GCM encryption</h3>
-      <ul>
-        <li>Algorithm: <code>aes-256-gcm</code> with 12-byte random IV.</li>
-        <li>Key derivation: SHA-256 of <code>AI_PROVIDER_ENCRYPTION_KEY</code>, falling back to <code>BETTER_AUTH_SECRET</code>.</li>
-        <li>Wire format: <code>v1:{iv}:{authTag}:{ciphertext}</code> (base64url segments).</li>
-        <li><code>encryptProviderKey()</code> / <code>decryptProviderKey()</code> — round-trip for storage.</li>
-        <li><code>redactSecret()</code> — UI display (<code>sk-abc1...xyz9</code> pattern).</li>
-      </ul>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Default</th>
+              <th>Purpose</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>aiReviewsEnabled</code></td>
+              <td><code>false</code></td>
+              <td>Master switch; required for enqueue and worker</td>
+            </tr>
+            <tr>
+              <td><code>reviewDepth</code></td>
+              <td><code>standard</code></td>
+              <td>
+                <code>standard</code> | <code>deep</code> (future model prompt
+                tuning)
+              </td>
+            </tr>
+            <tr>
+              <td><code>minimumSeverity</code></td>
+              <td><code>medium</code></td>
+              <td>Filter threshold for findings</td>
+            </tr>
+            <tr>
+              <td><code>model</code></td>
+              <td><code>undefined</code></td>
+              <td>Optional OpenRouter model override</td>
+            </tr>
+            <tr>
+              <td><code>ignoredPaths</code></td>
+              <td><code>[]</code></td>
+              <td>Path prefixes excluded from diff review</td>
+            </tr>
+            <tr>
+              <td><code>stackTags</code></td>
+              <td><code>[]</code></td>
+              <td>Stack hints for future prompts</td>
+            </tr>
+            <tr>
+              <td><code>publishInlineComments</code></td>
+              <td><code>true</code></td>
+              <td>Future GitHub inline comment output</td>
+            </tr>
+            <tr>
+              <td><code>publishManagedComment</code></td>
+              <td><code>true</code></td>
+              <td>Future summary comment output</td>
+            </tr>
+            <tr>
+              <td><code>publishCheckRun</code></td>
+              <td><code>true</code></td>
+              <td>Future AI check run output</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>3.2 Lookup</h3>
-      <p>
-        <code>getOrganizationOpenRouterCredential(organizationId)</code> fetches the credential
-        row. Worker blocks with status <code>blocked</code> when missing:
-        <em>"OpenRouter credentials are not configured yet."</em>
-      </p>
+        <h3>2.1 shouldEnqueueAiReview</h3>
+        <p>
+          <code>shouldEnqueueAiReview(settings)</code> returns
+          <code>Boolean(settings?.aiReviewsEnabled)</code>. Called from:
+        </p>
+        <ul>
+          <li>
+            <code>enqueueAiReviewJob()</code> — skips job creation when
+            disabled.
+          </li>
+          <li>
+            <code>processQueuedAiReviewJobs()</code> — re-checks at worker time
+            (settings may change after enqueue).
+          </li>
+        </ul>
 
-      <div class="callout good">
-        <strong>Separate encryption key recommended</strong>
-        Set <code>AI_PROVIDER_ENCRYPTION_KEY</code> in production so provider keys are not
-        encrypted with the same material as session signing.
-      </div>
-    </section>
+        <h3>2.2 Form and UI</h3>
+        <p>
+          <code>parseRepositoryReviewSettingsForm()</code> reads server action
+          FormData. Settings UI: <code>app/repositories/[id]/ai/page.tsx</code>.
+          Org-level OpenRouter key: <code>app/settings/ai/page.tsx</code>.
+        </p>
+      </section>
 
-    <section id="lifecycle">
-      <h2>4. Job Lifecycle (<code>lib/jobs/pr-review-lifecycle.ts</code>)</h2>
+      <section id="credentials">
+        <h2>3. Provider Credentials (<code>lib/ai/credentials.ts</code>)</h2>
+        <p>
+          Organization OpenRouter API keys are stored in
+          <code>AiProviderCredential</code> (<code>provider: 'openrouter'</code
+          >), encrypted at rest.
+        </p>
 
-      <h3>4.1 reviewKey idempotency</h3>
-      <p>
-        <code>getAiReviewKey()</code> builds a unique string:
-      </p>
-      <pre><code>{organizationId}:{repositoryId}:{pullNumber}:{headSha}</code></pre>
-      <p>
-        Stored as <code>AiReviewJob.reviewKey</code> (unique). Re-syncing the same PR head does
-        not create duplicate jobs — <code>enqueueAiReviewJob()</code> returns the existing row.
-      </p>
+        <h3>3.1 AES-256-GCM encryption</h3>
+        <ul>
+          <li>Algorithm: <code>aes-256-gcm</code> with 12-byte random IV.</li>
+          <li>
+            Key derivation: SHA-256 of <code>AI_PROVIDER_ENCRYPTION_KEY</code>,
+            falling back to <code>BETTER_AUTH_SECRET</code>.
+          </li>
+          <li>
+            Wire format: <code>v1:{iv}:{authTag}:{ciphertext}</code> (base64url
+            segments).
+          </li>
+          <li>
+            <code>encryptProviderKey()</code> /
+            <code>decryptProviderKey()</code> — round-trip for storage.
+          </li>
+          <li>
+            <code>redactSecret()</code> — UI display (<code
+              >sk-abc1...xyz9</code
+            >
+            pattern).
+          </li>
+        </ul>
 
-      <h3>4.2 Enqueue</h3>
-      <p><code>enqueueAiReviewJob()</code> preconditions:</p>
-      <ol>
-        <li>Prisma client available and <code>headSha</code> present.</li>
-        <li><code>shouldEnqueueAiReview</code> true for repository settings.</li>
-        <li>No existing job for <code>reviewKey</code> (or catch unique violation and return existing).</li>
-      </ol>
-      <p>
-        Creates job with <code>status: 'queued'</code>, optional <code>githubDeliveryId</code>,
-        and <code>queueJobId</code> from <code>getQueueJobId(PR_REVIEW_JOB_NAME, reviewKey)</code>.
-      </p>
-      <p>Called from <code>lib/github-sync.ts</code> after successful PR record save.</p>
+        <h3>3.2 Lookup</h3>
+        <p>
+          <code>getOrganizationOpenRouterCredential(organizationId)</code>
+          fetches the credential row. Worker blocks with status
+          <code>blocked</code> when missing:
+          <em>"OpenRouter credentials are not configured yet."</em>
+        </p>
 
-      <h3>4.3 Status transitions</h3>
-      <p>
-        <code>getAiReviewTransitionData()</code> sets timestamps:
-        <code>startedAt</code> on <code>in_progress</code>;
-        <code>completedAt</code> on terminal states.
-        <code>isTerminalAiReviewStatus()</code> covers
-        <code>blocked</code>, <code>skipped</code>, <code>completed</code>, <code>failed</code>.
-      </p>
-    </section>
+        <div class="callout good">
+          <strong>Separate encryption key recommended</strong>
+          Set <code>AI_PROVIDER_ENCRYPTION_KEY</code> in production so provider
+          keys are not encrypted with the same material as session signing.
+        </div>
+      </section>
 
-    <section id="worker">
-      <h2>5. Review Worker (<code>lib/jobs/pr-review-worker.ts</code>)</h2>
-      <p>
-        <code>processQueuedAiReviewJobs({ limit?, now? })</code> processes up to
-        <code>limit</code> (default 10) oldest <code>queued</code> jobs. Invoked by
-        <code>POST /api/jobs/pr-reviews</code> (Bearer <code>JOB_RUNNER_SECRET</code>).
-      </p>
+      <section id="lifecycle">
+        <h2>4. Job Lifecycle (<code>lib/jobs/pr-review-lifecycle.ts</code>)</h2>
 
-      <h3>5.1 Processing steps</h3>
-      <table>
-        <thead><tr><th>Step</th><th>Check</th><th>Outcome if failed</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>Transition to <code>in_progress</code>, increment <code>attemptCount</code></td>
-            <td>—</td>
-          </tr>
-          <tr>
-            <td>2</td>
-            <td><code>shouldEnqueueAiReview(reviewSettings)</code></td>
-            <td><code>skipped</code> — "AI reviews are disabled for this repository."</td>
-          </tr>
-          <tr>
-            <td>3</td>
-            <td><code>getOrganizationOpenRouterCredential()</code></td>
-            <td><code>blocked</code> — "OpenRouter credentials are not configured yet."</td>
-          </tr>
-          <tr>
-            <td>4</td>
-            <td><code>getGitHubPullRequestDiff()</code> via installation</td>
-            <td><code>skipped</code> — "GitHub diff is unavailable…"</td>
-          </tr>
-          <tr>
-            <td>5</td>
-            <td><code>filterDiffFiles(parseUnifiedDiff(rawDiff), { ignoredPaths })</code></td>
-            <td><code>skipped</code> — "No reviewable diff remained after filtering."</td>
-          </tr>
-          <tr>
-            <td>6</td>
-            <td>Model execution</td>
-            <td><code>skipped</code> — "Diff guardrails passed; AI model execution is not enabled yet."</td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>4.1 reviewKey idempotency</h3>
+        <p><code>getAiReviewKey()</code> builds a unique string:</p>
+        <pre><code>{organizationId}:{repositoryId}:{pullNumber}:{headSha}</code></pre>
+        <p>
+          Stored as <code>AiReviewJob.reviewKey</code> (unique). Re-syncing the
+          same PR head does not create duplicate jobs —
+          <code>enqueueAiReviewJob()</code> returns the existing row.
+        </p>
 
-      <h3>5.2 Result summary</h3>
-      <p>Returns counts: <code>processed</code>, <code>blocked</code>, <code>failed</code>, <code>skipped</code>.</p>
-      <p>Uncaught errors → <code>failed</code> with <code>errorMessage</code>; reported via <code>reportError()</code>.</p>
+        <h3>4.2 Enqueue</h3>
+        <p><code>enqueueAiReviewJob()</code> preconditions:</p>
+        <ol>
+          <li>Prisma client available and <code>headSha</code> present.</li>
+          <li>
+            <code>shouldEnqueueAiReview</code> true for repository settings.
+          </li>
+          <li>
+            No existing job for <code>reviewKey</code> (or catch unique
+            violation and return existing).
+          </li>
+        </ol>
+        <p>
+          Creates job with <code>status: 'queued'</code>, optional
+          <code>githubDeliveryId</code>, and <code>queueJobId</code> from
+          <code>getQueueJobId(PR_REVIEW_JOB_NAME, reviewKey)</code>.
+        </p>
+        <p>
+          Called from <code>lib/github-sync.ts</code> after successful PR record
+          save.
+        </p>
 
-      <div class="callout warn">
-        <strong>Model execution deliberately disabled</strong>
-        The worker validates the full prerequisite chain including diff guardrails, then stops.
-        Publishing inline comments, managed comments, and check runs are configured in settings
-        but not implemented in the worker yet.
-      </div>
-    </section>
+        <h3>4.3 Status transitions</h3>
+        <p>
+          <code>getAiReviewTransitionData()</code> sets timestamps:
+          <code>startedAt</code> on <code>in_progress</code>;
+          <code>completedAt</code> on terminal states.
+          <code>isTerminalAiReviewStatus()</code> covers <code>blocked</code>,
+          <code>skipped</code>, <code>completed</code>, <code>failed</code>.
+        </p>
+      </section>
 
-    <section id="diff">
-      <h2>6. Diff Processing (<code>lib/github/diff.ts</code>)</h2>
-      <p>
-        <code>parseUnifiedDiff(rawDiff)</code> parses GitHub unified diff into
-        <code>DiffFile[]</code>. <code>filterDiffFiles()</code> applies review guardrails.
-      </p>
+      <section id="worker">
+        <h2>5. Review Worker (<code>lib/jobs/pr-review-worker.ts</code>)</h2>
+        <p>
+          <code>processQueuedAiReviewJobs({ limit?, now? })</code> processes up
+          to <code>limit</code> (default 10) oldest <code>queued</code> jobs.
+          Invoked by <code>POST /api/jobs/pr-reviews</code> (Bearer
+          <code>JOB_RUNNER_SECRET</code>).
+        </p>
 
-      <table>
-        <thead><tr><th>Skip reason</th><th>Condition</th></tr></thead>
-        <tbody>
-          <tr><td><code>ignored_path</code></td><td>Matches repository <code>ignoredPaths</code> prefix patterns</td></tr>
-          <tr><td><code>generated</code></td><td>Likely generated file paths (build output, etc.)</td></tr>
-          <tr><td><code>lockfile</code></td><td>Package lock files</td></tr>
-          <tr><td><code>vendored</code></td><td>Vendor/third-party directories</td></tr>
-          <tr><td><code>binary</code></td><td>Binary extensions</td></tr>
-          <tr><td><code>too_large</code></td><td>File raw diff &gt; 80 KB (default)</td></tr>
-          <tr><td><code>no_commentable_lines</code></td><td>No add lines suitable for inline comments</td></tr>
-          <tr><td><code>file_limit</code></td><td>More than 50 files (default max)</td></tr>
-        </tbody>
-      </table>
-      <p>
-        Returns <code>FilteredDiff</code>: <code>files</code>, <code>skippedFiles</code> (with
-        reasons), <code>totalBytes</code>.
-      </p>
-    </section>
+        <h3>5.1 Processing steps</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Check</th>
+              <th>Outcome if failed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>
+                Transition to <code>in_progress</code>, increment
+                <code>attemptCount</code>
+              </td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><code>shouldEnqueueAiReview(reviewSettings)</code></td>
+              <td>
+                <code>skipped</code> — "AI reviews are disabled for this
+                repository."
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><code>getOrganizationOpenRouterCredential()</code></td>
+              <td>
+                <code>blocked</code> — "OpenRouter credentials are not
+                configured yet."
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><code>getGitHubPullRequestDiff()</code> via installation</td>
+              <td><code>skipped</code> — "GitHub diff is unavailable…"</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>
+                <code
+                  >filterDiffFiles(parseUnifiedDiff(rawDiff), { ignoredPaths
+                  })</code
+                >
+              </td>
+              <td>
+                <code>skipped</code> — "No reviewable diff remained after
+                filtering."
+              </td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Model execution</td>
+              <td>
+                <code>skipped</code> — "Diff guardrails passed; AI model
+                execution is not enabled yet."
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-    <section id="status">
-      <h2>7. AiReviewJob Status Machine</h2>
+        <h3>5.2 Result summary</h3>
+        <p>
+          Returns counts: <code>processed</code>, <code>blocked</code>,
+          <code>failed</code>, <code>skipped</code>.
+        </p>
+        <p>
+          Uncaught errors → <code>failed</code> with <code>errorMessage</code>;
+          reported via <code>reportError()</code>.
+        </p>
 
-      <table>
-        <thead><tr><th>Status</th><th>Terminal?</th><th>Meaning</th></tr></thead>
-        <tbody>
-          <tr><td><code>queued</code></td><td></td><td>Waiting for worker pickup</td></tr>
-          <tr><td><code>in_progress</code></td><td></td><td>Worker running prerequisite checks</td></tr>
-          <tr><td><code>blocked</code></td><td>✓</td><td>Missing credential or config — user action needed</td></tr>
-          <tr><td><code>skipped</code></td><td>✓</td><td>Disabled, empty diff, or model not enabled</td></tr>
-          <tr><td><code>completed</code></td><td>✓</td><td>Reserved for future successful model runs</td></tr>
-          <tr><td><code>failed</code></td><td>✓</td><td>Unexpected worker error</td></tr>
-        </tbody>
-      </table>
+        <div class="callout warn">
+          <strong>Model execution deliberately disabled</strong>
+          The worker validates the full prerequisite chain including diff
+          guardrails, then stops. Publishing inline comments, managed comments,
+          and check runs are configured in settings but not implemented in the
+          worker yet.
+        </div>
+      </section>
 
-      <div class="diagram">                    ┌─────────────┐
-                    │   queued    │
-                    └──────┬──────┘
-                           │ worker pickup
-                           ▼
-                    ┌─────────────┐
-         disabled   │ in_progress │
-        ──────────► └──────┬──────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         ▼                 ▼                 ▼
-   ┌──────────┐      ┌──────────┐      ┌──────────┐
-   │ blocked  │      │ skipped  │      │  failed  │
-   │ (no key) │      │ (diff /  │      │ (error)  │
-   └──────────┘      │  model)  │      └──────────┘
-                     └──────────┘
-                           │
-                     (future)
-                           ▼
-                    ┌─────────────┐
-                    │  completed  │
-                    └─────────────┘</div>
+      <section id="diff">
+        <h2>6. Diff Processing (<code>lib/github/diff.ts</code>)</h2>
+        <p>
+          <code>parseUnifiedDiff(rawDiff)</code> parses GitHub unified diff into
+          <code>DiffFile[]</code>. <code>filterDiffFiles()</code> applies review
+          guardrails.
+        </p>
 
-      <h3>7.1 UI surfacing</h3>
-      <ul>
-        <li><code>AiReviewBadge</code> on PR list and detail pages.</li>
-        <li><code>getLatestAiReviewJob()</code> in <code>lib/reporting.ts</code> picks newest job per PR.</li>
-        <li><code>getAiReviewBlockedAction()</code> suggests next step for blocked jobs.</li>
-      </ul>
-    </section>
+        <table>
+          <thead>
+            <tr>
+              <th>Skip reason</th>
+              <th>Condition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ignored_path</code></td>
+              <td>
+                Matches repository <code>ignoredPaths</code> prefix patterns
+              </td>
+            </tr>
+            <tr>
+              <td><code>generated</code></td>
+              <td>Likely generated file paths (build output, etc.)</td>
+            </tr>
+            <tr>
+              <td><code>lockfile</code></td>
+              <td>Package lock files</td>
+            </tr>
+            <tr>
+              <td><code>vendored</code></td>
+              <td>Vendor/third-party directories</td>
+            </tr>
+            <tr>
+              <td><code>binary</code></td>
+              <td>Binary extensions</td>
+            </tr>
+            <tr>
+              <td><code>too_large</code></td>
+              <td>File raw diff &gt; 80 KB (default)</td>
+            </tr>
+            <tr>
+              <td><code>no_commentable_lines</code></td>
+              <td>No add lines suitable for inline comments</td>
+            </tr>
+            <tr>
+              <td><code>file_limit</code></td>
+              <td>More than 50 files (default max)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Returns <code>FilteredDiff</code>: <code>files</code>,
+          <code>skippedFiles</code> (with reasons), <code>totalBytes</code>.
+        </p>
+      </section>
 
-    <section id="flow">
-      <h2>8. End-to-End Flow</h2>
+      <section id="status">
+        <h2>7. AiReviewJob Status Machine</h2>
 
-      <div class="diagram">GitHub webhook
-  │
-  ▼
-github-sync (PR saved)
-  │
-  ├─ enqueueAiReviewJob()
-  │     ├─ aiReviewsEnabled? ─no─► (no job)
-  │     └─ reviewKey unique → AiReviewJob status=queued
-  │
-  ▼
-Cron: POST /api/jobs/pr-reviews
-  │
-  ▼
-processQueuedAiReviewJobs()
-  │
-  ├─ enabled? credentials? diff? filter?
-  └─ skip: "model execution is not enabled yet"
-        │
-        ▼
-   UI: AiReviewBadge on /pull-requests</div>
-    </section>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Terminal?</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>queued</code></td>
+              <td></td>
+              <td>Waiting for worker pickup</td>
+            </tr>
+            <tr>
+              <td><code>in_progress</code></td>
+              <td></td>
+              <td>Worker running prerequisite checks</td>
+            </tr>
+            <tr>
+              <td><code>blocked</code></td>
+              <td>✓</td>
+              <td>Missing credential or config — user action needed</td>
+            </tr>
+            <tr>
+              <td><code>skipped</code></td>
+              <td>✓</td>
+              <td>Disabled, empty diff, or model not enabled</td>
+            </tr>
+            <tr>
+              <td><code>completed</code></td>
+              <td>✓</td>
+              <td>Reserved for future successful model runs</td>
+            </tr>
+            <tr>
+              <td><code>failed</code></td>
+              <td>✓</td>
+              <td>Unexpected worker error</td>
+            </tr>
+          </tbody>
+        </table>
 
-    <section id="caveats">
-      <h2>9. Technical Caveats</h2>
-      <table>
-        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Opt-in per repo</td>
-            <td>Default <code>aiReviewsEnabled: false</code>. Enabling org credentials alone is insufficient.</td>
-          </tr>
-          <tr>
-            <td>No model calls yet</td>
-            <td>Worker never decrypts the key or calls OpenRouter in current code.</td>
-          </tr>
-          <tr>
-            <td>Re-check at worker time</td>
-            <td>Jobs queued before disable still run worker checks and may skip.</td>
-          </tr>
-          <tr>
-            <td>headSha required</td>
-            <td>Enqueue skipped if PR head SHA missing.</td>
-          </tr>
-          <tr>
-            <td>One job per head</td>
-            <td>New commits (new SHA) create new jobs; old jobs remain terminal.</td>
-          </tr>
-          <tr>
-            <td>Publish flags unused</td>
-            <td><code>publishInlineComments</code>, etc. stored but not acted on by worker.</td>
-          </tr>
-          <tr>
-            <td>Not plan-gated separately</td>
-            <td>AI review availability follows repo settings + credentials, not a distinct plan flag.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <div class="diagram">
+          ┌─────────────┐ │ queued │ └──────┬──────┘ │ worker pickup ▼
+          ┌─────────────┐ disabled │ in_progress │ ──────────► └──────┬──────┘ │
+          ┌─────────────────┼─────────────────┐ ▼ ▼ ▼ ┌──────────┐ ┌──────────┐
+          ┌──────────┐ │ blocked │ │ skipped │ │ failed │ │ (no key) │ │ (diff /
+          │ │ (error) │ └──────────┘ │ model) │ └──────────┘ └──────────┘ │
+          (future) ▼ ┌─────────────┐ │ completed │ └─────────────┘
+        </div>
 
-    <section id="files">
-      <h2>10. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/ai/settings.ts</code></td><td>Defaults, form parsing, <code>shouldEnqueueAiReview</code></td></tr>
-          <tr><td><code>lib/ai/credentials.ts</code></td><td>AES-256-GCM encrypt/decrypt, OpenRouter lookup</td></tr>
-          <tr><td><code>lib/jobs/pr-review-lifecycle.ts</code></td><td><code>reviewKey</code>, enqueue, status transitions</td></tr>
-          <tr><td><code>lib/jobs/pr-review-worker.ts</code></td><td>Queued job processor and guardrails</td></tr>
-          <tr><td><code>lib/github/diff.ts</code></td><td><code>parseUnifiedDiff</code>, <code>filterDiffFiles</code></td></tr>
-          <tr><td><code>lib/github-sync.ts</code></td><td>Calls <code>enqueueAiReviewJob</code> after PR sync</td></tr>
-          <tr><td><code>lib/reporting.ts</code></td><td><code>getLatestAiReviewJob</code>, blocked-action hints</td></tr>
-          <tr><td><code>app/api/jobs/pr-reviews/route.ts</code></td><td>Job runner HTTP endpoint</td></tr>
-          <tr><td><code>app/repositories/[id]/ai/page.tsx</code></td><td>Per-repo AI review settings UI</td></tr>
-          <tr><td><code>app/settings/ai/page.tsx</code></td><td>Org OpenRouter credential UI</td></tr>
-          <tr><td><code>components/app/status-badge.tsx</code></td><td><code>AiReviewBadge</code></td></tr>
-          <tr><td><code>tests/pr-review-lifecycle.test.ts</code></td><td>Enqueue and worker integration tests</td></tr>
-          <tr><td><code>tests/github-diff.test.ts</code></td><td>Diff filter tests</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+        <h3>7.1 UI surfacing</h3>
+        <ul>
+          <li><code>AiReviewBadge</code> on PR list and detail pages.</li>
+          <li>
+            <code>getLatestAiReviewJob()</code> in
+            <code>lib/reporting.ts</code> picks newest job per PR.
+          </li>
+          <li>
+            <code>getAiReviewBlockedAction()</code> suggests next step for
+            blocked jobs.
+          </li>
+        </ul>
+      </section>
 
-  <footer>
-    AgentGate AI review architecture reference · June 2026
-  </footer>
-</body>
+      <section id="flow">
+        <h2>8. End-to-End Flow</h2>
+
+        <div class="diagram">
+          GitHub webhook │ ▼ github-sync (PR saved) │ ├─ enqueueAiReviewJob() │
+          ├─ aiReviewsEnabled? ─no─► (no job) │ └─ reviewKey unique →
+          AiReviewJob status=queued │ ▼ Cron: POST /api/jobs/pr-reviews │ ▼
+          processQueuedAiReviewJobs() │ ├─ enabled? credentials? diff? filter?
+          └─ skip: "model execution is not enabled yet" │ ▼ UI: AiReviewBadge on
+          /pull-requests
+        </div>
+      </section>
+
+      <section id="caveats">
+        <h2>9. Technical Caveats</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Opt-in per repo</td>
+              <td>
+                Default <code>aiReviewsEnabled: false</code>. Enabling org
+                credentials alone is insufficient.
+              </td>
+            </tr>
+            <tr>
+              <td>No model calls yet</td>
+              <td>
+                Worker never decrypts the key or calls OpenRouter in current
+                code.
+              </td>
+            </tr>
+            <tr>
+              <td>Re-check at worker time</td>
+              <td>
+                Jobs queued before disable still run worker checks and may skip.
+              </td>
+            </tr>
+            <tr>
+              <td>headSha required</td>
+              <td>Enqueue skipped if PR head SHA missing.</td>
+            </tr>
+            <tr>
+              <td>One job per head</td>
+              <td>
+                New commits (new SHA) create new jobs; old jobs remain terminal.
+              </td>
+            </tr>
+            <tr>
+              <td>Publish flags unused</td>
+              <td>
+                <code>publishInlineComments</code>, etc. stored but not acted on
+                by worker.
+              </td>
+            </tr>
+            <tr>
+              <td>Not plan-gated separately</td>
+              <td>
+                AI review availability follows repo settings + credentials, not
+                a distinct plan flag.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="files">
+        <h2>10. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/ai/settings.ts</code></td>
+              <td>
+                Defaults, form parsing, <code>shouldEnqueueAiReview</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/ai/credentials.ts</code></td>
+              <td>AES-256-GCM encrypt/decrypt, OpenRouter lookup</td>
+            </tr>
+            <tr>
+              <td><code>lib/jobs/pr-review-lifecycle.ts</code></td>
+              <td><code>reviewKey</code>, enqueue, status transitions</td>
+            </tr>
+            <tr>
+              <td><code>lib/jobs/pr-review-worker.ts</code></td>
+              <td>Queued job processor and guardrails</td>
+            </tr>
+            <tr>
+              <td><code>lib/github/diff.ts</code></td>
+              <td>
+                <code>parseUnifiedDiff</code>, <code>filterDiffFiles</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/github-sync.ts</code></td>
+              <td>Calls <code>enqueueAiReviewJob</code> after PR sync</td>
+            </tr>
+            <tr>
+              <td><code>lib/reporting.ts</code></td>
+              <td><code>getLatestAiReviewJob</code>, blocked-action hints</td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/pr-reviews/route.ts</code></td>
+              <td>Job runner HTTP endpoint</td>
+            </tr>
+            <tr>
+              <td><code>app/repositories/[id]/ai/page.tsx</code></td>
+              <td>Per-repo AI review settings UI</td>
+            </tr>
+            <tr>
+              <td><code>app/settings/ai/page.tsx</code></td>
+              <td>Org OpenRouter credential UI</td>
+            </tr>
+            <tr>
+              <td><code>components/app/status-badge.tsx</code></td>
+              <td><code>AiReviewBadge</code></td>
+            </tr>
+            <tr>
+              <td><code>tests/pr-review-lifecycle.test.ts</code></td>
+              <td>Enqueue and worker integration tests</td>
+            </tr>
+            <tr>
+              <td><code>tests/github-diff.test.ts</code></td>
+              <td>Diff filter tests</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <footer>AgentGate AI review architecture reference · June 2026</footer>
+  </body>
 </html>

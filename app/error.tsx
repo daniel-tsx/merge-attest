@@ -21,7 +21,9 @@ export default function ErrorPage({
       <Card className="w-full max-w-lg">
         <CardHeader className="flex flex-col items-start gap-3 border-b-0 pb-0">
           <GateScan size="lg" tone="danger" state="fissure" />
-          <CardTitle className="text-base">The gate held this request</CardTitle>
+          <CardTitle className="text-base">
+            The gate held this request
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             AgentGate could not load this view. The error has been surfaced to
             the runtime logs with the current release context.

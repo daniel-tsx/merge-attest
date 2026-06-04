@@ -393,7 +393,8 @@ export async function processLemonSqueezySubscriptionEvent(
 
   const planKey = getPlanKeyFromLemonSqueezyEvent(event)
   const isExpired =
-    event.eventName === 'subscription_expired' || attributes.status === 'expired'
+    event.eventName === 'subscription_expired' ||
+    attributes.status === 'expired'
   const nextPlanKey = isExpired ? 'free' : (planKey ?? organization.planKey)
   const isUpgrade =
     nextPlanKey !== organization.planKey && nextPlanKey !== 'free'
@@ -406,12 +407,10 @@ export async function processLemonSqueezySubscriptionEvent(
     data: {
       planKey: nextPlanKey,
       billingStatus,
-      lemonSqueezyCustomerId:
-        customerId ?? organization.lemonSqueezyCustomerId,
+      lemonSqueezyCustomerId: customerId ?? organization.lemonSqueezyCustomerId,
       lemonSqueezySubscriptionId:
         event.data.id ?? organization.lemonSqueezySubscriptionId,
-      lemonSqueezySubscriptionStatus:
-        attributes.status ?? event.eventName,
+      lemonSqueezySubscriptionStatus: attributes.status ?? event.eventName,
       lemonSqueezyVariantId: variantId ?? organization.lemonSqueezyVariantId,
       lemonSqueezyPriceId: priceId ?? organization.lemonSqueezyPriceId,
       trialEndsAt:

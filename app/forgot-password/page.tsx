@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell
       title="Reset your password"
-      description="Enter your email and we&apos;ll send a secure reset link if the account exists."
+      description="Enter your email and we'll send a secure reset link if the account exists."
       footer={
         <Link
           href="/sign-in"
@@ -60,8 +60,8 @@ export default function ForgotPasswordPage() {
               Check your inbox
             </h2>
             <p className="mt-1.5 text-sm text-muted-foreground">
-              If an account exists, we&apos;ve sent a password reset link to your
-              email. The link is single-use and expires within an hour.
+              If an account exists, we&apos;ve sent a password reset link to
+              your email. The link is single-use and expires within an hour.
             </p>
           </div>
           <Button asChild className="w-full" variant="secondary">

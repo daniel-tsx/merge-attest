@@ -33,6 +33,7 @@ AgentGate exposes a small set of operational and integration endpoints.
 
 - `GET /api/audit-log/export`: owner/admin CSV export, plan gated.
 - `GET /api/pull-requests/:id/review-packet`: owner/admin markdown review packet export, plan gated.
+- `GET /api/compliance/authorship/export?format=csv|json`: owner/admin AI-authorship export, gated by `auditExport` and the plan retention window. `csv` = per-agent ledger; `json` = compliance evidence bundle. See [`AI_GOVERNANCE.md`](AI_GOVERNANCE.md).
 
 ## AI Review Notes
 

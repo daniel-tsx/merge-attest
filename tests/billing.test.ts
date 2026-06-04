@@ -2,13 +2,12 @@ import { describe, expect, it, vi } from 'vitest'
 
 describe('billing helpers', () => {
   it('reports Lemon Squeezy customer portal access from billing ids', async () => {
-    const { hasLemonSqueezyCustomerPortalAccess } = await import(
-      '../lib/billing'
-    )
+    const { hasLemonSqueezyCustomerPortalAccess } =
+      await import('../lib/billing')
 
-    expect(
-      hasLemonSqueezyCustomerPortalAccess({ customerId: '123' }),
-    ).toBe(true)
+    expect(hasLemonSqueezyCustomerPortalAccess({ customerId: '123' })).toBe(
+      true,
+    )
     expect(hasLemonSqueezyCustomerPortalAccess({})).toBe(false)
   })
 

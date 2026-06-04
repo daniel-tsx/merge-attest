@@ -173,6 +173,15 @@ enum AuditEventType {
   github_comment_posted
   github_check_run_published
   settings_changed
+  agent_identity_rule_changed
+}
+
+enum AgentIdentityMatchType {
+  bot_login
+  email_domain
+  branch_prefix
+  label
+  commit_trailer
 }
 
 model User {
@@ -279,6 +288,7 @@ model Organization {
   billingWebhookEvents     BillingWebhookEvent[]
   invites                  OrganizationInvite[]
   auditExports             AuditExport[]
+  agentIdentityRules       AgentIdentityRule[]
 }
 
 model OrganizationMember {
@@ -366,6 +376,8 @@ model PullRequest {
   status                    PullRequestStatus
   aiAssisted                Boolean?
   agentSource               AgentSource       @default(unknown)
+  attributionConfidence     Int               @default(0)
+  attributionEvidence       Json              @default("[]")
   riskScore                 Int               @default(0)
   riskLevel                 RiskLevel         @default(low)
   testGapStatus             TestGapStatus     @default(none)
@@ -483,6 +495,21 @@ model RuleViolation {
 
   rule        RepoRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+}
+
+model AgentIdentityRule {
+  id             String                 @id @default(cuid())
+  agentSource    AgentSource
+  matchType      AgentIdentityMatchType
+  pattern        String
+  enabled        Boolean                @default(true)
+  organizationId String
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 model Approval {

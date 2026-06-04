@@ -1,276 +1,344 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Observability Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Observability Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Observability Architecture</h1>
-    <p>
-      Structured JSON logging, owner/admin diagnostics, health endpoints, and intentional
-      absence of third-party APM/analytics SDKs. Designed for Vercel serverless stdout
-      ingestion and operational runbook triage.
-    </p>
-    <p class="meta">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a>
-      &nbsp;·&nbsp;
-      <a href="deployment-runtime-architecture.html">Deployment &amp; runtime</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#logging">Structured logs</a></li>
-      <li><a href="#areas">Log areas</a></li>
-      <li><a href="#release">Release context</a></li>
-      <li><a href="#intentional-gaps">Intentional gaps</a></li>
-      <li><a href="#health">Health</a></li>
-      <li><a href="#diagnostics">Diagnostics</a></li>
-      <li><a href="#webhooks">Webhook failures</a></li>
-      <li><a href="#triage">Triage workflow</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Observability Architecture</h1>
       <p>
-        AgentGate observability is deliberately lightweight: a single module
-        (<code>lib/observability.ts</code>) emits one JSON object per log line to stdout/stderr.
-        Vercel (or any log aggregator) captures these lines. There is no in-app Sentry, PostHog,
-        Datadog, or OpenTelemetry exporter — operators rely on platform logs plus the authenticated
-        <code>/api/diagnostics</code> endpoint for dependency and queue health.
+        Structured JSON logging, owner/admin diagnostics, health endpoints, and
+        intentional absence of third-party APM/analytics SDKs. Designed for
+        Vercel serverless stdout ingestion and operational runbook triage.
       </p>
-      <div class="diagram">Application code
-  │
-  ├─ logEvent()      → console.log / warn / error (JSON line)
-  ├─ reportError()   → logEvent(level: error) + error metadata
-  │
-  ▼
-Vercel / hosting log drain
-  │
-  ├─ Filter by area, action, release (VERCEL_GIT_COMMIT_SHA)
-  └─ Correlate with /api/diagnostics for queue + dependency state
+      <p class="meta">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a>
+        &nbsp;·&nbsp;
+        <a href="deployment-runtime-architecture.html"
+          >Deployment &amp; runtime</a
+        >
+      </p>
+    </header>
 
-Product analytics &amp; error SaaS: intentionally not wired in-app</div>
-    </section>
+    <nav>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#logging">Structured logs</a></li>
+        <li><a href="#areas">Log areas</a></li>
+        <li><a href="#release">Release context</a></li>
+        <li><a href="#intentional-gaps">Intentional gaps</a></li>
+        <li><a href="#health">Health</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+        <li><a href="#webhooks">Webhook failures</a></li>
+        <li><a href="#triage">Triage workflow</a></li>
+        <li><a href="#files">File map</a></li>
+      </ul>
+    </nav>
 
-    <section id="logging">
-      <h2>2. Structured Logging (<code>lib/observability.ts</code>)</h2>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AgentGate observability is deliberately lightweight: a single module
+          (<code>lib/observability.ts</code>) emits one JSON object per log line
+          to stdout/stderr. Vercel (or any log aggregator) captures these lines.
+          There is no in-app Sentry, PostHog, Datadog, or OpenTelemetry exporter
+          — operators rely on platform logs plus the authenticated
+          <code>/api/diagnostics</code> endpoint for dependency and queue
+          health.
+        </p>
+        <div class="diagram">
+          Application code │ ├─ logEvent() → console.log / warn / error (JSON
+          line) ├─ reportError() → logEvent(level: error) + error metadata │ ▼
+          Vercel / hosting log drain │ ├─ Filter by area, action, release
+          (VERCEL_GIT_COMMIT_SHA) └─ Correlate with /api/diagnostics for queue +
+          dependency state Product analytics &amp; error SaaS: intentionally not
+          wired in-app
+        </div>
+      </section>
 
-      <h3>2.1 <code>logEvent()</code></h3>
-      <p>Emits a single JSON object per call. Fields:</p>
-      <table>
-        <thead><tr><th>Field</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>timestamp</code></td><td>ISO-8601 UTC</td></tr>
-          <tr><td><code>level</code></td><td><code>debug</code> | <code>info</code> | <code>warn</code> | <code>error</code> (default <code>info</code>)</td></tr>
-          <tr><td><code>area</code></td><td>Domain tag (see §3)</td></tr>
-          <tr><td><code>action</code></td><td>Stable snake_case event name for filtering</td></tr>
-          <tr><td><code>message</code></td><td>Human-readable summary</td></tr>
-          <tr><td><code>environment</code></td><td><code>NODE_ENV</code></td></tr>
-          <tr><td><code>release</code></td><td>Deploy version (see §4)</td></tr>
-          <tr><td><code>metadata</code></td><td>Flat key/value context (strings, numbers, booleans, null)</td></tr>
-        </tbody>
-      </table>
-      <pre><code>{
+      <section id="logging">
+        <h2>2. Structured Logging (<code>lib/observability.ts</code>)</h2>
+
+        <h3>2.1 <code>logEvent()</code></h3>
+        <p>Emits a single JSON object per call. Fields:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>timestamp</code></td>
+              <td>ISO-8601 UTC</td>
+            </tr>
+            <tr>
+              <td><code>level</code></td>
+              <td>
+                <code>debug</code> | <code>info</code> | <code>warn</code> |
+                <code>error</code> (default <code>info</code>)
+              </td>
+            </tr>
+            <tr>
+              <td><code>area</code></td>
+              <td>Domain tag (see §3)</td>
+            </tr>
+            <tr>
+              <td><code>action</code></td>
+              <td>Stable snake_case event name for filtering</td>
+            </tr>
+            <tr>
+              <td><code>message</code></td>
+              <td>Human-readable summary</td>
+            </tr>
+            <tr>
+              <td><code>environment</code></td>
+              <td><code>NODE_ENV</code></td>
+            </tr>
+            <tr>
+              <td><code>release</code></td>
+              <td>Deploy version (see §4)</td>
+            </tr>
+            <tr>
+              <td><code>metadata</code></td>
+              <td>Flat key/value context (strings, numbers, booleans, null)</td>
+            </tr>
+          </tbody>
+        </table>
+        <pre><code>{
   "timestamp": "2026-06-03T12:00:00.000Z",
   "level": "info",
   "area": "github",
@@ -281,288 +349,480 @@ Product analytics &amp; error SaaS: intentionally not wired in-app</div>
   "metadata": { "event": "pull_request", "deliveryId": "...", "queued": true }
 }</code></pre>
 
-      <h3>2.2 <code>reportError()</code></h3>
-      <p>
-        Convenience wrapper that logs at <code>level: error</code>. Adds error metadata:
-      </p>
-      <ul>
-        <li><code>errorName</code>, <code>errorMessage</code> from <code>Error</code> instances</li>
-        <li><code>errorStack</code> — included in non-production only (stripped in production to reduce noise/leakage)</li>
-        <li>Non-Error values serialized as <code>error: String(value)</code></li>
-      </ul>
+        <h3>2.2 <code>reportError()</code></h3>
+        <p>
+          Convenience wrapper that logs at <code>level: error</code>. Adds error
+          metadata:
+        </p>
+        <ul>
+          <li>
+            <code>errorName</code>, <code>errorMessage</code> from
+            <code>Error</code> instances
+          </li>
+          <li>
+            <code>errorStack</code> — included in non-production only (stripped
+            in production to reduce noise/leakage)
+          </li>
+          <li>
+            Non-Error values serialized as <code>error: String(value)</code>
+          </li>
+        </ul>
 
-      <h3>2.3 <code>getErrorTrackingContext()</code></h3>
-      <p>
-        Returns <code>{ environment, release }</code> from <code>runtimeContext()</code> — a hook
-        for future external error tracking without coupling the app to a vendor today.
-      </p>
-    </section>
+        <h3>2.3 <code>getErrorTrackingContext()</code></h3>
+        <p>
+          Returns <code>{ environment, release }</code> from
+          <code>runtimeContext()</code> — a hook for future external error
+          tracking without coupling the app to a vendor today.
+        </p>
+      </section>
 
-    <section id="areas">
-      <h2>3. Log Areas &amp; Key Actions</h2>
-      <table>
-        <thead><tr><th>Area</th><th>Typical sources</th><th>Example actions</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>auth</code></td>
-            <td><code>lib/auth/session.ts</code></td>
-            <td>Session/org provisioning failures</td>
-          </tr>
-          <tr>
-            <td><code>github</code></td>
-            <td>Webhook route, webhook worker</td>
-            <td><code>webhook_verification_failed</code>, <code>webhook_enqueued</code>, <code>webhook_processing_failed</code></td>
-          </tr>
-          <tr>
-            <td><code>approval</code></td>
-            <td><code>app/pull-requests/actions.ts</code></td>
-            <td><code>approval_decision_recorded</code></td>
-          </tr>
-          <tr>
-            <td><code>billing</code></td>
-            <td>Lemon Squeezy webhook route + processor</td>
-            <td><code>lemon_squeezy_webhook_processed</code>, <code>lemon_squeezy_webhook_failed</code></td>
-          </tr>
-          <tr>
-            <td><code>jobs</code></td>
-            <td>Job routes, PR review worker, retention</td>
-            <td><code>retention_cleanup_completed</code>, <code>queued_github_webhook_failed</code></td>
-          </tr>
-          <tr>
-            <td><code>health</code></td>
-            <td><code>/api/health</code></td>
-            <td><code>health_check</code></td>
-          </tr>
-          <tr>
-            <td><code>security</code></td>
-            <td>Reserved in type union</td>
-            <td>Available for future security-event logging</td>
-          </tr>
-        </tbody>
-      </table>
-      <p>
-        Admin mutations in <code>app/admin/actions.ts</code> also call <code>logEvent</code> for
-        operator actions (plan changes, org overrides).
-      </p>
-    </section>
+      <section id="areas">
+        <h2>3. Log Areas &amp; Key Actions</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Typical sources</th>
+              <th>Example actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>auth</code></td>
+              <td><code>lib/auth/session.ts</code></td>
+              <td>Session/org provisioning failures</td>
+            </tr>
+            <tr>
+              <td><code>github</code></td>
+              <td>Webhook route, webhook worker</td>
+              <td>
+                <code>webhook_verification_failed</code>,
+                <code>webhook_enqueued</code>,
+                <code>webhook_processing_failed</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>approval</code></td>
+              <td><code>app/pull-requests/actions.ts</code></td>
+              <td><code>approval_decision_recorded</code></td>
+            </tr>
+            <tr>
+              <td><code>billing</code></td>
+              <td>Lemon Squeezy webhook route + processor</td>
+              <td>
+                <code>lemon_squeezy_webhook_processed</code>,
+                <code>lemon_squeezy_webhook_failed</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>jobs</code></td>
+              <td>Job routes, PR review worker, retention</td>
+              <td>
+                <code>retention_cleanup_completed</code>,
+                <code>queued_github_webhook_failed</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>health</code></td>
+              <td><code>/api/health</code></td>
+              <td><code>health_check</code></td>
+            </tr>
+            <tr>
+              <td><code>security</code></td>
+              <td>Reserved in type union</td>
+              <td>Available for future security-event logging</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Admin mutations in <code>app/admin/actions.ts</code> also call
+          <code>logEvent</code> for operator actions (plan changes, org
+          overrides).
+        </p>
+      </section>
 
-    <section id="release">
-      <h2>4. Release Context</h2>
-      <p>Every log line includes a <code>release</code> field from <code>runtimeContext()</code>:</p>
-      <ol>
-        <li><code>VERCEL_GIT_COMMIT_SHA</code> — set automatically on Vercel deploys (preferred)</li>
-        <li><code>APP_VERSION</code> — manual override</li>
-        <li><code>NEXT_PUBLIC_APP_VERSION</code> — client-visible fallback</li>
-        <li><code>'local'</code> — development default</li>
-      </ol>
-      <p>
-        During incident triage, filter logs by <code>release</code> to correlate errors with a deploy.
-        The operations runbook recommends confirming deploy version via these fields when
-        investigating webhook or job failures.
-      </p>
-    </section>
+      <section id="release">
+        <h2>4. Release Context</h2>
+        <p>
+          Every log line includes a <code>release</code> field from
+          <code>runtimeContext()</code>:
+        </p>
+        <ol>
+          <li>
+            <code>VERCEL_GIT_COMMIT_SHA</code> — set automatically on Vercel
+            deploys (preferred)
+          </li>
+          <li><code>APP_VERSION</code> — manual override</li>
+          <li>
+            <code>NEXT_PUBLIC_APP_VERSION</code> — client-visible fallback
+          </li>
+          <li><code>'local'</code> — development default</li>
+        </ol>
+        <p>
+          During incident triage, filter logs by <code>release</code> to
+          correlate errors with a deploy. The operations runbook recommends
+          confirming deploy version via these fields when investigating webhook
+          or job failures.
+        </p>
+      </section>
 
-    <section id="intentional-gaps">
-      <h2>5. Intentionally No Sentry / PostHog</h2>
-      <div class="callout good">
-        <strong>By design</strong>
-        The codebase contains no Sentry SDK, PostHog client, or other third-party observability
-        packages. Product analytics and exception SaaS are deferred to keep the attack surface,
-        bundle size, and privacy posture minimal.
-      </div>
-      <table>
-        <thead><tr><th>Capability</th><th>Current approach</th><th>Future option</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Exception tracking</td>
-            <td><code>reportError()</code> → JSON stderr; Vercel log alerts</td>
-            <td>Log drain → external error tracker; or wire <code>getErrorTrackingContext()</code></td>
-          </tr>
-          <tr>
-            <td>Product analytics</td>
-            <td>None in-app</td>
-            <td>PostHog or similar if privacy policy updated</td>
-          </tr>
-          <tr>
-            <td>Audit trail</td>
-            <td>PostgreSQL <code>AuditEvent</code> table (compliance, not ops logs)</td>
-            <td>See <a href="audit-and-compliance-architecture.html">audit architecture</a></td>
-          </tr>
-          <tr>
-            <td>APM / traces</td>
-            <td>None</td>
-            <td>Vercel observability or OpenTelemetry if needed</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+      <section id="intentional-gaps">
+        <h2>5. Intentionally No Sentry / PostHog</h2>
+        <div class="callout good">
+          <strong>By design</strong>
+          The codebase contains no Sentry SDK, PostHog client, or other
+          third-party observability packages. Product analytics and exception
+          SaaS are deferred to keep the attack surface, bundle size, and privacy
+          posture minimal.
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Capability</th>
+              <th>Current approach</th>
+              <th>Future option</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Exception tracking</td>
+              <td>
+                <code>reportError()</code> → JSON stderr; Vercel log alerts
+              </td>
+              <td>
+                Log drain → external error tracker; or wire
+                <code>getErrorTrackingContext()</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Product analytics</td>
+              <td>None in-app</td>
+              <td>PostHog or similar if privacy policy updated</td>
+            </tr>
+            <tr>
+              <td>Audit trail</td>
+              <td>
+                PostgreSQL <code>AuditEvent</code> table (compliance, not ops
+                logs)
+              </td>
+              <td>
+                See
+                <a href="audit-and-compliance-architecture.html"
+                  >audit architecture</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>APM / traces</td>
+              <td>None</td>
+              <td>Vercel observability or OpenTelemetry if needed</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="health">
-      <h2>6. Public Health — <code>GET /api/health</code></h2>
-      <p>
-        Liveness-only endpoint. No authentication. Always returns
-        <code>{ "status": "ok" }</code> when the route handler executes.
-      </p>
-      <ul>
-        <li>Logs <code>health_check</code> at <code>area: health</code> on each request.</li>
-        <li>Does <em>not</em> probe database, GitHub, or billing — suitable for uptime monitors only.</li>
-        <li>Use <code>/api/diagnostics</code> for dependency readiness (see §7).</li>
-      </ul>
-    </section>
+      <section id="health">
+        <h2>6. Public Health — <code>GET /api/health</code></h2>
+        <p>
+          Liveness-only endpoint. No authentication. Always returns
+          <code>{ "status": "ok" }</code> when the route handler executes.
+        </p>
+        <ul>
+          <li>
+            Logs <code>health_check</code> at <code>area: health</code> on each
+            request.
+          </li>
+          <li>
+            Does <em>not</em> probe database, GitHub, or billing — suitable for
+            uptime monitors only.
+          </li>
+          <li>
+            Use <code>/api/diagnostics</code> for dependency readiness (see §7).
+          </li>
+        </ul>
+      </section>
 
-    <section id="diagnostics">
-      <h2>7. Owner/Admin Diagnostics — <code>GET /api/diagnostics</code></h2>
-      <p>
-        Authenticated endpoint for workspace <strong>owners and admins</strong> only. Returns
-        JSON combining org context, dependency checks, and recent webhook failures.
-      </p>
+      <section id="diagnostics">
+        <h2>7. Owner/Admin Diagnostics — <code>GET /api/diagnostics</code></h2>
+        <p>
+          Authenticated endpoint for workspace
+          <strong>owners and admins</strong> only. Returns JSON combining org
+          context, dependency checks, and recent webhook failures.
+        </p>
 
-      <h3>7.1 Access control</h3>
-      <ul>
-        <li>Requires session + database (<code>ensureCurrentUserOrganization()</code>).</li>
-        <li>401 if unauthenticated or no DB.</li>
-        <li>403 if role is not <code>owner</code> or <code>admin</code>.</li>
-      </ul>
+        <h3>7.1 Access control</h3>
+        <ul>
+          <li>
+            Requires session + database
+            (<code>ensureCurrentUserOrganization()</code>).
+          </li>
+          <li>401 if unauthenticated or no DB.</li>
+          <li>403 if role is not <code>owner</code> or <code>admin</code>.</li>
+        </ul>
 
-      <h3>7.2 Response shape</h3>
-      <pre><code>{
+        <h3>7.2 Response shape</h3>
+        <pre><code>{
   "status": "ok" | "warning" | "error",
   "organization": { "id", "name", "planKey", "billingStatus", "repositoryCount", ... },
   "checks": [ { "name", "status", "message", "metadata?" } ],
   "recentWebhookFailures": [ { "deliveryId", "event", "attempts", "lastError", ... } ]
 }</code></pre>
-      <p>
-        Top-level <code>status</code> is computed by <code>summarizeDiagnostics()</code>: any
-        check with <code>error</code> → <code>error</code>; else any <code>warning</code> →
-        <code>warning</code>; else <code>ok</code>.
-      </p>
+        <p>
+          Top-level <code>status</code> is computed by
+          <code>summarizeDiagnostics()</code>: any check with
+          <code>error</code> → <code>error</code>; else any
+          <code>warning</code> → <code>warning</code>; else <code>ok</code>.
+        </p>
 
-      <h3>7.3 Checks from <code>lib/diagnostics.ts</code></h3>
-      <table>
-        <thead><tr><th>Check name</th><th>What it validates</th></tr></thead>
-        <tbody>
-          <tr><td><code>database</code></td><td><code>DATABASE_URL</code> configured + <code>SELECT 1</code> succeeds</td></tr>
-          <tr><td><code>github</code></td><td>GitHub App credentials configured (<code>githubConfigured()</code>)</td></tr>
-          <tr><td><code>lemon_squeezy</code></td><td>Billing mode live vs demo/warning</td></tr>
-          <tr><td><code>job_runner</code></td><td><code>JOB_RUNNER_SECRET</code> present</td></tr>
-          <tr><td><code>email</code></td><td>Transactional email mode live vs demo</td></tr>
-          <tr><td><code>jobs</code></td><td>Failed GitHub webhook delivery count (org-agnostic queue stats)</td></tr>
-          <tr><td><code>ai_review_jobs</code></td><td>Queued/active/blocked/failed/stale AI review jobs</td></tr>
-          <tr><td><code>retention</code></td><td>Stale processed webhook deliveries (&gt;30d) or audit export records (&gt;30d)</td></tr>
-        </tbody>
-      </table>
-      <p>
-        <code>getJobRunnerDiagnostic()</code> is also exported for reuse and accepts an optional
-        env override (used in tests).
-      </p>
-    </section>
+        <h3>7.3 Checks from <code>lib/diagnostics.ts</code></h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Check name</th>
+              <th>What it validates</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>database</code></td>
+              <td>
+                <code>DATABASE_URL</code> configured +
+                <code>SELECT 1</code> succeeds
+              </td>
+            </tr>
+            <tr>
+              <td><code>github</code></td>
+              <td>
+                GitHub App credentials configured
+                (<code>githubConfigured()</code>)
+              </td>
+            </tr>
+            <tr>
+              <td><code>lemon_squeezy</code></td>
+              <td>Billing mode live vs demo/warning</td>
+            </tr>
+            <tr>
+              <td><code>job_runner</code></td>
+              <td><code>JOB_RUNNER_SECRET</code> present</td>
+            </tr>
+            <tr>
+              <td><code>email</code></td>
+              <td>Transactional email mode live vs demo</td>
+            </tr>
+            <tr>
+              <td><code>jobs</code></td>
+              <td>
+                Failed GitHub webhook delivery count (org-agnostic queue stats)
+              </td>
+            </tr>
+            <tr>
+              <td><code>ai_review_jobs</code></td>
+              <td>Queued/active/blocked/failed/stale AI review jobs</td>
+            </tr>
+            <tr>
+              <td><code>retention</code></td>
+              <td>
+                Stale processed webhook deliveries (&gt;30d) or audit export
+                records (&gt;30d)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          <code>getJobRunnerDiagnostic()</code> is also exported for reuse and
+          accepts an optional env override (used in tests).
+        </p>
+      </section>
 
-    <section id="webhooks">
-      <h2>8. What Gets Logged on Webhook Failures</h2>
+      <section id="webhooks">
+        <h2>8. What Gets Logged on Webhook Failures</h2>
 
-      <h3>8.1 GitHub — ingress (<code>/api/github/webhook</code>)</h3>
-      <table>
-        <thead><tr><th>Failure</th><th>Log</th><th>HTTP</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Invalid/missing HMAC</td>
-            <td><code>logEvent</code> warn · <code>webhook_verification_failed</code> · metadata: <code>reason</code></td>
-            <td>401</td>
-          </tr>
-          <tr>
-            <td>Invalid JSON body</td>
-            <td>No structured log (SyntaxError caught)</td>
-            <td>400</td>
-          </tr>
-          <tr>
-            <td>Enqueue/processing exception</td>
-            <td><code>reportError</code> · <code>webhook_processing_failed</code> · metadata: <code>event</code>, <code>deliveryId</code></td>
-            <td>500</td>
-          </tr>
-          <tr>
-            <td>Success enqueue</td>
-            <td><code>logEvent</code> info · <code>webhook_enqueued</code></td>
-            <td>202 / 200</td>
-          </tr>
-        </tbody>
-      </table>
+        <h3>8.1 GitHub — ingress (<code>/api/github/webhook</code>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Failure</th>
+              <th>Log</th>
+              <th>HTTP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Invalid/missing HMAC</td>
+              <td>
+                <code>logEvent</code> warn ·
+                <code>webhook_verification_failed</code> · metadata:
+                <code>reason</code>
+              </td>
+              <td>401</td>
+            </tr>
+            <tr>
+              <td>Invalid JSON body</td>
+              <td>No structured log (SyntaxError caught)</td>
+              <td>400</td>
+            </tr>
+            <tr>
+              <td>Enqueue/processing exception</td>
+              <td>
+                <code>reportError</code> ·
+                <code>webhook_processing_failed</code> · metadata:
+                <code>event</code>, <code>deliveryId</code>
+              </td>
+              <td>500</td>
+            </tr>
+            <tr>
+              <td>Success enqueue</td>
+              <td>
+                <code>logEvent</code> info · <code>webhook_enqueued</code>
+              </td>
+              <td>202 / 200</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>8.2 GitHub — async worker (<code>/api/jobs/github-webhooks</code>)</h3>
-      <p>
-        When queued delivery processing throws, <code>reportError</code> logs
-        <code>queued_github_webhook_failed</code> with <code>deliveryId</code>,
-        <code>event</code>, and <code>attemptCount</code>. Delivery row updated with
-        <code>lastError</code> — surfaced in <code>/api/diagnostics</code>
-        <code>recentWebhookFailures</code> (org-scoped, last 5).
-      </p>
+        <h3>
+          8.2 GitHub — async worker (<code>/api/jobs/github-webhooks</code>)
+        </h3>
+        <p>
+          When queued delivery processing throws, <code>reportError</code> logs
+          <code>queued_github_webhook_failed</code> with
+          <code>deliveryId</code>, <code>event</code>, and
+          <code>attemptCount</code>. Delivery row updated with
+          <code>lastError</code> — surfaced in <code>/api/diagnostics</code>
+          <code>recentWebhookFailures</code> (org-scoped, last 5).
+        </p>
 
-      <h3>8.3 Lemon Squeezy (<code>/api/lemon-squeezy/webhook</code>)</h3>
-      <table>
-        <thead><tr><th>Failure</th><th>Log</th><th>HTTP</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Invalid signature</td>
-            <td><code>reportError</code> · <code>lemon_squeezy_webhook_failed</code></td>
-            <td>401</td>
-          </tr>
-          <tr>
-            <td>Bad payload</td>
-            <td>Same action; message from thrown Error</td>
-            <td>400</td>
-          </tr>
-          <tr>
-            <td>Processing error</td>
-            <td><code>reportError</code> in processor (<code>lib/lemon-squeezy-webhooks.ts</code>)</td>
-            <td>500</td>
-          </tr>
-          <tr>
-            <td>Success</td>
-            <td><code>logEvent</code> · <code>lemon_squeezy_webhook_processed</code></td>
-            <td>200</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <h3>8.3 Lemon Squeezy (<code>/api/lemon-squeezy/webhook</code>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Failure</th>
+              <th>Log</th>
+              <th>HTTP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Invalid signature</td>
+              <td>
+                <code>reportError</code> ·
+                <code>lemon_squeezy_webhook_failed</code>
+              </td>
+              <td>401</td>
+            </tr>
+            <tr>
+              <td>Bad payload</td>
+              <td>Same action; message from thrown Error</td>
+              <td>400</td>
+            </tr>
+            <tr>
+              <td>Processing error</td>
+              <td>
+                <code>reportError</code> in processor
+                (<code>lib/lemon-squeezy-webhooks.ts</code>)
+              </td>
+              <td>500</td>
+            </tr>
+            <tr>
+              <td>Success</td>
+              <td>
+                <code>logEvent</code> ·
+                <code>lemon_squeezy_webhook_processed</code>
+              </td>
+              <td>200</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="triage">
-      <h2>9. Operational Triage Workflow</h2>
-      <p>From <code>docs/operations/OPERATIONS_RUNBOOK.md</code>:</p>
-      <ol>
-        <li>Alert on <code>GET /api/health</code> non-200 for liveness.</li>
-        <li>Owner/admin checks <code>GET /api/diagnostics</code> for dependency warnings.</li>
-        <li>Filter platform logs by <code>area</code> + <code>action</code> + <code>release</code>.</li>
-        <li>Inspect <code>recentWebhookFailures</code> or GitHub settings UI for delivery errors.</li>
-        <li>Trigger job endpoints manually: <code>/api/jobs/github-webhooks</code>, <code>/api/jobs/pr-reviews</code>, <code>/api/jobs/retention</code>.</li>
-      </ol>
-      <div class="callout warn">
-        <strong>Logs are not durable product data</strong>
-        Platform log retention depends on Vercel/plan settings. Compliance evidence lives in
-        <code>AuditEvent</code> rows, not stdout JSON lines.
-      </div>
-    </section>
+      <section id="triage">
+        <h2>9. Operational Triage Workflow</h2>
+        <p>From <code>docs/operations/OPERATIONS_RUNBOOK.md</code>:</p>
+        <ol>
+          <li>Alert on <code>GET /api/health</code> non-200 for liveness.</li>
+          <li>
+            Owner/admin checks <code>GET /api/diagnostics</code> for dependency
+            warnings.
+          </li>
+          <li>
+            Filter platform logs by <code>area</code> + <code>action</code> +
+            <code>release</code>.
+          </li>
+          <li>
+            Inspect <code>recentWebhookFailures</code> or GitHub settings UI for
+            delivery errors.
+          </li>
+          <li>
+            Trigger job endpoints manually:
+            <code>/api/jobs/github-webhooks</code>,
+            <code>/api/jobs/pr-reviews</code>, <code>/api/jobs/retention</code>.
+          </li>
+        </ol>
+        <div class="callout warn">
+          <strong>Logs are not durable product data</strong>
+          Platform log retention depends on Vercel/plan settings. Compliance
+          evidence lives in
+          <code>AuditEvent</code> rows, not stdout JSON lines.
+        </div>
+      </section>
 
-    <section id="files">
-      <h2>10. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/observability.ts</code></td><td><code>logEvent</code>, <code>reportError</code>, release context</td></tr>
-          <tr><td><code>lib/diagnostics.ts</code></td><td>Health check builders, <code>summarizeDiagnostics</code></td></tr>
-          <tr><td><code>app/api/health/route.ts</code></td><td>Public liveness endpoint</td></tr>
-          <tr><td><code>app/api/diagnostics/route.ts</code></td><td>Owner/admin diagnostics API</td></tr>
-          <tr><td><code>app/api/github/webhook/route.ts</code></td><td>GitHub webhook ingress logging</td></tr>
-          <tr><td><code>app/api/lemon-squeezy/webhook/route.ts</code></td><td>Billing webhook ingress logging</td></tr>
-          <tr><td><code>lib/github-webhooks.ts</code></td><td>Queued webhook worker errors</td></tr>
-          <tr><td><code>lib/lemon-squeezy-webhooks.ts</code></td><td>Billing processor errors</td></tr>
-          <tr><td><code>app/api/jobs/*/route.ts</code></td><td>Job completion logging</td></tr>
-          <tr><td><code>docs/operations/OPERATIONS_RUNBOOK.md</code></td><td>Alert targets and incident steps</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <section id="files">
+        <h2>10. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/observability.ts</code></td>
+              <td>
+                <code>logEvent</code>, <code>reportError</code>, release context
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/diagnostics.ts</code></td>
+              <td>Health check builders, <code>summarizeDiagnostics</code></td>
+            </tr>
+            <tr>
+              <td><code>app/api/health/route.ts</code></td>
+              <td>Public liveness endpoint</td>
+            </tr>
+            <tr>
+              <td><code>app/api/diagnostics/route.ts</code></td>
+              <td>Owner/admin diagnostics API</td>
+            </tr>
+            <tr>
+              <td><code>app/api/github/webhook/route.ts</code></td>
+              <td>GitHub webhook ingress logging</td>
+            </tr>
+            <tr>
+              <td><code>app/api/lemon-squeezy/webhook/route.ts</code></td>
+              <td>Billing webhook ingress logging</td>
+            </tr>
+            <tr>
+              <td><code>lib/github-webhooks.ts</code></td>
+              <td>Queued webhook worker errors</td>
+            </tr>
+            <tr>
+              <td><code>lib/lemon-squeezy-webhooks.ts</code></td>
+              <td>Billing processor errors</td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/*/route.ts</code></td>
+              <td>Job completion logging</td>
+            </tr>
+            <tr>
+              <td><code>docs/operations/OPERATIONS_RUNBOOK.md</code></td>
+              <td>Alert targets and incident steps</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
 
-  <footer>
-    AgentGate observability architecture reference · June 2026
-  </footer>
-</body>
+    <footer>AgentGate observability architecture reference · June 2026</footer>
+  </body>
 </html>

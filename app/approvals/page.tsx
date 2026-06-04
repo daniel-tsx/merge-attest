@@ -91,8 +91,8 @@ async function ApprovalsContent({ searchParams }: PageProps) {
                   Approval workflow requires the Team plan
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Upgrade to record approval decisions, reviewer assignments, and
-                  risk acceptance.
+                  Upgrade to record approval decisions, reviewer assignments,
+                  and risk acceptance.
                 </div>
               </div>
             </div>
@@ -191,7 +191,9 @@ async function ApprovalsContent({ searchParams }: PageProps) {
                         </span>
                       </>
                     ) : (
-                      <span className="text-subtle-foreground">No due date</span>
+                      <span className="text-subtle-foreground">
+                        No due date
+                      </span>
                     )}
                   </dd>
                 </div>

@@ -20,7 +20,7 @@ export function TrendChart({
   metric,
 }: {
   data: Array<Record<string, string | number>>
-  metric: 'risk' | 'testGaps'
+  metric: 'risk' | 'testGaps' | 'aiAuthoredPct'
 }) {
   return <TrendChartInner data={data} metric={metric} />
 }

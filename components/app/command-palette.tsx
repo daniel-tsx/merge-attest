@@ -7,6 +7,7 @@ import {
   Activity,
   BadgeCheck,
   Boxes,
+  ChartNoAxesColumn,
   Gauge,
   GitPullRequest,
   ListChecks,
@@ -31,6 +32,7 @@ type NavCommand = { href: string; label: string; icon: LucideIcon }
 const navCommands: NavCommand[] = [
   { href: '/dashboard', label: 'Dashboard', icon: Gauge },
   { href: '/activity', label: 'Activity', icon: Activity },
+  { href: '/reports', label: 'Reports', icon: ChartNoAxesColumn },
   { href: '/repositories', label: 'Repositories', icon: Boxes },
   { href: '/pull-requests', label: 'Pull Requests', icon: GitPullRequest },
   { href: '/approvals', label: 'Approvals', icon: BadgeCheck },
@@ -85,9 +87,7 @@ export function CommandPalette() {
                 <CommandItem
                   key={command.href}
                   value={command.label}
-                  onSelect={() =>
-                    runCommand(() => router.push(command.href))
-                  }
+                  onSelect={() => runCommand(() => router.push(command.href))}
                 >
                   <Icon aria-hidden="true" />
                   {command.label}

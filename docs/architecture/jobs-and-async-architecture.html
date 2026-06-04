@@ -1,755 +1,1103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGate — Jobs &amp; Async Architecture</title>
-  <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --border: #e4e4e7;
-      --text: #18181b;
-      --muted: #71717a;
-      --accent: #2563eb;
-      --accent-soft: #eff6ff;
-      --code-bg: #f4f4f5;
-      --warn-bg: #fffbeb;
-      --warn-border: #f59e0b;
-      --good-bg: #f0fdf4;
-      --good-border: #22c55e;
-      --mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
-      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentGate — Jobs &amp; Async Architecture</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --surface: #ffffff;
+        --border: #e4e4e7;
+        --text: #18181b;
+        --muted: #71717a;
+        --accent: #2563eb;
+        --accent-soft: #eff6ff;
+        --code-bg: #f4f4f5;
+        --warn-bg: #fffbeb;
+        --warn-border: #f59e0b;
+        --good-bg: #f0fdf4;
+        --good-border: #22c55e;
+        --mono: ui-monospace, 'Cascadia Code', 'Segoe UI Mono', monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
 
-    * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      font-family: var(--sans);
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--text);
-      background: var(--bg);
-    }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 2rem 1.5rem;
-    }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 2rem 1.5rem;
+      }
 
-    header h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.75rem;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-    }
+      header h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+      }
 
-    header p {
-      margin: 0;
-      color: var(--muted);
-      max-width: 60rem;
-    }
+      header p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60rem;
+      }
 
-    .meta {
-      margin-top: 0.75rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      .meta {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+      nav {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
 
-    nav ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem 1rem;
-      font-size: 0.875rem;
-    }
+      nav ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+        font-size: 0.875rem;
+      }
 
-    nav a { color: var(--accent); text-decoration: none; }
-    nav a:hover { text-decoration: underline; }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      nav a:hover {
+        text-decoration: underline;
+      }
 
-    main {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 4rem;
-    }
+      main {
+        max-width: 56rem;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
 
-    section { margin-bottom: 2.75rem; }
+      section {
+        margin-bottom: 2.75rem;
+      }
 
-    h2 {
-      font-size: 1.35rem;
-      font-weight: 650;
-      margin: 0 0 1rem;
-      padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-    }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 650;
+        margin: 0 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--border);
+      }
 
-    h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.65rem;
-    }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.65rem;
+      }
 
-    h4 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+      h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
 
-    p { margin: 0 0 0.85rem; }
-    ul, ol { margin: 0 0 0.85rem; padding-left: 1.35rem; }
-    li { margin-bottom: 0.3rem; }
+      p {
+        margin: 0 0 0.85rem;
+      }
+      ul,
+      ol {
+        margin: 0 0 0.85rem;
+        padding-left: 1.35rem;
+      }
+      li {
+        margin-bottom: 0.3rem;
+      }
 
-    code, pre { font-family: var(--mono); font-size: 0.875em; }
-    code {
-      background: var(--code-bg);
-      padding: 0.12em 0.35em;
-      border-radius: 4px;
-    }
+      code,
+      pre {
+        font-family: var(--mono);
+        font-size: 0.875em;
+      }
+      code {
+        background: var(--code-bg);
+        padding: 0.12em 0.35em;
+        border-radius: 4px;
+      }
 
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0 0 1rem;
-      line-height: 1.5;
-    }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        line-height: 1.5;
+      }
 
-    pre code { background: none; padding: 0; }
+      pre code {
+        background: none;
+        padding: 0;
+      }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.875rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
 
-    th, td {
-      text-align: left;
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
 
-    th {
-      background: var(--code-bg);
-      font-weight: 600;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: var(--muted);
-    }
+      th {
+        background: var(--code-bg);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--muted);
+      }
 
-    tr:last-child td { border-bottom: none; }
+      tr:last-child td {
+        border-bottom: none;
+      }
 
-    .callout {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.85rem 1rem;
-      margin: 0 0 1rem;
-      background: var(--surface);
-    }
+      .callout {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1rem;
+        margin: 0 0 1rem;
+        background: var(--surface);
+      }
 
-    .callout.warn { background: var(--warn-bg); border-color: var(--warn-border); }
-    .callout.good { background: var(--good-bg); border-color: var(--good-border); }
-    .callout strong { display: block; margin-bottom: 0.25rem; }
+      .callout.warn {
+        background: var(--warn-bg);
+        border-color: var(--warn-border);
+      }
+      .callout.good {
+        background: var(--good-bg);
+        border-color: var(--good-border);
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+      }
 
-    .diagram {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 1rem;
-      overflow-x: auto;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      line-height: 1.45;
-      white-space: pre;
-      margin: 0 0 1rem;
-    }
+      .diagram {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 1rem;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.45;
+        white-space: pre;
+        margin: 0 0 1rem;
+      }
 
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 0.1rem 0.45rem;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+      .tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.1rem 0.45rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        margin-right: 0.25rem;
+      }
 
-    .tag.warn { background: var(--warn-bg); color: #b45309; }
+      .tag.warn {
+        background: var(--warn-bg);
+        color: #b45309;
+      }
 
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 1.5rem;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
 
-    .related a { color: var(--accent); }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>AgentGate — Jobs &amp; Async Architecture</h1>
-    <p>
-      How background work is queued, authenticated, retried, and executed on a serverless
-      Next.js deployment. AgentGate does not run an in-app queue server (Redis, BullMQ, etc.);
-      durable rows in PostgreSQL plus external cron hitting <code>/api/jobs/*</code> drive async
-      processing. Verified against code as of June 2026.
-    </p>
-    <p class="meta related">
-      Status: <strong>current</strong> &nbsp;·&nbsp;
-      <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
-      <a href="github-integration-architecture.html">GitHub integration</a> &nbsp;·&nbsp;
-      <a href="authentication-architecture.html">Authentication</a>
-    </p>
-  </header>
-
-  <nav>
-    <ul>
-      <li><a href="#overview">Overview</a></li>
-      <li><a href="#diagram">Architecture diagram</a></li>
-      <li><a href="#endpoints">Job endpoints</a></li>
-      <li><a href="#auth">Auth</a></li>
-      <li><a href="#github-queue">GitHub webhook queue</a></li>
-      <li><a href="#ai-queue">AI review queue</a></li>
-      <li><a href="#retention">Retention job</a></li>
-      <li><a href="#idempotency">Idempotency keys</a></li>
-      <li><a href="#retry">Retry semantics</a></li>
-      <li><a href="#serverless">Serverless caveats</a></li>
-      <li><a href="#operations">Operations (cron)</a></li>
-      <li><a href="#files">File map</a></li>
-    </ul>
-  </nav>
-
-  <main>
-    <section id="overview">
-      <h2>1. Overview</h2>
+      .related a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AgentGate — Jobs &amp; Async Architecture</h1>
       <p>
-        AgentGate treats PostgreSQL as the job queue. When work cannot finish inside a single
-        HTTP request — or when it should survive process restarts — the app writes a row and
-        returns. An external scheduler (cron, Vercel Cron, GitHub Actions, etc.) periodically
-        calls protected <code>POST /api/jobs/*</code> routes to drain pending rows in bounded
-        batches.
+        How background work is queued, authenticated, retried, and executed on a
+        serverless Next.js deployment. AgentGate does not run an in-app queue
+        server (Redis, BullMQ, etc.); durable rows in PostgreSQL plus external
+        cron hitting <code>/api/jobs/*</code> drive async processing. Verified
+        against code as of June 2026.
       </p>
-      <p>Three job runners exist today:</p>
-      <ol>
-        <li><strong>GitHub webhooks</strong> — replay queued or failed webhook deliveries</li>
-        <li><strong>AI PR reviews</strong> — process <code>AiReviewJob</code> rows (guardrails only; model execution disabled)</li>
-        <li><strong>Retention</strong> — purge aged audit, webhook, billing, and export artifacts</li>
-      </ol>
-      <p>
-        The inbound GitHub webhook route (<code>/api/github/webhook</code>) also uses Next.js
-        <code>after()</code> to kick off immediate processing of a single delivery after the
-        HTTP response, while still persisting the delivery row for durability and cron retry.
+      <p class="meta related">
+        Status: <strong>current</strong> &nbsp;·&nbsp;
+        <a href="index.html">Architecture index</a> &nbsp;·&nbsp;
+        <a href="github-integration-architecture.html">GitHub integration</a>
+        &nbsp;·&nbsp;
+        <a href="authentication-architecture.html">Authentication</a>
       </p>
-      <div class="callout good">
-        <strong>No Redis required</strong>
-        Queue state lives in <code>GitHubWebhookDelivery</code> and <code>AiReviewJob</code>
-        tables. Cron is an operational dependency, not an application dependency at runtime.
-      </div>
-      <div class="callout warn">
-        <strong>Cron is required in production</strong>
-        Without scheduled job runner calls, failed webhooks stay failed, AI review jobs stay
-        queued, and retention warnings accumulate. See
-        <code>docs/operations/OPERATIONS_RUNBOOK.md</code>.
-      </div>
-    </section>
+    </header>
 
-    <section id="diagram">
-      <h2>2. Architecture Diagram</h2>
-
-      <div class="diagram">External actors                    App (Next.js)                         PostgreSQL
-─────────────────                  ─────────────                         ────────────
-
-GitHub POST /api/github/webhook
-  │
-  ├─ verify HMAC (lib/github.ts)
-  ├─ enqueueGitHubWebhookDelivery() ─────────────────────────────► GitHubWebhookDelivery
-  ├─ HTTP 202 response
-  └─ after() → processQueuedGitHubWebhookDeliveries({ limit: 1 })
-       │
-       └─ processGitHubWebhookDelivery()
-            └─ syncGitHubPullRequestRecord() ─────────────────────► PullRequest, UsageRecord
-            └─ enqueueAiReviewJob() ──────────────────────────────► AiReviewJob
-
-Cron POST /api/jobs/github-webhooks?limit=N
-  │  Authorization: Bearer JOB_RUNNER_SECRET
-  └─ processQueuedGitHubWebhookDeliveries({ limit })  ───────────► (same as above, batch)
-
-Cron POST /api/jobs/pr-reviews?limit=N
-  │  Authorization: Bearer JOB_RUNNER_SECRET
-  └─ processQueuedAiReviewJobs({ limit })  ──────────────────────► AiReviewJob status updates
-
-Cron POST /api/jobs/retention  (daily)
-  │  Authorization: Bearer JOB_RUNNER_SECRET
-  └─ cleanupOperationalData()  ───────────────────────────────────► DELETE aged rows</div>
-
-      <h3>2.1 Request path vs async path</h3>
-      <table>
-        <thead><tr><th>Path</th><th>Trigger</th><th>Queue table</th><th>Worker</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>GitHub webhook ingest</td>
-            <td>GitHub HTTP POST</td>
-            <td><code>GitHubWebhookDelivery</code></td>
-            <td><code>after()</code> (limit 1) + cron batch</td>
-          </tr>
-          <tr>
-            <td>AI review</td>
-            <td>PR sync during webhook processing</td>
-            <td><code>AiReviewJob</code></td>
-            <td>Cron only (<code>/api/jobs/pr-reviews</code>)</td>
-          </tr>
-          <tr>
-            <td>Retention</td>
-            <td>Cron only</td>
-            <td>— (deletes, no queue)</td>
-            <td><code>/api/jobs/retention</code></td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section id="endpoints">
-      <h2>3. Job Endpoints</h2>
-      <p>
-        All job routes are <code>POST</code> only. They bypass browser CSRF checks in
-        <code>proxy.ts</code> because external cron callers cannot satisfy same-origin headers.
-      </p>
-
-      <table>
-        <thead>
-          <tr><th>Endpoint</th><th>Handler</th><th>Query params</th><th>Response shape</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>POST /api/jobs/github-webhooks</code></td>
-            <td><code>processQueuedGitHubWebhookDeliveries</code></td>
-            <td><code>limit</code> — default 25, max 100</td>
-            <td><code>{ processed, failed, skipped }</code></td>
-          </tr>
-          <tr>
-            <td><code>POST /api/jobs/pr-reviews</code></td>
-            <td><code>processQueuedAiReviewJobs</code></td>
-            <td><code>limit</code> — default 25, max 100 (<code>parseJobLimit</code>)</td>
-            <td><code>{ processed, blocked, failed, skipped }</code></td>
-          </tr>
-          <tr>
-            <td><code>POST /api/jobs/retention</code></td>
-            <td><code>cleanupOperationalData</code></td>
-            <td>—</td>
-            <td><code>{ auditEventsDeleted, webhookDeliveriesDeleted, billingEventsDeleted, auditExportsDeleted }</code></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p>
-        Each route calls <code>authorizeJobRequest()</code> first, then logs completion via
-        <code>logEvent()</code> with area <code>jobs</code>.
-      </p>
-    </section>
-
-    <section id="auth">
-      <h2>4. Auth (<code>lib/job-auth.ts</code>)</h2>
-      <p>
-        Job runners authenticate with a shared secret, not a user session. The caller must send:
-      </p>
-      <pre><code>Authorization: Bearer {JOB_RUNNER_SECRET}</code></pre>
-
-      <table>
-        <thead><tr><th>Condition</th><th>Result</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>JOB_RUNNER_SECRET</code> unset, non-production</td>
-            <td><span class="tag">allow</span> Request proceeds (dev convenience)</td>
-          </tr>
-          <tr>
-            <td><code>JOB_RUNNER_SECRET</code> unset, production</td>
-            <td><span class="tag warn">503</span> <code>Job runner secret is not configured.</code></td>
-          </tr>
-          <tr>
-            <td>Bearer token matches secret</td>
-            <td><span class="tag">allow</span></td>
-          </tr>
-          <tr>
-            <td>Wrong or missing Bearer token (secret configured)</td>
-            <td><span class="tag warn">401</span> <code>Invalid job runner token.</code></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p>
-        See also <a href="authentication-architecture.html#non-user">authentication architecture
-        §8</a> for how job auth fits alongside webhook HMAC and session auth.
-      </p>
-    </section>
-
-    <section id="github-queue">
-      <h2>5. GitHub Webhook Queue</h2>
-
-      <h3>5.1 Ingest (<code>app/api/github/webhook/route.ts</code>)</h3>
-      <ol>
-        <li>Verify <code>x-hub-signature-256</code> via <code>verifyGitHubWebhook()</code>.</li>
-        <li>Read <code>x-github-event</code> and <code>x-github-delivery</code>.</li>
-        <li><code>enqueueGitHubWebhookDelivery()</code> — upsert row, store raw body in <code>metadata</code>.</li>
-        <li>Return 202 when queued, 200 for duplicates or demo mode.</li>
-        <li>In live mode with a delivery id, schedule <code>after()</code> to call
-          <code>processQueuedGitHubWebhookDeliveries({ deliveryId, limit: 1 })</code>.</li>
-      </ol>
-
-      <h3>5.2 Delivery lifecycle (<code>lib/github-webhooks.ts</code>)</h3>
-      <table>
-        <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
-        <tbody>
-          <tr><td><code>queued</code></td><td>Waiting for worker</td></tr>
-          <tr><td><code>processing</code></td><td>Attempt in flight (<code>attemptCount</code> incremented)</td></tr>
-          <tr><td><code>processed</code></td><td>Successfully handled (PR sync, checks, etc.)</td></tr>
-          <tr><td><code>failed</code></td><td>Error; may retry when <code>nextRetryAt</code> elapses</td></tr>
-          <tr><td><code>ignored</code></td><td>Event not actionable (installation missing, unsupported event)</td></tr>
-        </tbody>
-      </table>
-
-      <h3>5.3 Batch worker selection</h3>
-      <p>
-        <code>processQueuedGitHubWebhookDeliveries()</code> selects rows where:
-      </p>
+    <nav>
       <ul>
-        <li><code>status = 'queued'</code>, or</li>
-        <li><code>status = 'failed'</code> and (<code>nextRetryAt &lt;= now</code> or <code>nextRetryAt</code> is null)</li>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagram">Architecture diagram</a></li>
+        <li><a href="#endpoints">Job endpoints</a></li>
+        <li><a href="#auth">Auth</a></li>
+        <li><a href="#github-queue">GitHub webhook queue</a></li>
+        <li><a href="#ai-queue">AI review queue</a></li>
+        <li><a href="#retention">Retention job</a></li>
+        <li><a href="#idempotency">Idempotency keys</a></li>
+        <li><a href="#retry">Retry semantics</a></li>
+        <li><a href="#serverless">Serverless caveats</a></li>
+        <li><a href="#operations">Operations (cron)</a></li>
+        <li><a href="#files">File map</a></li>
       </ul>
-      <p>
-        Ordered by <code>createdAt asc</code>, capped by <code>limit</code> (default 10 inside
-        the library; route defaults to 25). Missing raw payload in metadata marks the row
-        failed with a computed <code>nextRetryAt</code>.
-      </p>
+    </nav>
 
-      <h3>5.4 Downstream effects</h3>
-      <p>
-        Successful PR event processing calls <code>syncGitHubPullRequestRecord()</code>, which
-        may record usage, publish check runs, and call <code>enqueueAiReviewJob()</code>. See
-        <a href="github-integration-architecture.html">GitHub integration architecture</a> for
-        the full sync pipeline.
-      </p>
-    </section>
+    <main>
+      <section id="overview">
+        <h2>1. Overview</h2>
+        <p>
+          AgentGate treats PostgreSQL as the job queue. When work cannot finish
+          inside a single HTTP request — or when it should survive process
+          restarts — the app writes a row and returns. An external scheduler
+          (cron, Vercel Cron, GitHub Actions, etc.) periodically calls protected
+          <code>POST /api/jobs/*</code> routes to drain pending rows in bounded
+          batches.
+        </p>
+        <p>Three job runners exist today:</p>
+        <ol>
+          <li>
+            <strong>GitHub webhooks</strong> — replay queued or failed webhook
+            deliveries
+          </li>
+          <li>
+            <strong>AI PR reviews</strong> — process
+            <code>AiReviewJob</code> rows (guardrails only; model execution
+            disabled)
+          </li>
+          <li>
+            <strong>Retention</strong> — purge aged audit, webhook, billing, and
+            export artifacts
+          </li>
+        </ol>
+        <p>
+          The inbound GitHub webhook route (<code>/api/github/webhook</code>)
+          also uses Next.js
+          <code>after()</code> to kick off immediate processing of a single
+          delivery after the HTTP response, while still persisting the delivery
+          row for durability and cron retry.
+        </p>
+        <div class="callout good">
+          <strong>No Redis required</strong>
+          Queue state lives in <code>GitHubWebhookDelivery</code> and
+          <code>AiReviewJob</code>
+          tables. Cron is an operational dependency, not an application
+          dependency at runtime.
+        </div>
+        <div class="callout warn">
+          <strong>Cron is required in production</strong>
+          Without scheduled job runner calls, failed webhooks stay failed, AI
+          review jobs stay queued, and retention warnings accumulate. See
+          <code>docs/operations/OPERATIONS_RUNBOOK.md</code>.
+        </div>
+      </section>
 
-    <section id="ai-queue">
-      <h2>6. AI Review Queue</h2>
+      <section id="diagram">
+        <h2>2. Architecture Diagram</h2>
 
-      <h3>6.1 Enqueue (<code>lib/jobs/pr-review-lifecycle.ts</code>)</h3>
-      <p><code>enqueueAiReviewJob()</code> runs during PR sync when:</p>
-      <ul>
-        <li>Prisma is available and <code>headSha</code> is present</li>
-        <li>Repository AI reviews are enabled (<code>shouldEnqueueAiReview</code>)</li>
-        <li>No existing row for the computed <code>reviewKey</code></li>
-      </ul>
-      <p>
-        <code>reviewKey</code> = <code>{organizationId}:{repositoryId}:{pullNumber}:{headSha}</code>.
-        <code>queueJobId</code> = <code>getQueueJobId(PR_REVIEW_JOB_NAME, reviewKey)</code>
-        → <code>pr_review:{reviewKey}</code> unless overridden.
-      </p>
+        <div class="diagram">
+          External actors App (Next.js) PostgreSQL ─────────────────
+          ───────────── ──────────── GitHub POST /api/github/webhook │ ├─ verify
+          HMAC (lib/github.ts) ├─ enqueueGitHubWebhookDelivery()
+          ─────────────────────────────► GitHubWebhookDelivery ├─ HTTP 202
+          response └─ after() → processQueuedGitHubWebhookDeliveries({ limit: 1
+          }) │ └─ processGitHubWebhookDelivery() └─
+          syncGitHubPullRequestRecord() ─────────────────────► PullRequest,
+          UsageRecord └─ enqueueAiReviewJob() ──────────────────────────────►
+          AiReviewJob Cron POST /api/jobs/github-webhooks?limit=N │
+          Authorization: Bearer JOB_RUNNER_SECRET └─
+          processQueuedGitHubWebhookDeliveries({ limit }) ───────────► (same as
+          above, batch) Cron POST /api/jobs/pr-reviews?limit=N │ Authorization:
+          Bearer JOB_RUNNER_SECRET └─ processQueuedAiReviewJobs({ limit })
+          ──────────────────────► AiReviewJob status updates Cron POST
+          /api/jobs/retention (daily) │ Authorization: Bearer JOB_RUNNER_SECRET
+          └─ cleanupOperationalData() ───────────────────────────────────►
+          DELETE aged rows
+        </div>
 
-      <h3>6.2 Terminal statuses</h3>
-      <p>
-        <code>isTerminalAiReviewStatus()</code> treats these as final — the worker will not
-        re-process them:
-      </p>
-      <table>
-        <thead><tr><th>Status</th><th>Typical cause</th></tr></thead>
-        <tbody>
-          <tr><td><code>blocked</code></td><td>Missing OpenRouter credentials</td></tr>
-          <tr><td><code>skipped</code></td><td>AI disabled, empty diff, or model execution not enabled yet</td></tr>
-          <tr><td><code>completed</code></td><td>Successful review (future)</td></tr>
-          <tr><td><code>failed</code></td><td>Unhandled exception during worker run</td></tr>
-        </tbody>
-      </table>
-      <p>
-        Non-terminal: <code>queued</code>, <code>in_progress</code>. The cron worker only
-        selects <code>status = 'queued'</code>.
-      </p>
+        <h3>2.1 Request path vs async path</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Trigger</th>
+              <th>Queue table</th>
+              <th>Worker</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>GitHub webhook ingest</td>
+              <td>GitHub HTTP POST</td>
+              <td><code>GitHubWebhookDelivery</code></td>
+              <td><code>after()</code> (limit 1) + cron batch</td>
+            </tr>
+            <tr>
+              <td>AI review</td>
+              <td>PR sync during webhook processing</td>
+              <td><code>AiReviewJob</code></td>
+              <td>Cron only (<code>/api/jobs/pr-reviews</code>)</td>
+            </tr>
+            <tr>
+              <td>Retention</td>
+              <td>Cron only</td>
+              <td>— (deletes, no queue)</td>
+              <td><code>/api/jobs/retention</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-      <h3>6.3 Worker (<code>lib/jobs/pr-review-worker.ts</code>)</h3>
-      <p><code>processQueuedAiReviewJobs()</code> for each job:</p>
-      <ol>
-        <li>Transition to <code>in_progress</code>, increment <code>attemptCount</code>.</li>
-        <li>Re-check repository AI settings, OpenRouter credential, GitHub diff availability.</li>
-        <li>Apply diff path filters (<code>filterDiffFiles</code>).</li>
-        <li>Currently marks jobs <code>skipped</code> after guardrails pass — AI model execution is not enabled yet.</li>
-        <li>On exception, sets <code>failed</code> with <code>errorMessage</code>.</li>
-      </ol>
-      <div class="callout warn">
-        <strong>No webhook-style backoff for AI jobs</strong>
-        Failed AI jobs stay terminal. New work for the same commit requires a new
-        <code>headSha</code> (new <code>reviewKey</code>). Queued jobs are picked up on the
-        next cron invocation with no <code>nextRetryAt</code> field.
-      </div>
-    </section>
+      <section id="endpoints">
+        <h2>3. Job Endpoints</h2>
+        <p>
+          All job routes are <code>POST</code> only. They bypass browser CSRF
+          checks in <code>proxy.ts</code> because external cron callers cannot
+          satisfy same-origin headers.
+        </p>
 
-    <section id="retention">
-      <h2>7. Retention Job (<code>lib/retention.ts</code>)</h2>
-      <p>
-        <code>cleanupOperationalData()</code> runs via <code>POST /api/jobs/retention</code>.
-        Recommended cadence: daily. No batch limit — one invocation processes all eligible rows.
-      </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Handler</th>
+              <th>Query params</th>
+              <th>Response shape</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>POST /api/jobs/github-webhooks</code></td>
+              <td><code>processQueuedGitHubWebhookDeliveries</code></td>
+              <td><code>limit</code> — default 25, max 100</td>
+              <td><code>{ processed, failed, skipped }</code></td>
+            </tr>
+            <tr>
+              <td><code>POST /api/jobs/pr-reviews</code></td>
+              <td><code>processQueuedAiReviewJobs</code></td>
+              <td>
+                <code>limit</code> — default 25, max 100
+                (<code>parseJobLimit</code>)
+              </td>
+              <td><code>{ processed, blocked, failed, skipped }</code></td>
+            </tr>
+            <tr>
+              <td><code>POST /api/jobs/retention</code></td>
+              <td><code>cleanupOperationalData</code></td>
+              <td>—</td>
+              <td>
+                <code
+                  >{ auditEventsDeleted, webhookDeliveriesDeleted,
+                  billingEventsDeleted, auditExportsDeleted }</code
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table>
-        <thead><tr><th>Target</th><th>Criteria</th><th>Retention window</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>AuditEvent</code></td>
-            <td>Per organization, by plan</td>
-            <td><code>auditRetentionDays</code> from plan entitlements (<code>null</code> = skip)</td>
-          </tr>
-          <tr>
-            <td><code>GitHubWebhookDelivery</code></td>
-            <td><code>status</code> in <code>processed</code>, <code>ignored</code></td>
-            <td>30 days</td>
-          </tr>
-          <tr>
-            <td><code>BillingWebhookEvent</code></td>
-            <td><code>status</code> in <code>processed</code>, <code>ignored</code></td>
-            <td>365 days</td>
-          </tr>
-          <tr>
-            <td><code>AuditExport</code></td>
-            <td>All exports</td>
-            <td>30 days</td>
-          </tr>
-        </tbody>
-      </table>
+        <p>
+          Each route calls <code>authorizeJobRequest()</code> first, then logs
+          completion via <code>logEvent()</code> with area <code>jobs</code>.
+        </p>
+      </section>
 
-      <p>
-        Without PostgreSQL (demo mode), returns zero counts for all fields without throwing.
-      </p>
-    </section>
+      <section id="auth">
+        <h2>4. Auth (<code>lib/job-auth.ts</code>)</h2>
+        <p>
+          Job runners authenticate with a shared secret, not a user session. The
+          caller must send:
+        </p>
+        <pre><code>Authorization: Bearer {JOB_RUNNER_SECRET}</code></pre>
 
-    <section id="idempotency">
-      <h2>8. Idempotency Keys</h2>
-      <p>
-        Async and metering paths rely on unique constraints so duplicate deliveries or syncs do
-        not double-charge or double-enqueue.
-      </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Condition</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>JOB_RUNNER_SECRET</code> unset, non-production</td>
+              <td>
+                <span class="tag">allow</span> Request proceeds (dev
+                convenience)
+              </td>
+            </tr>
+            <tr>
+              <td><code>JOB_RUNNER_SECRET</code> unset, production</td>
+              <td>
+                <span class="tag warn">503</span>
+                <code>Job runner secret is not configured.</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Bearer token matches secret</td>
+              <td><span class="tag">allow</span></td>
+            </tr>
+            <tr>
+              <td>Wrong or missing Bearer token (secret configured)</td>
+              <td>
+                <span class="tag warn">401</span>
+                <code>Invalid job runner token.</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <table>
-        <thead><tr><th>Entity</th><th>Key field</th><th>Format / source</th><th>Effect</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>GitHubWebhookDelivery</code></td>
-            <td><code>deliveryId</code></td>
-            <td>GitHub <code>x-github-delivery</code> header</td>
-            <td>UNIQUE; replays update existing row; <code>processed</code> deliveries short-circuit</td>
-          </tr>
-          <tr>
-            <td><code>AiReviewJob</code></td>
-            <td><code>reviewKey</code></td>
-            <td><code>{orgId}:{repoId}:{pullNumber}:{headSha}</code></td>
-            <td>UNIQUE; <code>enqueueAiReviewJob</code> returns existing job on conflict</td>
-          </tr>
-          <tr>
-            <td><code>UsageRecord</code></td>
-            <td><code>sourceKey</code></td>
-            <td><code>{repositoryId}:{pullNumber}:{headSha}</code> via <code>getPrCheckSourceKey()</code></td>
-            <td>UNIQUE per org + metric + period; prevents duplicate PR check metering</td>
-          </tr>
-        </tbody>
-      </table>
+        <p>
+          See also
+          <a href="authentication-architecture.html#non-user"
+            >authentication architecture §8</a
+          >
+          for how job auth fits alongside webhook HMAC and session auth.
+        </p>
+      </section>
 
-      <h3>8.1 Queue job id helper (<code>lib/jobs/queue.ts</code>)</h3>
-      <pre><code>export const PR_REVIEW_JOB_NAME = 'pr_review'
+      <section id="github-queue">
+        <h2>5. GitHub Webhook Queue</h2>
+
+        <h3>5.1 Ingest (<code>app/api/github/webhook/route.ts</code>)</h3>
+        <ol>
+          <li>
+            Verify <code>x-hub-signature-256</code> via
+            <code>verifyGitHubWebhook()</code>.
+          </li>
+          <li>
+            Read <code>x-github-event</code> and <code>x-github-delivery</code>.
+          </li>
+          <li>
+            <code>enqueueGitHubWebhookDelivery()</code> — upsert row, store raw
+            body in <code>metadata</code>.
+          </li>
+          <li>Return 202 when queued, 200 for duplicates or demo mode.</li>
+          <li>
+            In live mode with a delivery id, schedule <code>after()</code> to
+            call
+            <code
+              >processQueuedGitHubWebhookDeliveries({ deliveryId, limit: 1
+              })</code
+            >.
+          </li>
+        </ol>
+
+        <h3>5.2 Delivery lifecycle (<code>lib/github-webhooks.ts</code>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>queued</code></td>
+              <td>Waiting for worker</td>
+            </tr>
+            <tr>
+              <td><code>processing</code></td>
+              <td>Attempt in flight (<code>attemptCount</code> incremented)</td>
+            </tr>
+            <tr>
+              <td><code>processed</code></td>
+              <td>Successfully handled (PR sync, checks, etc.)</td>
+            </tr>
+            <tr>
+              <td><code>failed</code></td>
+              <td>Error; may retry when <code>nextRetryAt</code> elapses</td>
+            </tr>
+            <tr>
+              <td><code>ignored</code></td>
+              <td>
+                Event not actionable (installation missing, unsupported event)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>5.3 Batch worker selection</h3>
+        <p>
+          <code>processQueuedGitHubWebhookDeliveries()</code> selects rows
+          where:
+        </p>
+        <ul>
+          <li><code>status = 'queued'</code>, or</li>
+          <li>
+            <code>status = 'failed'</code> and (<code
+              >nextRetryAt &lt;= now</code
+            >
+            or <code>nextRetryAt</code> is null)
+          </li>
+        </ul>
+        <p>
+          Ordered by <code>createdAt asc</code>, capped by
+          <code>limit</code> (default 10 inside the library; route defaults to
+          25). Missing raw payload in metadata marks the row failed with a
+          computed <code>nextRetryAt</code>.
+        </p>
+
+        <h3>5.4 Downstream effects</h3>
+        <p>
+          Successful PR event processing calls
+          <code>syncGitHubPullRequestRecord()</code>, which may record usage,
+          publish check runs, and call <code>enqueueAiReviewJob()</code>. See
+          <a href="github-integration-architecture.html"
+            >GitHub integration architecture</a
+          >
+          for the full sync pipeline.
+        </p>
+      </section>
+
+      <section id="ai-queue">
+        <h2>6. AI Review Queue</h2>
+
+        <h3>6.1 Enqueue (<code>lib/jobs/pr-review-lifecycle.ts</code>)</h3>
+        <p><code>enqueueAiReviewJob()</code> runs during PR sync when:</p>
+        <ul>
+          <li>Prisma is available and <code>headSha</code> is present</li>
+          <li>
+            Repository AI reviews are enabled
+            (<code>shouldEnqueueAiReview</code>)
+          </li>
+          <li>No existing row for the computed <code>reviewKey</code></li>
+        </ul>
+        <p>
+          <code>reviewKey</code> =
+          <code>{organizationId}:{repositoryId}:{pullNumber}:{headSha}</code>.
+          <code>queueJobId</code> =
+          <code>getQueueJobId(PR_REVIEW_JOB_NAME, reviewKey)</code> →
+          <code>pr_review:{reviewKey}</code> unless overridden.
+        </p>
+
+        <h3>6.2 Terminal statuses</h3>
+        <p>
+          <code>isTerminalAiReviewStatus()</code> treats these as final — the
+          worker will not re-process them:
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Typical cause</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>blocked</code></td>
+              <td>Missing OpenRouter credentials</td>
+            </tr>
+            <tr>
+              <td><code>skipped</code></td>
+              <td>
+                AI disabled, empty diff, or model execution not enabled yet
+              </td>
+            </tr>
+            <tr>
+              <td><code>completed</code></td>
+              <td>Successful review (future)</td>
+            </tr>
+            <tr>
+              <td><code>failed</code></td>
+              <td>Unhandled exception during worker run</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          Non-terminal: <code>queued</code>, <code>in_progress</code>. The cron
+          worker only selects <code>status = 'queued'</code>.
+        </p>
+
+        <h3>6.3 Worker (<code>lib/jobs/pr-review-worker.ts</code>)</h3>
+        <p><code>processQueuedAiReviewJobs()</code> for each job:</p>
+        <ol>
+          <li>
+            Transition to <code>in_progress</code>, increment
+            <code>attemptCount</code>.
+          </li>
+          <li>
+            Re-check repository AI settings, OpenRouter credential, GitHub diff
+            availability.
+          </li>
+          <li>Apply diff path filters (<code>filterDiffFiles</code>).</li>
+          <li>
+            Currently marks jobs <code>skipped</code> after guardrails pass — AI
+            model execution is not enabled yet.
+          </li>
+          <li>
+            On exception, sets <code>failed</code> with
+            <code>errorMessage</code>.
+          </li>
+        </ol>
+        <div class="callout warn">
+          <strong>No webhook-style backoff for AI jobs</strong>
+          Failed AI jobs stay terminal. New work for the same commit requires a
+          new
+          <code>headSha</code> (new <code>reviewKey</code>). Queued jobs are
+          picked up on the next cron invocation with no
+          <code>nextRetryAt</code> field.
+        </div>
+      </section>
+
+      <section id="retention">
+        <h2>7. Retention Job (<code>lib/retention.ts</code>)</h2>
+        <p>
+          <code>cleanupOperationalData()</code> runs via
+          <code>POST /api/jobs/retention</code>. Recommended cadence: daily. No
+          batch limit — one invocation processes all eligible rows.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Target</th>
+              <th>Criteria</th>
+              <th>Retention window</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>AuditEvent</code></td>
+              <td>Per organization, by plan</td>
+              <td>
+                <code>auditRetentionDays</code> from plan entitlements (<code
+                  >null</code
+                >
+                = skip)
+              </td>
+            </tr>
+            <tr>
+              <td><code>GitHubWebhookDelivery</code></td>
+              <td>
+                <code>status</code> in <code>processed</code>,
+                <code>ignored</code>
+              </td>
+              <td>30 days</td>
+            </tr>
+            <tr>
+              <td><code>BillingWebhookEvent</code></td>
+              <td>
+                <code>status</code> in <code>processed</code>,
+                <code>ignored</code>
+              </td>
+              <td>365 days</td>
+            </tr>
+            <tr>
+              <td><code>AuditExport</code></td>
+              <td>All exports</td>
+              <td>30 days</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p>
+          Without PostgreSQL (demo mode), returns zero counts for all fields
+          without throwing.
+        </p>
+      </section>
+
+      <section id="idempotency">
+        <h2>8. Idempotency Keys</h2>
+        <p>
+          Async and metering paths rely on unique constraints so duplicate
+          deliveries or syncs do not double-charge or double-enqueue.
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Entity</th>
+              <th>Key field</th>
+              <th>Format / source</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>GitHubWebhookDelivery</code></td>
+              <td><code>deliveryId</code></td>
+              <td>GitHub <code>x-github-delivery</code> header</td>
+              <td>
+                UNIQUE; replays update existing row;
+                <code>processed</code> deliveries short-circuit
+              </td>
+            </tr>
+            <tr>
+              <td><code>AiReviewJob</code></td>
+              <td><code>reviewKey</code></td>
+              <td><code>{orgId}:{repoId}:{pullNumber}:{headSha}</code></td>
+              <td>
+                UNIQUE; <code>enqueueAiReviewJob</code> returns existing job on
+                conflict
+              </td>
+            </tr>
+            <tr>
+              <td><code>UsageRecord</code></td>
+              <td><code>sourceKey</code></td>
+              <td>
+                <code>{repositoryId}:{pullNumber}:{headSha}</code> via
+                <code>getPrCheckSourceKey()</code>
+              </td>
+              <td>
+                UNIQUE per org + metric + period; prevents duplicate PR check
+                metering
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>8.1 Queue job id helper (<code>lib/jobs/queue.ts</code>)</h3>
+        <pre><code>export const PR_REVIEW_JOB_NAME = 'pr_review'
 
 export function getQueueJobId(jobName: string, key: string) {
   return `${jobName}:${key}`
 }</code></pre>
-      <p>
-        Stored on <code>AiReviewJob.queueJobId</code> for traceability; not a separate queue
-        table primary key.
-      </p>
-    </section>
+        <p>
+          Stored on <code>AiReviewJob.queueJobId</code> for traceability; not a
+          separate queue table primary key.
+        </p>
+      </section>
 
-    <section id="retry">
-      <h2>9. Retry Semantics</h2>
+      <section id="retry">
+        <h2>9. Retry Semantics</h2>
 
-      <h3>9.1 GitHub webhook exponential backoff</h3>
-      <p>
-        Defined in <code>retryDelayMs(attemptCount)</code> inside <code>lib/github-webhooks.ts</code>:
-      </p>
-      <pre><code>Math.min(60_000 * 2 ** Math.max(0, attemptCount - 1), 15 * 60_000)</code></pre>
-      <table>
-        <thead><tr><th>Attempt</th><th>Delay before next retry</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>1 minute</td></tr>
-          <tr><td>2</td><td>2 minutes</td></tr>
-          <tr><td>3</td><td>4 minutes</td></tr>
-          <tr><td>4</td><td>8 minutes</td></tr>
-          <tr><td>5+</td><td>15 minutes (cap)</td></tr>
-        </tbody>
-      </table>
-      <p>
-        On failure, <code>nextRetryAt</code> is set from the attempt start time. The cron worker
-        picks up failed rows when <code>nextRetryAt &lt;= now</code>. Manual retry from GitHub
-        settings or calling <code>/api/jobs/github-webhooks</code> also drains eligible rows.
-      </p>
+        <h3>9.1 GitHub webhook exponential backoff</h3>
+        <p>
+          Defined in <code>retryDelayMs(attemptCount)</code> inside
+          <code>lib/github-webhooks.ts</code>:
+        </p>
+        <pre><code>Math.min(60_000 * 2 ** Math.max(0, attemptCount - 1), 15 * 60_000)</code></pre>
+        <table>
+          <thead>
+            <tr>
+              <th>Attempt</th>
+              <th>Delay before next retry</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>1 minute</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>2 minutes</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>4 minutes</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>8 minutes</td>
+            </tr>
+            <tr>
+              <td>5+</td>
+              <td>15 minutes (cap)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          On failure, <code>nextRetryAt</code> is set from the attempt start
+          time. The cron worker picks up failed rows when
+          <code>nextRetryAt &lt;= now</code>. Manual retry from GitHub settings
+          or calling <code>/api/jobs/github-webhooks</code> also drains eligible
+          rows.
+        </p>
 
-      <h3>9.2 AI review jobs</h3>
-      <ul>
-        <li>Only <code>queued</code> jobs are candidates.</li>
-        <li>Exceptions during processing → terminal <code>failed</code> (no automatic re-queue).</li>
-        <li>Prerequisite failures → terminal <code>blocked</code> or <code>skipped</code>.</li>
-      </ul>
+        <h3>9.2 AI review jobs</h3>
+        <ul>
+          <li>Only <code>queued</code> jobs are candidates.</li>
+          <li>
+            Exceptions during processing → terminal <code>failed</code> (no
+            automatic re-queue).
+          </li>
+          <li>
+            Prerequisite failures → terminal <code>blocked</code> or
+            <code>skipped</code>.
+          </li>
+        </ul>
 
-      <h3>9.3 Retention</h3>
-      <p>
-        Idempotent deletes — safe to run daily; missing rows are a no-op.
-      </p>
-    </section>
+        <h3>9.3 Retention</h3>
+        <p>Idempotent deletes — safe to run daily; missing rows are a no-op.</p>
+      </section>
 
-    <section id="serverless">
-      <h2>10. Serverless Caveats</h2>
+      <section id="serverless">
+        <h2>10. Serverless Caveats</h2>
 
-      <table>
-        <thead><tr><th>Topic</th><th>Detail</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>Short-lived requests</td>
-            <td>
-              Each job invocation processes at most <code>limit</code> items (max 100). Large
-              backlogs require multiple cron ticks, not one long-running worker.
-            </td>
-          </tr>
-          <tr>
-            <td>No in-process workers</td>
-            <td>
-              Nothing polls the database inside the Next.js process between HTTP requests. All
-              async drain happens when cron hits job routes or when <code>after()</code> runs
-              post-response on webhook ingest.
-            </td>
-          </tr>
-          <tr>
-            <td><code>after()</code> scope</td>
-            <td>
-              Immediate webhook processing runs once per delivery with <code>limit: 1</code>.
-              Failures still rely on cron + <code>nextRetryAt</code>; the client already received 202.
-            </td>
-          </tr>
-          <tr>
-            <td>Demo mode without DB</td>
-            <td>
-              Job routes authorize but workers return empty summaries when
-              <code>getPrismaClient()</code> is null.
-            </td>
-          </tr>
-          <tr>
-            <td>Rate limits</td>
-            <td>
-              Job routes are exempt from CSRF but still subject to edge rate limits unless
-              configured otherwise. Cron should use a stable egress IP if rate limiting by IP.
-            </td>
-          </tr>
-          <tr>
-            <td>Concurrent cron</td>
-            <td>
-              Two overlapping cron invocations may race on the same row; status transitions and
-              unique keys limit duplicate side effects but duplicate attempts increment
-              <code>attemptCount</code>.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <table>
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Short-lived requests</td>
+              <td>
+                Each job invocation processes at most <code>limit</code> items
+                (max 100). Large backlogs require multiple cron ticks, not one
+                long-running worker.
+              </td>
+            </tr>
+            <tr>
+              <td>No in-process workers</td>
+              <td>
+                Nothing polls the database inside the Next.js process between
+                HTTP requests. All async drain happens when cron hits job routes
+                or when <code>after()</code> runs post-response on webhook
+                ingest.
+              </td>
+            </tr>
+            <tr>
+              <td><code>after()</code> scope</td>
+              <td>
+                Immediate webhook processing runs once per delivery with
+                <code>limit: 1</code>. Failures still rely on cron +
+                <code>nextRetryAt</code>; the client already received 202.
+              </td>
+            </tr>
+            <tr>
+              <td>Demo mode without DB</td>
+              <td>
+                Job routes authorize but workers return empty summaries when
+                <code>getPrismaClient()</code> is null.
+              </td>
+            </tr>
+            <tr>
+              <td>Rate limits</td>
+              <td>
+                Job routes are exempt from CSRF but still subject to edge rate
+                limits unless configured otherwise. Cron should use a stable
+                egress IP if rate limiting by IP.
+              </td>
+            </tr>
+            <tr>
+              <td>Concurrent cron</td>
+              <td>
+                Two overlapping cron invocations may race on the same row;
+                status transitions and unique keys limit duplicate side effects
+                but duplicate attempts increment
+                <code>attemptCount</code>.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-    <section id="operations">
-      <h2>11. Operations (Cron)</h2>
-      <p>
-        Configure scheduled HTTPS <code>POST</code> calls with
-        <code>Authorization: Bearer $JOB_RUNNER_SECRET</code>. Full runbook:
-        <code>docs/operations/OPERATIONS_RUNBOOK.md</code>.
-      </p>
+      <section id="operations">
+        <h2>11. Operations (Cron)</h2>
+        <p>
+          Configure scheduled HTTPS <code>POST</code> calls with
+          <code>Authorization: Bearer $JOB_RUNNER_SECRET</code>. Full runbook:
+          <code>docs/operations/OPERATIONS_RUNBOOK.md</code>.
+        </p>
 
-      <table>
-        <thead><tr><th>Endpoint</th><th>Recommended cadence</th><th>Monitor</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><code>/api/jobs/github-webhooks</code></td>
-            <td>Every 1–5 minutes</td>
-            <td>Non-zero <code>failed</code>; failed deliveries in <code>/api/diagnostics</code></td>
-          </tr>
-          <tr>
-            <td><code>/api/jobs/pr-reviews</code></td>
-            <td>Every 1–5 minutes</td>
-            <td>Stale queued jobs; non-zero <code>blocked</code> / <code>failed</code></td>
-          </tr>
-          <tr>
-            <td><code>/api/jobs/retention</code></td>
-            <td>Daily</td>
-            <td>Retention warnings in diagnostics; job log errors</td>
-          </tr>
-        </tbody>
-      </table>
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Recommended cadence</th>
+              <th>Monitor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/api/jobs/github-webhooks</code></td>
+              <td>Every 1–5 minutes</td>
+              <td>
+                Non-zero <code>failed</code>; failed deliveries in
+                <code>/api/diagnostics</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/api/jobs/pr-reviews</code></td>
+              <td>Every 1–5 minutes</td>
+              <td>
+                Stale queued jobs; non-zero <code>blocked</code> /
+                <code>failed</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>/api/jobs/retention</code></td>
+              <td>Daily</td>
+              <td>Retention warnings in diagnostics; job log errors</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <h3>11.1 Example cron invocation</h3>
-      <pre><code>curl -X POST "https://app.example.com/api/jobs/github-webhooks?limit=50" \
+        <h3>11.1 Example cron invocation</h3>
+        <pre><code>curl -X POST "https://app.example.com/api/jobs/github-webhooks?limit=50" \
   -H "Authorization: Bearer $JOB_RUNNER_SECRET"</code></pre>
 
-      <h3>11.2 Incident triage (summary)</h3>
-      <ol>
-        <li>Check <code>/api/diagnostics</code> as workspace owner/admin.</li>
-        <li>Review failed webhook deliveries in GitHub settings or trigger retry via job endpoint.</li>
-        <li>For stale AI jobs, call <code>/api/jobs/pr-reviews</code> and inspect blocked/failed counts.</li>
-        <li>If retention warnings persist, call <code>/api/jobs/retention</code> and inspect logs.</li>
-      </ol>
-    </section>
+        <h3>11.2 Incident triage (summary)</h3>
+        <ol>
+          <li>Check <code>/api/diagnostics</code> as workspace owner/admin.</li>
+          <li>
+            Review failed webhook deliveries in GitHub settings or trigger retry
+            via job endpoint.
+          </li>
+          <li>
+            For stale AI jobs, call <code>/api/jobs/pr-reviews</code> and
+            inspect blocked/failed counts.
+          </li>
+          <li>
+            If retention warnings persist, call
+            <code>/api/jobs/retention</code> and inspect logs.
+          </li>
+        </ol>
+      </section>
 
-    <section id="files">
-      <h2>12. File Map</h2>
-      <table>
-        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
-        <tbody>
-          <tr><td><code>lib/job-auth.ts</code></td><td>Bearer <code>JOB_RUNNER_SECRET</code> validation; dev/prod behavior</td></tr>
-          <tr><td><code>lib/jobs/queue.ts</code></td><td><code>PR_REVIEW_JOB_NAME</code>, <code>getQueueJobId</code>, <code>parseJobLimit</code></td></tr>
-          <tr><td><code>lib/jobs/pr-review-lifecycle.ts</code></td><td><code>enqueueAiReviewJob</code>, terminal statuses, transition timestamps</td></tr>
-          <tr><td><code>lib/jobs/pr-review-worker.ts</code></td><td><code>processQueuedAiReviewJobs</code> — prerequisite checks and guardrails</td></tr>
-          <tr><td><code>lib/github-webhooks.ts</code></td><td>Enqueue, process, batch worker, <code>retryDelayMs</code></td></tr>
-          <tr><td><code>lib/retention.ts</code></td><td><code>cleanupOperationalData</code> — plan-aware audit purge + fixed windows</td></tr>
-          <tr><td><code>lib/github-sync.ts</code></td><td>PR sync side effects; <code>getPrCheckSourceKey</code>; calls <code>enqueueAiReviewJob</code></td></tr>
-          <tr><td><code>lib/usage.ts</code></td><td><code>recordPrChecks</code> with optional <code>sourceKey</code> idempotency</td></tr>
-          <tr><td><code>app/api/github/webhook/route.ts</code></td><td>Webhook ingest; <code>after()</code> for immediate single delivery processing</td></tr>
-          <tr><td><code>app/api/jobs/github-webhooks/route.ts</code></td><td>Cron entry for webhook queue drain</td></tr>
-          <tr><td><code>app/api/jobs/pr-reviews/route.ts</code></td><td>Cron entry for AI review queue drain</td></tr>
-          <tr><td><code>app/api/jobs/retention/route.ts</code></td><td>Cron entry for retention cleanup</td></tr>
-          <tr><td><code>proxy.ts</code></td><td>CSRF exemption for <code>/api/jobs/*</code></td></tr>
-          <tr><td><code>prisma/schema.prisma</code></td><td><code>GitHubWebhookDelivery</code>, <code>AiReviewJob</code>, <code>UsageRecord</code> models</td></tr>
-          <tr><td><code>docs/operations/OPERATIONS_RUNBOOK.md</code></td><td>Cron setup, expected JSON responses, alerting</td></tr>
-        </tbody>
-      </table>
-    </section>
-  </main>
+      <section id="files">
+        <h2>12. File Map</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Responsibility</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>lib/job-auth.ts</code></td>
+              <td>
+                Bearer <code>JOB_RUNNER_SECRET</code> validation; dev/prod
+                behavior
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/jobs/queue.ts</code></td>
+              <td>
+                <code>PR_REVIEW_JOB_NAME</code>, <code>getQueueJobId</code>,
+                <code>parseJobLimit</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/jobs/pr-review-lifecycle.ts</code></td>
+              <td>
+                <code>enqueueAiReviewJob</code>, terminal statuses, transition
+                timestamps
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/jobs/pr-review-worker.ts</code></td>
+              <td>
+                <code>processQueuedAiReviewJobs</code> — prerequisite checks and
+                guardrails
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/github-webhooks.ts</code></td>
+              <td>Enqueue, process, batch worker, <code>retryDelayMs</code></td>
+            </tr>
+            <tr>
+              <td><code>lib/retention.ts</code></td>
+              <td>
+                <code>cleanupOperationalData</code> — plan-aware audit purge +
+                fixed windows
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/github-sync.ts</code></td>
+              <td>
+                PR sync side effects; <code>getPrCheckSourceKey</code>; calls
+                <code>enqueueAiReviewJob</code>
+              </td>
+            </tr>
+            <tr>
+              <td><code>lib/usage.ts</code></td>
+              <td>
+                <code>recordPrChecks</code> with optional
+                <code>sourceKey</code> idempotency
+              </td>
+            </tr>
+            <tr>
+              <td><code>app/api/github/webhook/route.ts</code></td>
+              <td>
+                Webhook ingest; <code>after()</code> for immediate single
+                delivery processing
+              </td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/github-webhooks/route.ts</code></td>
+              <td>Cron entry for webhook queue drain</td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/pr-reviews/route.ts</code></td>
+              <td>Cron entry for AI review queue drain</td>
+            </tr>
+            <tr>
+              <td><code>app/api/jobs/retention/route.ts</code></td>
+              <td>Cron entry for retention cleanup</td>
+            </tr>
+            <tr>
+              <td><code>proxy.ts</code></td>
+              <td>CSRF exemption for <code>/api/jobs/*</code></td>
+            </tr>
+            <tr>
+              <td><code>prisma/schema.prisma</code></td>
+              <td>
+                <code>GitHubWebhookDelivery</code>, <code>AiReviewJob</code>,
+                <code>UsageRecord</code> models
+              </td>
+            </tr>
+            <tr>
+              <td><code>docs/operations/OPERATIONS_RUNBOOK.md</code></td>
+              <td>Cron setup, expected JSON responses, alerting</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
 
-  <footer>
-    AgentGate jobs &amp; async architecture reference · June 2026
-  </footer>
-</body>
+    <footer>
+      AgentGate jobs &amp; async architecture reference · June 2026
+    </footer>
+  </body>
 </html>

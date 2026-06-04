@@ -1,11 +1,18 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from 'node:crypto'
 import { getBetterAuthSecret } from '@/lib/env'
 import { getPrismaClient } from '@/lib/prisma'
 
 const algorithm = 'aes-256-gcm'
 const encodingVersion = 'v1'
 
-function encryptionSecret(env: Record<string, string | undefined> = process.env) {
+function encryptionSecret(
+  env: Record<string, string | undefined> = process.env,
+) {
   return env.AI_PROVIDER_ENCRYPTION_KEY?.trim() || getBetterAuthSecret(env)
 }
 
@@ -39,7 +46,12 @@ export function decryptProviderKey(
 ) {
   const [version, ivValue, authTagValue, encryptedValue] =
     encryptedKey.split(':')
-  if (version !== encodingVersion || !ivValue || !authTagValue || !encryptedValue) {
+  if (
+    version !== encodingVersion ||
+    !ivValue ||
+    !authTagValue ||
+    !encryptedValue
+  ) {
     throw new Error('Unsupported encrypted provider key format.')
   }
 

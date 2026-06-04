@@ -100,12 +100,7 @@ export function RiskScoreRing({
       )}
       style={{ width: size, height: size }}
     >
-      <svg
-        viewBox="0 0 100 100"
-        width={size}
-        height={size}
-        aria-hidden="true"
-      >
+      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
         <circle
           cx="50"
           cy="50"

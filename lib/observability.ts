@@ -28,8 +28,7 @@ function errorMetadata(error: unknown): LogMetadata {
   return {
     errorName: error.name,
     errorMessage: error.message,
-    errorStack:
-      process.env.NODE_ENV === 'production' ? undefined : error.stack,
+    errorStack: process.env.NODE_ENV === 'production' ? undefined : error.stack,
   }
 }
 

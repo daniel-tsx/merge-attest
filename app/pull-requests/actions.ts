@@ -324,8 +324,7 @@ export async function addReviewNote(prId: string, formData: FormData) {
   }
 
   const rawBody = formData.get('body')
-  const body =
-    typeof rawBody === 'string' ? rawBody.trim().slice(0, 2000) : ''
+  const body = typeof rawBody === 'string' ? rawBody.trim().slice(0, 2000) : ''
   if (!body) {
     redirect(`/pull-requests/${prId}?comment=empty`)
   }
