@@ -6,12 +6,16 @@ import {
   AlertTriangle,
   ArrowRight,
   BadgeCheck,
+  ChartNoAxesColumn,
   Check,
   FileText,
+  Fingerprint,
   GitPullRequest,
   ListChecks,
+  ScrollText,
   ShieldAlert,
   TestTube2,
+  Users,
 } from 'lucide-react'
 import { HeroScanPanel } from '@/components/app/hero-scan-panel'
 import { LogoMark } from '@/components/app/logo'
@@ -25,7 +29,7 @@ import { cn } from '@/lib/utils'
 export const metadata: Metadata = {
   title: 'AgentGate — AI Pull Request Governance',
   description:
-    'AgentGate gives teams deterministic risk scoring, test-gap detection, repository rules, approvals, and audit evidence for AI-assisted pull requests.',
+    'AgentGate attributes every pull request to the AI agent that wrote it, scores risk, tracks per-agent trust, and exports AI-authorship evidence for EU AI Act and SOC2 reviews — with approvals and an audit trail.',
 }
 
 const introStyle = (index: number): CSSProperties =>
@@ -101,7 +105,43 @@ const compactFeatures = [
   },
 ]
 
+const authorshipFeatures = [
+  {
+    icon: Fingerprint,
+    title: 'Agent attribution with evidence',
+    description:
+      'Every pull request is fingerprinted to Cursor, Copilot, Claude Code, Codex, or Devin from commit trailers, bot accounts, and emails — with a confidence score and the evidence behind it.',
+  },
+  {
+    icon: Users,
+    title: 'Agent identity registry',
+    description:
+      'Built-in detection works out of the box. Map your own bot accounts, branch prefixes, labels, and commit trailers when your team has its own conventions.',
+  },
+  {
+    icon: ChartNoAxesColumn,
+    title: 'Per-agent trust scorecard',
+    description:
+      'See which agent ships the riskiest code: high-risk rate, test gaps, rule hits, reverts, and merges without human sign-off — every deduction shown.',
+  },
+  {
+    icon: ScrollText,
+    title: 'Authorship ledger & evidence export',
+    description:
+      'Track what share of your code AI wrote and how much carried a human sign-off. Export an evidence bundle supporting EU AI Act human-oversight and SOC2 reviews — not a certification, but the record auditors ask for.',
+  },
+]
+
+const attributionSamples = [
+  { agent: 'claude code', confidence: '95%' },
+  { agent: 'copilot', confidence: '92%' },
+  { agent: 'codex', confidence: '90%' },
+  { agent: 'cursor', confidence: '88%' },
+]
+
 const governancePillars = [
+  'Per-agent AI attribution',
+  'AI authorship ledger',
   'Deterministic risk scoring',
   'Missing-test detection',
   'Repository policy rules',
@@ -131,6 +171,15 @@ const comparisonRows = [
     coderabbit: 'Enterprise audit logging and RBAC on higher tiers',
     copilot: 'Uses GitHub platform permissions and billing controls',
     others: 'Team controls depend on plan and platform focus',
+  },
+  {
+    capability: 'AI authorship',
+    agentGate:
+      'Attributes each PR to a specific agent with confidence and evidence, then exports authorship evidence',
+    coderabbit: 'No per-agent authorship attribution or reporting',
+    copilot: 'No cross-agent authorship attribution',
+    others:
+      'Focused on review quality or PR workflow, not authorship governance',
   },
   {
     capability: 'Test and policy gaps',
@@ -248,6 +297,12 @@ export default async function Home() {
               className="transition-colors hover:text-foreground"
             >
               Features
+            </a>
+            <a
+              href="#authorship"
+              className="transition-colors hover:text-foreground"
+            >
+              AI authorship
             </a>
             <a
               href="#comparison"
@@ -544,12 +599,78 @@ export default async function Home() {
           </div>
         </section>
 
+        <section id="authorship" className="border-b border-border">
+          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <SectionIndex index="03" label="AI authorship" />
+              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                Know which AI agent wrote your code — and prove it
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+                Coding-agent adoption is near-universal; trust is not. AgentGate
+                attributes every pull request to the agent behind it, tracks
+                each agent&apos;s track record, and turns it into audit-ready
+                evidence — the white space no AI reviewer owns.
+              </p>
+            </div>
+
+            <div data-reveal className="mt-8 flex flex-wrap items-center gap-2">
+              <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle-foreground">
+                Attributed with confidence
+              </span>
+              {attributionSamples.map((sample) => (
+                <span
+                  key={sample.agent}
+                  className="inline-flex items-center gap-1.5 rounded-pill border border-info-border bg-info-soft px-2.5 py-1 text-[11px] font-medium capitalize text-info"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 rounded-full bg-info"
+                  />
+                  {sample.agent}
+                  <span className="font-mono text-info/80">
+                    {sample.confidence}
+                  </span>
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {authorshipFeatures.map((feature) => {
+                const Icon = feature.icon
+                return (
+                  <div
+                    key={feature.title}
+                    data-reveal
+                    className={cn(
+                      'group flex items-start gap-4 rounded-card border border-border bg-surface p-6 shadow-card',
+                      cardHover,
+                    )}
+                  >
+                    <span className={featureIconBox}>
+                      <Icon className="size-5" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                        {feature.title}
+                      </h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
         <section id="comparison" className="border-b border-border">
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
               <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-end lg:gap-14">
                 <div>
-                  <SectionIndex index="03" label="Why AgentGate" />
+                  <SectionIndex index="04" label="Why AgentGate" />
                   <h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     Built for governance, not another comment stream
                   </h2>
@@ -672,7 +793,7 @@ export default async function Home() {
         >
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
-              <SectionIndex index="04" label="How it works" />
+              <SectionIndex index="05" label="How it works" />
               <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Live in minutes, governed from day one
               </h2>
@@ -709,7 +830,7 @@ export default async function Home() {
         <section id="pricing" className="border-b border-border bg-surface">
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
-              <SectionIndex index="05" label="Pricing" />
+              <SectionIndex index="06" label="Pricing" />
               <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Predictable workspace pricing
               </h2>
