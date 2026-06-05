@@ -9,7 +9,6 @@ import {
   Fingerprint,
   GitPullRequest,
   KeyRound,
-  Receipt,
   Settings as SettingsIcon,
   Users,
   type LucideIcon,
@@ -51,12 +50,6 @@ const items: Array<{
     label: 'Agent registry',
     icon: Fingerprint,
     description: 'AI authorship attribution',
-  },
-  {
-    href: '/settings/billing',
-    label: 'Billing',
-    icon: Receipt,
-    description: 'Plan and payment',
   },
   {
     href: '/settings/usage',

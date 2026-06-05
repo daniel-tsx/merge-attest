@@ -91,28 +91,24 @@ async function RepositoriesContent({ searchParams }: PageProps) {
     <>
       {repositoryLimitReached ? (
         <Card className="border-attention-border bg-attention-soft/40">
-          <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention">
-                <AlertTriangle className="size-4" aria-hidden="true" />
+          <CardContent className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention">
+              <AlertTriangle className="size-4" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="font-semibold text-foreground">
+                Repository limit reached
               </div>
-              <div>
-                <div className="font-semibold text-foreground">
-                  Repository limit reached
-                </div>
-                <div className="mt-0.5 text-sm text-muted-foreground">
-                  Your{' '}
-                  <span className="font-medium capitalize">
-                    {organization.planKey}
-                  </span>{' '}
-                  plan includes {entitlements.repositoryLimit} repositories.
-                  Upgrade before syncing additional repositories.
-                </div>
+              <div className="mt-0.5 text-sm text-muted-foreground">
+                Your{' '}
+                <span className="font-medium capitalize">
+                  {organization.planKey}
+                </span>{' '}
+                plan includes {entitlements.repositoryLimit} connected
+                repositories. Additional repositories will not sync while you
+                are at this limit.
               </div>
             </div>
-            <Button asChild>
-              <a href="/settings/billing">View upgrade options</a>
-            </Button>
           </CardContent>
         </Card>
       ) : null}

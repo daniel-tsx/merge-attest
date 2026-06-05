@@ -27,6 +27,8 @@ Do **not** treat `archive/` docs as current product state unless the task is exp
 
 AgentGate is a **GitHub-native SaaS control center** for teams shipping AI-assisted code. It monitors pull requests, scores risk, detects test gaps, evaluates repository rules, records approvals, meters plan usage, exports audit evidence, and queues advisory AI reviews.
 
+**Launch posture (early access):** shipping free-only to grow adoption. The `free` plan in `lib/entitlements.ts` has **all feature flags enabled** and is capped only by numeric limits (3 repos, 200 PR checks/mo, 7-day audit retention). Public pricing and the in-app billing/upgrade UI are hidden (`app/page.tsx`, settings nav), but billing infrastructure (Lemon Squeezy checkout/portal/webhooks, paid-tier entitlements) is left intact and dormant for later monetization — re-gate the `free` flags and un-hide pricing when paid plans return.
+
 **What is real today (verified in code):**
 
 - Better Auth email/password with optional verification when Resend is configured
@@ -34,7 +36,7 @@ AgentGate is a **GitHub-native SaaS control center** for teams shipping AI-assis
 - Local demo fallback when `DATABASE_URL` is missing (dev only; production fails closed)
 - GitHub App install/sync/webhooks with durable delivery queue and job runner endpoints
 - Persisted approvals, audit events, plan entitlements, and monthly PR-check metering
-- Lemon Squeezy checkout, customer portal, and subscription webhooks
+- Lemon Squeezy checkout, customer portal, and subscription webhooks (intact but dormant; pricing/upgrade UI hidden during free-only early access)
 - OpenRouter BYOK storage, repository AI settings, durable PR review queue — **model execution intentionally not enabled yet**
 - Deterministic risk, test-gap, and rule evaluation (not LLM-based)
 - Explainable agent attribution (commit trailers, bot accounts, emails, branches) with a per-org identity registry (see `features/AI_GOVERNANCE.md`)

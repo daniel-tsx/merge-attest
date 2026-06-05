@@ -9,7 +9,7 @@ import { getCurrentUsagePeriod } from '../lib/usage'
 
 describe('plan entitlements', () => {
   it('exposes numeric limits for server-side enforcement', () => {
-    expect(getPlanEntitlements('free').repositoryLimit).toBe(1)
+    expect(getPlanEntitlements('free').repositoryLimit).toBe(3)
     expect(getPlanEntitlements('team').prCheckLimit).toBe(2000)
     expect(getPlanEntitlements('enterprise').prCheckLimit).toBeNull()
   })

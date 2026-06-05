@@ -4,7 +4,6 @@ import { EmptyState } from '@/components/app/empty-state'
 import { PageHeader } from '@/components/app/page-header'
 import { SettingsNav } from '@/components/app/settings-nav'
 import { UsageFilters } from '@/app/settings/usage/filters'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { getCurrentOrganization, listRepositories } from '@/lib/data/app-data'
@@ -68,25 +67,22 @@ export default async function UsageSettingsPage({
       </Card>
       {nearLimit && showCurrentPeriod ? (
         <Card className="border-attention-border bg-attention-soft/40">
-          <CardContent className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-start gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention">
-                <AlertTriangle className="size-4" aria-hidden="true" />
+          <CardContent className="flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention">
+              <AlertTriangle className="size-4" aria-hidden="true" />
+            </div>
+            <div>
+              <div className="font-semibold text-foreground">
+                {remainingChecks === 0
+                  ? 'PR check limit reached'
+                  : 'PR check limit is close'}
               </div>
-              <div>
-                <div className="font-semibold text-foreground">
-                  {remainingChecks === 0
-                    ? 'PR check limit reached'
-                    : 'PR check limit is close'}
-                </div>
-                <div className="mt-0.5 text-sm text-muted-foreground">
-                  Upgrade to keep syncing pull requests without interruptions.
-                </div>
+              <div className="mt-0.5 text-sm text-muted-foreground">
+                {remainingChecks === 0
+                  ? 'New pull request checks will resume at the start of next month.'
+                  : 'You are close to this month’s PR check allowance.'}
               </div>
             </div>
-            <Button asChild>
-              <a href="/settings/billing">View upgrade options</a>
-            </Button>
           </CardContent>
         </Card>
       ) : null}

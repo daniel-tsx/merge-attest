@@ -740,6 +740,7 @@ export async function syncGitHubInstallation(
   })
   let repositoriesSynced = 0
   let pullRequestsSynced = 0
+  let repositoriesSkipped = 0
 
   for (const repository of repositories) {
     const existing = await prisma.repository.findFirst({
@@ -755,8 +756,10 @@ export async function syncGitHubInstallation(
     if (
       !existing &&
       !canConsume(entitlements.repositoryLimit, repositoryCount, 1)
-    )
+    ) {
+      repositoriesSkipped += 1
       continue
+    }
 
     const savedRepository = existing
       ? await prisma.repository.update({
@@ -806,9 +809,14 @@ export async function syncGitHubInstallation(
     })
   }
 
+  const limitNote =
+    repositoriesSkipped > 0
+      ? ` ${repositoriesSkipped} more ${repositoriesSkipped === 1 ? 'repository was' : 'repositories were'} skipped because your plan limit of ${entitlements.repositoryLimit} connected repositories was reached.`
+      : ''
+
   return {
     mode: 'live',
-    message: `Synced ${repositoriesSynced} repositories and ${pullRequestsSynced} open pull requests from GitHub.`,
+    message: `Synced ${repositoriesSynced} repositories and ${pullRequestsSynced} open pull requests from GitHub.${limitNote}`,
     repositoriesSynced,
     pullRequestsSynced,
   }

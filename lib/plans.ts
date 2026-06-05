@@ -16,10 +16,14 @@ export const plans: Plan[] = [
     key: 'free',
     name: 'Free',
     priceMonthly: '$0',
-    repositoryLimit: '1 repository',
-    prCheckLimit: '50 PR checks/month',
+    repositoryLimit: '3 repositories',
+    prCheckLimit: '200 PR checks/month',
     auditRetention: '7-day audit history',
-    features: ['Basic risk summary', 'Basic test gap warning'],
+    features: [
+      'Risk scoring and test-gap detection',
+      'GitHub PR comments and check runs',
+      'Approvals, custom rules, and audit export',
+    ],
   },
   {
     key: 'starter',

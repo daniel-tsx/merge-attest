@@ -6,7 +6,6 @@ import {
   Database,
   GitPullRequest,
   KeyRound,
-  Receipt,
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -32,7 +31,7 @@ export default function SettingsPage() {
       <PageHeader
         eyebrow="Workspace"
         title="Settings"
-        description="Organization profile, integration state, billing gates, usage, API keys, retention, and notifications."
+        description="Organization profile, integration state, usage, API keys, retention, and notifications."
       />
       <SettingsNav />
       <Suspense fallback={<FormSkeleton />}>
@@ -89,13 +88,6 @@ async function SettingsOverview() {
       icon: BrainCircuit,
       description: 'OpenRouter provider key and review queue readiness.',
       value: openRouterCredential ? 'OpenRouter connected' : 'Not configured',
-    },
-    {
-      href: '/settings/billing',
-      label: 'Billing plan',
-      icon: Receipt,
-      description: 'Plans, checkout, and subscription lifecycle.',
-      value: `${organization.planKey} · ${organization.billingStatus.replaceAll('_', ' ')}`,
     },
     {
       href: '/settings/usage',

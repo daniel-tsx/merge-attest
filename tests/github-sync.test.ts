@@ -91,8 +91,8 @@ describe('GitHub sync helpers', () => {
     ).toBe('repo_1:42:abc123')
   })
 
-  it('gates GitHub check publishing by paid output entitlement', () => {
-    expect(shouldPublishGitHubCheckRun('free')).toBe(false)
+  it('publishes GitHub checks for entitled plans (free included in early access)', () => {
+    expect(shouldPublishGitHubCheckRun('free')).toBe(true)
     expect(shouldPublishGitHubCheckRun('starter')).toBe(true)
     expect(shouldPublishGitHubCheckRun('team')).toBe(true)
   })

@@ -13,15 +13,17 @@ export type PlanEntitlements = {
 }
 
 export const planEntitlements: Record<PlanKey, PlanEntitlements> = {
+  // Early-access launch: the free plan is unlimited on features and capped only
+  // by the numeric limits below. Re-gate these flags when paid plans return.
   free: {
-    repositoryLimit: 1,
-    prCheckLimit: 50,
+    repositoryLimit: 3,
+    prCheckLimit: 200,
     auditRetentionDays: 7,
     features: {
-      approvals: false,
-      customRules: false,
-      githubComments: false,
-      auditExport: false,
+      approvals: true,
+      customRules: true,
+      githubComments: true,
+      auditExport: true,
     },
   },
   starter: {

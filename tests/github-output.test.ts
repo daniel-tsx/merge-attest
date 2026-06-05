@@ -114,7 +114,26 @@ describe('GitHub AI review output', () => {
     )
   })
 
-  it('blocks output on plans without GitHub output entitlement', async () => {
+  it('publishes output for the free plan during early access', async () => {
+    vi.mocked(postPullRequestReview).mockResolvedValue({
+      mode: 'live',
+      reviewId: 'review_1',
+      message: 'GitHub review posted.',
+    })
+    vi.mocked(postPullRequestComment).mockResolvedValue({
+      mode: 'live',
+      action: 'created',
+      commentId: 'comment_1',
+      message: 'GitHub comment posted.',
+    })
+    vi.mocked(publishAiReviewCheckRun).mockResolvedValue({
+      mode: 'live',
+      action: 'created',
+      checkRunId: 'check_1',
+      conclusion: 'neutral',
+      message: 'AgentGate AI review check run created.',
+    })
+
     await expect(
       publishAiReviewGitHubOutput({
         planKey: 'free',
@@ -122,15 +141,10 @@ describe('GitHub AI review output', () => {
         job: { id: 'job_1' },
         review,
       }),
-    ).resolves.toEqual({
-      mode: 'blocked',
-      reason: 'github_output_not_entitled',
-      commentsCount: 0,
-      skippedCommentsCount: 1,
-    })
-    expect(postPullRequestReview).not.toHaveBeenCalled()
-    expect(postPullRequestComment).not.toHaveBeenCalled()
-    expect(publishAiReviewCheckRun).not.toHaveBeenCalled()
+    ).resolves.toMatchObject({ mode: 'published' })
+    expect(postPullRequestReview).toHaveBeenCalled()
+    expect(postPullRequestComment).toHaveBeenCalled()
+    expect(publishAiReviewCheckRun).toHaveBeenCalled()
   })
 
   it('publishes inline, managed comment, and check run output with returned ids', async () => {

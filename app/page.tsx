@@ -20,10 +20,8 @@ import {
 import { HeroScanPanel } from '@/components/app/hero-scan-panel'
 import { LogoMark } from '@/components/app/logo'
 import { ThemeToggle } from '@/components/app/theme-toggle'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { getServerSession } from '@/lib/auth/session'
-import { plans } from '@/lib/plans'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
@@ -227,8 +225,6 @@ const steps = [
   },
 ]
 
-const popularPlan = 'team'
-
 // Hover lift via shadow + border only — NOT transform. These cards also carry
 // `data-reveal` (a scroll-timeline animation on `transform`); animating
 // `transform` on hover too makes the two fight and the hover flickers.
@@ -315,12 +311,6 @@ export default async function Home() {
               className="transition-colors hover:text-foreground"
             >
               How it works
-            </a>
-            <a
-              href="#pricing"
-              className="transition-colors hover:text-foreground"
-            >
-              Pricing
             </a>
           </nav>
           <div className="flex items-center gap-2">
@@ -827,88 +817,6 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="pricing" className="border-b border-border bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <SectionIndex index="06" label="Pricing" />
-              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Predictable workspace pricing
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Start free and upgrade as you connect more repositories. Teams
-                do not need a paid reviewer seat for every developer who opens a
-                pull request.
-              </p>
-            </div>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              {plans.map((plan) => {
-                const popular = plan.key === popularPlan
-                return (
-                  <div
-                    key={plan.key}
-                    data-reveal
-                    className={cn(
-                      'relative flex flex-col rounded-card border border-border bg-background p-5',
-                      cardHover,
-                      popular
-                        ? 'border-beam shadow-card-hover ring-1 ring-accent-ring'
-                        : '',
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                        {plan.name}
-                      </h3>
-                      {popular ? <Badge tone="blue">Popular</Badge> : null}
-                    </div>
-                    <div className="mt-3 flex items-baseline gap-1">
-                      <span className="text-2xl font-semibold tracking-tight text-foreground">
-                        {plan.priceMonthly}
-                      </span>
-                      {plan.priceMonthly !== 'Custom' ? (
-                        <span className="font-mono text-[11px] text-subtle-foreground">
-                          /mo
-                        </span>
-                      ) : null}
-                    </div>
-                    <ul className="mt-4 space-y-1.5 border-t border-border pt-4 font-mono text-[11px] text-subtle-foreground">
-                      <li>{plan.repositoryLimit}</li>
-                      <li>{plan.prCheckLimit}</li>
-                      <li>{plan.auditRetention}</li>
-                    </ul>
-                    <ul className="mt-4 flex-1 space-y-2 text-xs text-muted-foreground">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2">
-                          <Check
-                            className="mt-0.5 size-3.5 shrink-0 text-success"
-                            aria-hidden="true"
-                          />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      asChild
-                      variant={popular ? 'accent' : 'secondary'}
-                      size="sm"
-                      className="mt-6 w-full"
-                    >
-                      <Link href="/sign-up">
-                        {plan.key === 'free' ? 'Start free' : 'Get started'}
-                      </Link>
-                    </Button>
-                  </div>
-                )
-              })}
-            </div>
-            <p className="mt-6 font-mono text-[11px] text-subtle-foreground">
-              All prices in USD · Enterprise plans include custom limits and
-              priority support.
-            </p>
-          </div>
-        </section>
-
         <section className="border-b border-border">
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
             <div
@@ -962,12 +870,6 @@ export default async function Home() {
               className="transition-colors hover:text-foreground"
             >
               Features
-            </a>
-            <a
-              href="#pricing"
-              className="transition-colors hover:text-foreground"
-            >
-              Pricing
             </a>
             <Link
               href="/sign-in"
