@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin 'tailwind-scrollbar';
 
 /* Drive Tailwind's dark: variant from the .dark class (set by next-themes),
    not the OS prefers-color-scheme media query. */
@@ -370,6 +371,12 @@
 
 * {
   border-color: var(--border);
+  /* Project-wide scrollbar theming in design-system colors. tailwind-scrollbar
+     styles the viewport scrollbar via utilities on <html>; these standards-track
+     properties cover every inner scroll container (tables, popovers, the command
+     palette) too, since scrollbar utilities don't inherit or compose via @apply. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 html {

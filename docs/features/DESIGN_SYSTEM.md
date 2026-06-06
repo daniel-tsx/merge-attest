@@ -76,6 +76,7 @@ Current token strategy:
 - Use visible `focus-visible` rings on interactive controls.
 - Use disabled semantics and clear disabled styling for controls.
 - Keep motion subtle, token-aligned, and covered by the global reduced-motion rule.
+- Scrollbars are themed project-wide in `app/globals.css`: the `tailwind-scrollbar` plugin styles the viewport scrollbar via utilities on `<html>`, and a `*` rule sets `scrollbar-width: thin` + `scrollbar-color: var(--border-strong) transparent` so inner scroll containers match too (scrollbar utilities neither inherit nor compose via `@apply`).
 - Prefer flat bordered containers over shadow-heavy cards.
 - Avoid colored side stripes on cards, metrics, alerts, and list items. Use a dot, icon, badge, or full border state instead.
 - Use cards only for repeated items, framed tools, modals, and data panels. Do not turn every page section into a floating card.
@@ -103,7 +104,7 @@ See [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) for the full primitive table an
 
 **Deferred on purpose:**
 
-- A richer **Radix Select** — current selects live in uncontrolled `FormData` forms where the native `<select>` (`Select`) is the correct, lowest-risk control. Radix Select's empty-string-value restriction and form-bubble indirection would add regression risk to team-role and AI-settings mutations for no user-facing gain. Keep `Select` native until a genuinely controlled, rich-content select is needed.
+- A richer **Radix Select** — current selects live in uncontrolled `FormData` forms where the native `<select>` (`Select`) is the correct, lowest-risk control. Radix Select's empty-string-value restriction and form-bubble indirection would add regression risk to team-role and AI-settings mutations for no user-facing gain. Keep `Select` native until a genuinely controlled, rich-content select is needed. The native popup is instead progressively enhanced (Chromium) via the **customizable select** (`appearance: base-select` + `::picker(select)`) so the open dropdown matches the design system — light `border`, rounded popup, `accent-soft` selected option. That CSS lives in a raw `<style>` in `app/layout.tsx`, **not** `globals.css`, because Tailwind v4's Lightning CSS strips the experimental `::picker`/`base-select` syntax — do not move it.
 - **React `<ViewTransition>`** (Next `experimental.viewTransition`) — the component isn't in the stable React export (only Next's experimental channel) with uncertain typing; the reduced-motion-safe `route-enter` fade covers route arrival meanwhile. See `docs/strategy/UI_REVAMP_PLAN.md` Phase 7.
 - **Table scan interactions** — shipped on the pull request monitor (sortable headers via `SortableHeader` + a `nuqs` sort/dir param, in-memory `sortPullRequests`, sticky first column). Rolling the same pattern out to the other scan tables (repositories, activity, approvals, audit log) is a follow-up; see `docs/strategy/UI_REVAMP_PLAN.md`.
 

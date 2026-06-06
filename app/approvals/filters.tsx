@@ -24,7 +24,7 @@ export function ApprovalFilters({
   return (
     <UrlFilterForm
       parsers={approvalsSearchParams}
-      className="md:grid-cols-[minmax(220px,1fr)_180px_150px_160px_150px_140px_auto]"
+      className="sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-[minmax(180px,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
       fields={[
         {
           name: 'query',

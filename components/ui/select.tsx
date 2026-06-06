@@ -13,6 +13,7 @@ export function Select({
   return (
     <div className="relative">
       <select
+        data-slot="select"
         className={cn(
           'h-9 w-full appearance-none rounded-control border border-border bg-surface-elevated px-3 pr-9 text-sm text-foreground outline-none transition-[background-color,border-color,box-shadow] duration-150 hover:border-border-strong focus:border-focus focus:ring-2 focus:ring-focus-ring disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted-foreground disabled:opacity-70',
           className,
