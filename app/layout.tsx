@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'AgentGate',
+  title: 'Auteur',
   description: 'Control center for AI-generated pull requests.',
 }
 
@@ -30,7 +30,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const pathname = (await headers()).get('x-agentgate-pathname')
+  const pathname = (await headers()).get('x-auteur-pathname')
   const isPublicRoute =
     !pathname ||
     pathname === '/' ||
@@ -58,7 +58,7 @@ export default async function RootLayout({
           <TooltipProvider>
             <NuqsAdapter>
               <RootShell
-                organizationName={organization?.name ?? 'AgentGate'}
+                organizationName={organization?.name ?? 'Auteur'}
                 planKey={organization?.planKey ?? 'free'}
                 dataMode={organization?.dataMode ?? 'live'}
                 isAdmin={adminContext?.isAdmin ?? false}

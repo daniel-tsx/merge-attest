@@ -1,9 +1,9 @@
-# AgentGate Documentation
+# Auteur Documentation
 
 **Status:** `current` — documentation index
 **Last verified:** 2026-05-31
 
-AgentGate is a SaaS control center for engineering teams using AI coding agents. It monitors AI-assisted pull requests, scores risky changes, detects missing tests, evaluates repository rules, records approvals, and keeps an audit trail before code reaches production.
+Auteur is a SaaS control center for engineering teams using AI coding agents. It monitors AI-assisted pull requests, scores risky changes, detects missing tests, evaluates repository rules, records approvals, and keeps an audit trail before code reaches production.
 
 ## Start Here
 

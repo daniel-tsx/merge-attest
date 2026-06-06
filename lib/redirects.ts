@@ -21,7 +21,7 @@ export function safeRelativeRedirect(
   }
 
   try {
-    const parsed = new URL(trimmed, 'https://agentgate.local')
+    const parsed = new URL(trimmed, 'https://auteur.local')
     return `${parsed.pathname}${parsed.search}${parsed.hash}`
   } catch {
     return fallback

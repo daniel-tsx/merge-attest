@@ -126,7 +126,7 @@ describe('diagnostics', () => {
   it('reports transactional email readiness', () => {
     expect(
       isEmailDeliveryConfigured({
-        EMAIL_FROM: 'AgentGate <noreply@example.com>',
+        EMAIL_FROM: 'Auteur <noreply@example.com>',
         RESEND_API_KEY: 'resend',
       }),
     ).toBe(true)

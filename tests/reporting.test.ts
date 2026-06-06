@@ -192,7 +192,7 @@ describe('pull request review timeline', () => {
           id: 'audit-1',
           eventType: 'github_comment_posted',
           summary: 'Posted GitHub approval comment',
-          actor: 'AgentGate',
+          actor: 'Auteur',
           repositoryName: 'billing-api',
           pullRequestNumber: 42,
           metadata: {},
@@ -225,7 +225,7 @@ describe('pull request review timeline', () => {
 
     const packet = serializeIncidentReviewPacket({ pullRequest, timeline })
 
-    expect(packet).toContain('AgentGate Review Packet')
+    expect(packet).toContain('Auteur Review Packet')
     expect(packet).toContain('## AI Review')
     expect(packet).toContain('GitHub inline review: published')
     expect(packet).not.toContain('review-1')

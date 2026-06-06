@@ -160,7 +160,7 @@ export default async function RepositoryAiSettingsPage({
           </span>
         }
         title="AI review settings"
-        description="Tune advisory AI reviews without changing deterministic AgentGate rules or approval policy."
+        description="Tune advisory AI reviews without changing deterministic Auteur rules or approval policy."
         actions={
           <Button asChild variant="secondary">
             <a href={`/repositories/${repository.id}/rules`}>
@@ -314,14 +314,14 @@ export default async function RepositoryAiSettingsPage({
               <ToggleField
                 name="publishManagedComment"
                 title="Managed summary"
-                description="Create or update one AgentGate AI review summary comment per review job."
+                description="Create or update one Auteur AI review summary comment per review job."
                 defaultChecked={settings.publishManagedComment}
                 disabled={!canEdit}
               />
               <ToggleField
                 name="publishCheckRun"
                 title="Check run"
-                description="Publish an advisory AgentGate AI Review check on the pull request head SHA."
+                description="Publish an advisory Auteur AI Review check on the pull request head SHA."
                 defaultChecked={settings.publishCheckRun}
                 disabled={!canEdit}
               />

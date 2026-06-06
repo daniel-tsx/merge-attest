@@ -3,7 +3,7 @@
 **Status:** `current`
 **Last verified:** 2026-06-04 (code verified against repo)
 
-AgentGate's differentiator is being the **system of record for AI authorship** — answering
+Auteur's differentiator is being the **system of record for AI authorship** — answering
 _which AI agent wrote this change, how confident are we, and what is the evidence_. This doc
 covers the **Agent Attribution Engine** and **Agent Identity Registry** (Phase A of the
 AI-authorship governance suite).
@@ -126,7 +126,7 @@ shown on the PR detail page via `AccountabilityPanel`.
 - Reviewers check "I take responsibility…" when they **approve** or **accept risk**; that writes
   an immutable `Attestation` (reviewer, statement, attributed agent + confidence snapshot, head
   SHA), a `human_attestation_recorded` audit event, and — when `githubComments` is entitled — a
-  best-effort **"AgentGate Accountability"** GitHub check run.
+  best-effort **"Auteur Accountability"** GitHub check run.
 - `pullRequestRequiresAttestation()` derives the required state from the PR's fired rules; any
   AI-authored PR can also carry a voluntary sign-off. Non-AI PRs show no panel.
 

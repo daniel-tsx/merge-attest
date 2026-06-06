@@ -1,4 +1,4 @@
-# AgentGate Design System Notes
+# Auteur Design System Notes
 
 **Status:** `current`
 **Location:** `docs/features/DESIGN_SYSTEM.md`
@@ -7,7 +7,7 @@ Last reviewed: 2026-05-31
 
 ## Purpose
 
-This document records the current UI foundation for AgentGate. The goal is a Linear-influenced operational interface: precise, compact, security-minded, and built for scanning pull request risk, approvals, policies, and audit evidence. Notion-style clarity is useful for docs and settings copy, but the product UI should feel closer to an engineering control room than a friendly workspace editor.
+This document records the current UI foundation for Auteur. The goal is a Linear-influenced operational interface: precise, compact, security-minded, and built for scanning pull request risk, approvals, policies, and audit evidence. Notion-style clarity is useful for docs and settings copy, but the product UI should feel closer to an engineering control room than a friendly workspace editor.
 
 For architecture, page composition, and the three-layer component model, read [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) first.
 

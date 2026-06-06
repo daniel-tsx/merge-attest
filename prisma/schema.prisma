@@ -195,18 +195,18 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  memberships          OrganizationMember[]
-  approvals            Approval[]
-  assignedPullRequests PullRequest[]        @relation("AssignedPullRequests")
-  comments             PullRequestComment[]
-  sentInvites          OrganizationInvite[] @relation("OrganizationInvitesSent")
-  acceptedInvites      OrganizationInvite[] @relation("OrganizationInvitesAccepted")
-  auditExports         AuditExport[]
-  attestations         Attestation[]
-  apiKeys              ApiKey[]
+  memberships           OrganizationMember[]
+  approvals             Approval[]
+  assignedPullRequests  PullRequest[]          @relation("AssignedPullRequests")
+  comments              PullRequestComment[]
+  sentInvites           OrganizationInvite[]   @relation("OrganizationInvitesSent")
+  acceptedInvites       OrganizationInvite[]   @relation("OrganizationInvitesAccepted")
+  auditExports          AuditExport[]
+  attestations          Attestation[]
+  apiKeys               ApiKey[]
   aiProviderCredentials AiProviderCredential[]
-  sessions             Session[]
-  accounts             Account[]
+  sessions              Session[]
+  accounts              Account[]
 }
 
 model Session {
@@ -256,25 +256,25 @@ model Verification {
 }
 
 model Organization {
-  id                       String        @id @default(cuid())
-  name                     String
-  slug                     String        @unique
-  githubInstallationId     String?
-  githubAccountId          String?
-  githubAccountLogin       String?
+  id                             String        @id @default(cuid())
+  name                           String
+  slug                           String        @unique
+  githubInstallationId           String?
+  githubAccountId                String?
+  githubAccountLogin             String?
   lemonSqueezyCustomerId         String?
   lemonSqueezySubscriptionId     String?
   lemonSqueezySubscriptionStatus String?
   lemonSqueezyVariantId          String?
   lemonSqueezyPriceId            String?
-  planKey                  String        @default("free")
-  billingStatus            BillingStatus @default(active)
-  trialEndsAt              DateTime?
-  cancellationEffectiveAt  DateTime?
-  failedPaymentAt          DateTime?
-  lastUpgradeAt            DateTime?
-  createdAt                DateTime      @default(now())
-  updatedAt                DateTime      @updatedAt
+  planKey                        String        @default("free")
+  billingStatus                  BillingStatus @default(active)
+  trialEndsAt                    DateTime?
+  cancellationEffectiveAt        DateTime?
+  failedPaymentAt                DateTime?
+  lastUpgradeAt                  DateTime?
+  createdAt                      DateTime      @default(now())
+  updatedAt                      DateTime      @updatedAt
 
   members                  OrganizationMember[]
   repositories             Repository[]
@@ -365,37 +365,37 @@ model Repository {
 }
 
 model PullRequest {
-  id                        String            @id @default(cuid())
-  number                    Int
-  title                     String
-  author                    String
-  githubPullRequestId       String?
-  githubNodeId              String?
-  githubAgentGateCommentId  String?
-  githubAgentGateCheckRunId String?
-  url                       String?
-  headSha                   String?
-  branch                    String
-  baseBranch                String
-  status                    PullRequestStatus
-  aiAssisted                Boolean?
-  agentSource               AgentSource       @default(unknown)
-  attributionConfidence     Int               @default(0)
-  attributionEvidence       Json              @default("[]")
-  riskScore                 Int               @default(0)
-  riskLevel                 RiskLevel         @default(low)
-  testGapStatus             TestGapStatus     @default(none)
-  ciStatus                  CiStatus          @default(unknown)
-  approvalStatus            ApprovalStatus    @default(not_required)
-  filesChangedCount         Int               @default(0)
-  linesAdded                Int               @default(0)
-  linesDeleted              Int               @default(0)
-  assignedReviewerId        String?
-  reviewDueAt               DateTime?
-  repositoryId              String
-  organizationId            String
-  createdAt                 DateTime          @default(now())
-  updatedAt                 DateTime          @updatedAt
+  id                     String            @id @default(cuid())
+  number                 Int
+  title                  String
+  author                 String
+  githubPullRequestId    String?
+  githubNodeId           String?
+  githubAuteurCommentId  String?
+  githubAuteurCheckRunId String?
+  url                    String?
+  headSha                String?
+  branch                 String
+  baseBranch             String
+  status                 PullRequestStatus
+  aiAssisted             Boolean?
+  agentSource            AgentSource       @default(unknown)
+  attributionConfidence  Int               @default(0)
+  attributionEvidence    Json              @default("[]")
+  riskScore              Int               @default(0)
+  riskLevel              RiskLevel         @default(low)
+  testGapStatus          TestGapStatus     @default(none)
+  ciStatus               CiStatus          @default(unknown)
+  approvalStatus         ApprovalStatus    @default(not_required)
+  filesChangedCount      Int               @default(0)
+  linesAdded             Int               @default(0)
+  linesDeleted           Int               @default(0)
+  assignedReviewerId     String?
+  reviewDueAt            DateTime?
+  repositoryId           String
+  organizationId         String
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   organization     Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository       Repository           @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
@@ -582,28 +582,28 @@ model AiProviderCredential {
 }
 
 model AiReviewJob {
-  id                   String           @id @default(cuid())
-  reviewKey            String           @unique
-  provider             AiReviewProvider @default(openrouter)
-  model                String?
-  status               AiReviewStatus   @default(queued)
-  statusDetail         String?
-  githubDeliveryId     String?
-  queueJobId           String?
-  githubReviewId       String?
+  id                     String           @id @default(cuid())
+  reviewKey              String           @unique
+  provider               AiReviewProvider @default(openrouter)
+  model                  String?
+  status                 AiReviewStatus   @default(queued)
+  statusDetail           String?
+  githubDeliveryId       String?
+  queueJobId             String?
+  githubReviewId         String?
   githubManagedCommentId String?
-  githubCheckRunId     String?
-  attemptCount         Int              @default(0)
-  commentsCount        Int              @default(0)
-  skippedCommentsCount Int              @default(0)
-  errorMessage         String?
-  startedAt            DateTime?
-  completedAt          DateTime?
-  organizationId       String
-  repositoryId         String
-  pullRequestId        String
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  githubCheckRunId       String?
+  attemptCount           Int              @default(0)
+  commentsCount          Int              @default(0)
+  skippedCommentsCount   Int              @default(0)
+  errorMessage           String?
+  startedAt              DateTime?
+  completedAt            DateTime?
+  organizationId         String
+  repositoryId           String
+  pullRequestId          String
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)

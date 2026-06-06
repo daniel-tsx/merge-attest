@@ -65,8 +65,8 @@ export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
               Finish your setup
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Connect GitHub and sync your first repository so AgentGate can
-              start monitoring pull requests.
+              Connect GitHub and sync your first repository so Auteur can start
+              monitoring pull requests.
             </p>
           </div>
         </div>

@@ -25,7 +25,7 @@ export async function POST() {
   const pr = pullRequests[0]
   const result = await postPullRequestComment(
     pr,
-    `AgentGate risk score: ${pr.riskScore} (${pr.riskLevel})`,
+    `Auteur risk score: ${pr.riskScore} (${pr.riskLevel})`,
   )
 
   return NextResponse.json(result)

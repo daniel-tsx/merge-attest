@@ -66,7 +66,7 @@ export async function GET(
     activityEvents,
   })
   const packet = serializeIncidentReviewPacket({ pullRequest, timeline })
-  const fileName = `agentgate-pr-${pullRequest.number}-review-packet.md`
+  const fileName = `auteur-pr-${pullRequest.number}-review-packet.md`
 
   return new Response(packet, {
     headers: {

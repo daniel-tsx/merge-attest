@@ -1,9 +1,10 @@
 import { cn } from '@/lib/utils'
 
-// "A" monogram: splayed legs read as a gateway arch,
-// the accent crossbar is the scan beam crossing the gate.
-const LEGS_PATH = 'M7 26.5 L16 5.5 L25 26.5'
-const CROSSBAR_PATH = 'M10.6 18.1 H21.4'
+// Pen-nib monogram: a fountain-pen nib (slit + vent hole) reads as the mark of
+// an author — a nod to "Auteur", the author behind the work. The apex also
+// forms an "A".
+const NIB_BODY = 'M16 5 L25 25.5 L7 25.5 Z'
+const NIB_SLIT = 'M16 12.5 V18.5'
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -15,8 +16,9 @@ export function LogoMark({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d={CROSSBAR_PATH} className="stroke-accent" strokeWidth="3" />
-      <path d={LEGS_PATH} stroke="currentColor" strokeWidth="3" />
+      <path d={NIB_BODY} stroke="currentColor" strokeWidth="2.6" />
+      <path d={NIB_SLIT} className="stroke-accent" strokeWidth="2.6" />
+      <circle cx="16" cy="20.9" r="1.5" className="fill-accent" />
     </svg>
   )
 }
@@ -25,7 +27,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <LogoMark />
-      <span className="text-sm font-semibold tracking-tight">AgentGate</span>
+      <span className="text-sm font-semibold tracking-tight">Auteur</span>
     </div>
   )
 }

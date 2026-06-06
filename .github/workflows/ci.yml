@@ -10,11 +10,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agentgate?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/auteur?schema=public
       BETTER_AUTH_SECRET: ci-placeholder-better-auth-secret
       BETTER_AUTH_URL: http://localhost:3000
       GITHUB_APP_ID: '12345'
-      GITHUB_APP_SLUG: agentgate-ci
+      GITHUB_APP_SLUG: auteur-ci
       GITHUB_APP_PRIVATE_KEY: ci-placeholder-private-key
       GITHUB_WEBHOOK_SECRET: ci-placeholder-github-webhook-secret
       PADDLE_API_KEY: ci-placeholder-paddle-api-key
@@ -24,7 +24,7 @@ jobs:
       PADDLE_GROWTH_PRICE_ID: pri_ci_growth
       PADDLE_CUSTOMER_PORTAL_URL: https://billing.example.test
       JOB_RUNNER_SECRET: ci-placeholder-job-runner-secret
-      EMAIL_FROM: 'AgentGate CI <noreply@example.com>'
+      EMAIL_FROM: 'Auteur CI <noreply@example.com>'
       RESEND_API_KEY: ci-placeholder-resend-api-key
       SUPPORT_EMAIL: support@example.com
     steps:

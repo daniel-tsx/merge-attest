@@ -23,7 +23,7 @@ import {
 import {
   postPullRequestComment,
   publishAccountabilityCheckRun,
-  publishAgentGateCheckRun,
+  publishAuteurCheckRun,
 } from '@/lib/github'
 import { logEvent, reportError } from '@/lib/observability'
 import { isFeatureAvailable } from '@/lib/plans'
@@ -50,7 +50,7 @@ function commentBody(input: {
   riskLevel: string
 }) {
   const lines = [
-    `AgentGate decision: ${input.decision.replaceAll('_', ' ')}`,
+    `Auteur decision: ${input.decision.replaceAll('_', ' ')}`,
     `Reviewer: ${input.reviewer}`,
     `Risk: ${input.riskScore} (${input.riskLevel})`,
   ]
@@ -208,7 +208,7 @@ export async function recordApprovalDecision(
             installationId:
               pullRequest.repository.organization.githubInstallationId ??
               undefined,
-            commentId: pullRequest.githubAgentGateCommentId,
+            commentId: pullRequest.githubAuteurCommentId,
           },
           commentBody({
             decision,
@@ -221,16 +221,16 @@ export async function recordApprovalDecision(
       : null
 
     if (comment?.mode === 'live') {
-      if (comment.commentId !== pullRequest.githubAgentGateCommentId) {
+      if (comment.commentId !== pullRequest.githubAuteurCommentId) {
         await prisma.pullRequest.update({
           where: { id: pullRequest.id },
-          data: { githubAgentGateCommentId: comment.commentId },
+          data: { githubAuteurCommentId: comment.commentId },
         })
       }
       await prisma.auditEvent.create({
         data: {
           eventType: 'github_comment_posted',
-          actor: 'AgentGate',
+          actor: 'Auteur',
           summary: `${comment.action === 'updated' ? 'Updated' : 'Posted'} GitHub approval comment for #${pullRequest.number}`,
           metadata: {
             decision,
@@ -245,7 +245,7 @@ export async function recordApprovalDecision(
     }
 
     const checkRun = canPostGitHubComment
-      ? await publishAgentGateCheckRun({
+      ? await publishAuteurCheckRun({
           number: pullRequest.number,
           repositoryName: pullRequest.repository.name,
           owner: pullRequest.repository.owner,
@@ -253,7 +253,7 @@ export async function recordApprovalDecision(
             pullRequest.repository.organization.githubInstallationId ??
             undefined,
           headSha: pullRequest.headSha,
-          checkRunId: pullRequest.githubAgentGateCheckRunId,
+          checkRunId: pullRequest.githubAuteurCheckRunId,
           riskScore: pullRequest.riskScore,
           riskLevel: pullRequest.riskLevel,
           testGapStatus: pullRequest.testGapStatus,
@@ -263,17 +263,17 @@ export async function recordApprovalDecision(
       : null
 
     if (checkRun?.mode === 'live') {
-      if (checkRun.checkRunId !== pullRequest.githubAgentGateCheckRunId) {
+      if (checkRun.checkRunId !== pullRequest.githubAuteurCheckRunId) {
         await prisma.pullRequest.update({
           where: { id: pullRequest.id },
-          data: { githubAgentGateCheckRunId: checkRun.checkRunId },
+          data: { githubAuteurCheckRunId: checkRun.checkRunId },
         })
       }
       await prisma.auditEvent.create({
         data: {
           eventType: 'github_check_run_published',
-          actor: 'AgentGate',
-          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} AgentGate check run for #${pullRequest.number}`,
+          actor: 'Auteur',
+          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} Auteur check run for #${pullRequest.number}`,
           metadata: {
             action: checkRun.action,
             checkRunId: checkRun.checkRunId,

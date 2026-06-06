@@ -1,4 +1,4 @@
-# AgentGate UI Revamp Plan
+# Auteur UI Revamp Plan
 
 **Status:** `shipped` — phases 1–9 delivered on the `ui-revamp` branch; Phase 6b
 (table scan interactions) and React `<ViewTransition>` deferred (see notes).
@@ -7,7 +7,7 @@
 
 ## Goal
 
-Elevate AgentGate from a polished operational UI to a premium, enterprise-grade
+Elevate Auteur from a polished operational UI to a premium, enterprise-grade
 control center — without breaking the disciplined, flat, Linear-influenced
 design DNA documented in [`../features/DESIGN_SYSTEM.md`](../features/DESIGN_SYSTEM.md).
 
@@ -95,7 +95,7 @@ Each phase is independently shippable after Phase 1.
 - _Verified:_ real dashboard in dark + light; "Change theme" tooltip renders
   themed; toggle menu (Light/Dark/System) persists; Toaster mounted; no console
   errors; typecheck + lint + 219 tests green.
-- _Dev note:_ self-registered `dev@agentgate.test` in the local dev DB (email
+- _Dev note:_ self-registered `dev@auteur.test` in the local dev DB (email
   delivery not configured, so no verification needed) to verify in-app surfaces.
 
 ### Phase 4 — Command palette (⌘K) ✅ shipped

@@ -128,7 +128,7 @@ export function formatAiReviewManagedComment(input: {
   const totalFindings =
     input.review.inlineComments.length + input.review.summaryFindings.length
   const lines = [
-    '## AgentGate AI review',
+    '## Auteur AI review',
     '',
     sanitizeGitHubMarkdownText(input.summary?.trim() || 'AI review completed.'),
     '',
@@ -137,7 +137,7 @@ export function formatAiReviewManagedComment(input: {
     `Summary findings: ${input.review.summaryFindings.length}`,
     `Skipped comments: ${input.review.skippedCommentsCount}`,
     '',
-    '### AgentGate signals',
+    '### Auteur signals',
     '',
     `- Risk: ${input.pullRequest.riskScore} (${input.pullRequest.riskLevel})`,
     `- Tests: ${input.pullRequest.testGapStatus}`,
@@ -150,7 +150,7 @@ export function formatAiReviewManagedComment(input: {
     lines.push('', '### Summary findings', '', ...summaryFindings)
   }
 
-  lines.push('', `[Open in AgentGate](${prUrl})`)
+  lines.push('', `[Open in Auteur](${prUrl})`)
 
   return truncate(lines.join('\n'), 60_000)
 }
@@ -164,10 +164,10 @@ export function formatAiReviewCheckOutput(input: {
     input.review.inlineComments.length + input.review.summaryFindings.length
   return {
     title: totalFindings
-      ? `AgentGate AI review found ${totalFindings} finding${
+      ? `Auteur AI review found ${totalFindings} finding${
           totalFindings === 1 ? '' : 's'
         }`
-      : 'AgentGate AI review found no findings',
+      : 'Auteur AI review found no findings',
     summary: truncate(
       [
         sanitizeGitHubMarkdownText(
@@ -239,7 +239,7 @@ export async function publishAiReviewGitHubOutput(
       }))
     const review = await postPullRequestReview(
       pullRequest,
-      'AgentGate AI review inline findings.',
+      'Auteur AI review inline findings.',
       comments,
     )
     if (review.mode === 'live') result.githubReviewId = review.reviewId

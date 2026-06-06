@@ -311,9 +311,7 @@ export function AppShell({
             <LogoMark className="size-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold tracking-tight">
-              AgentGate
-            </div>
+            <div className="text-sm font-semibold tracking-tight">Auteur</div>
             <div className="-mt-0.5 text-[11px] text-subtle-foreground">
               Pull request control
             </div>
@@ -355,7 +353,7 @@ export function AppShell({
                       <LogoMark className="size-4" />
                     </div>
                     <div className="min-w-0">
-                      <SheetTitle>AgentGate</SheetTitle>
+                      <SheetTitle>Auteur</SheetTitle>
                       <SheetDescription className="truncate">
                         {organizationName}
                       </SheetDescription>

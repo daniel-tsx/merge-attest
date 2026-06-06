@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   })
   const csv = serializeAuditEventsToCsv(events)
   const timestamp = new Date().toISOString().slice(0, 10)
-  const fileName = `agentgate-audit-${timestamp}.csv`
+  const fileName = `auteur-audit-${timestamp}.csv`
 
   await prisma.auditExport.create({
     data: {

@@ -46,7 +46,7 @@ export function getOnboardingStatus(
       id: 'github',
       title: 'Connect GitHub',
       description: input.githubConfigured
-        ? 'Install the AgentGate GitHub App so repositories can sync.'
+        ? 'Install the Auteur GitHub App so repositories can sync.'
         : 'Add the GitHub App environment variables before installing the app.',
       status: githubConnected
         ? 'complete'

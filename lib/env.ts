@@ -1,7 +1,7 @@
 type Env = Record<string, string | undefined>
 
 const LOCAL_BETTER_AUTH_SECRET =
-  'agentgate-local-development-secret-change-before-production'
+  'auteur-local-development-secret-change-before-production'
 
 export function isProduction(env: Env = process.env) {
   return env.NODE_ENV === 'production'

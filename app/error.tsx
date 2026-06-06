@@ -25,8 +25,8 @@ export default function ErrorPage({
             The gate held this request
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            AgentGate could not load this view. The error has been surfaced to
-            the runtime logs with the current release context.
+            Auteur could not load this view. The error has been surfaced to the
+            runtime logs with the current release context.
           </p>
           {error.digest && (
             <p className="font-mono text-xs text-subtle-foreground">

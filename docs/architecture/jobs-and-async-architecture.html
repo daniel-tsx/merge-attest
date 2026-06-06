@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgentGate — Jobs &amp; Async Architecture</title>
+    <title>Auteur — Jobs &amp; Async Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -255,10 +255,10 @@
   </head>
   <body>
     <header>
-      <h1>AgentGate — Jobs &amp; Async Architecture</h1>
+      <h1>Auteur — Jobs &amp; Async Architecture</h1>
       <p>
         How background work is queued, authenticated, retried, and executed on a
-        serverless Next.js deployment. AgentGate does not run an in-app queue
+        serverless Next.js deployment. Auteur does not run an in-app queue
         server (Redis, BullMQ, etc.); durable rows in PostgreSQL plus external
         cron hitting <code>/api/jobs/*</code> drive async processing. Verified
         against code as of June 2026.
@@ -293,7 +293,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          AgentGate treats PostgreSQL as the job queue. When work cannot finish
+          Auteur treats PostgreSQL as the job queue. When work cannot finish
           inside a single HTTP request — or when it should survive process
           restarts — the app writes a row and returns. An external scheduler
           (cron, Vercel Cron, GitHub Actions, etc.) periodically calls protected
@@ -1097,7 +1097,7 @@ export function getQueueJobId(jobName: string, key: string) {
     </main>
 
     <footer>
-      AgentGate jobs &amp; async architecture reference · June 2026
+      Auteur jobs &amp; async architecture reference · June 2026
     </footer>
   </body>
 </html>

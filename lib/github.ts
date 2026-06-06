@@ -315,7 +315,7 @@ export async function postPullRequestReview(
   }
 }
 
-export function getAgentGateCheckConclusion(input: {
+export function getAuteurCheckConclusion(input: {
   approvalStatus: ApprovalStatus
   riskLevel: RiskLevel
   testGapStatus: TestGapStatus
@@ -353,7 +353,7 @@ export type GitHubCheckConclusion =
   | 'timed_out'
   | 'action_required'
 
-export async function publishAgentGateCheckRun(
+export async function publishAuteurCheckRun(
   pr: Pick<
     PullRequest,
     | 'number'
@@ -374,13 +374,13 @@ export async function publishAgentGateCheckRun(
   if (!octokit || !pr.owner || !pr.headSha) {
     return {
       mode: 'demo' as const,
-      message: `Mock AgentGate check run for ${pr.repositoryName}#${pr.number}.`,
+      message: `Mock Auteur check run for ${pr.repositoryName}#${pr.number}.`,
     }
   }
 
-  const conclusion = getAgentGateCheckConclusion(pr)
+  const conclusion = getAuteurCheckConclusion(pr)
   const output = {
-    title: `AgentGate ${conclusion.replaceAll('_', ' ')}`,
+    title: `Auteur ${conclusion.replaceAll('_', ' ')}`,
     summary: [
       `Risk: ${pr.riskScore} (${pr.riskLevel})`,
       `Tests: ${pr.testGapStatus}`,
@@ -396,7 +396,7 @@ export async function publishAgentGateCheckRun(
         owner: pr.owner,
         repo: pr.repositoryName,
         check_run_id: checkRunId,
-        name: 'AgentGate',
+        name: 'Auteur',
         status: 'completed',
         conclusion,
         output,
@@ -407,7 +407,7 @@ export async function publishAgentGateCheckRun(
         action: 'updated' as const,
         checkRunId: String(response.data.id),
         conclusion,
-        message: 'AgentGate check run updated.',
+        message: 'Auteur check run updated.',
       }
     } catch (error) {
       if (!isGitHubNotFoundError(error)) throw error
@@ -417,7 +417,7 @@ export async function publishAgentGateCheckRun(
   const response = await octokit.rest.checks.create({
     owner: pr.owner,
     repo: pr.repositoryName,
-    name: 'AgentGate',
+    name: 'Auteur',
     head_sha: pr.headSha,
     status: 'completed',
     conclusion,
@@ -429,7 +429,7 @@ export async function publishAgentGateCheckRun(
     action: 'created' as const,
     checkRunId: String(response.data.id),
     conclusion,
-    message: 'AgentGate check run created.',
+    message: 'Auteur check run created.',
   }
 }
 
@@ -450,13 +450,13 @@ export async function publishAiReviewCheckRun(
   if (!octokit || !pr.owner || !pr.headSha) {
     return {
       mode: 'demo' as const,
-      message: `Mock AgentGate AI review check run for ${pr.repositoryName}#${pr.number}.`,
+      message: `Mock Auteur AI review check run for ${pr.repositoryName}#${pr.number}.`,
     }
   }
 
   const checkRunId = pr.checkRunId ? Number(pr.checkRunId) : null
   const payload = {
-    name: 'AgentGate AI Review',
+    name: 'Auteur AI Review',
     status: 'completed' as const,
     conclusion: output.conclusion,
     output: {
@@ -479,7 +479,7 @@ export async function publishAiReviewCheckRun(
         action: 'updated' as const,
         checkRunId: String(response.data.id),
         conclusion: output.conclusion,
-        message: 'AgentGate AI review check run updated.',
+        message: 'Auteur AI review check run updated.',
       }
     } catch (error) {
       if (!isGitHubNotFoundError(error)) throw error
@@ -498,7 +498,7 @@ export async function publishAiReviewCheckRun(
     action: 'created' as const,
     checkRunId: String(response.data.id),
     conclusion: output.conclusion,
-    message: 'AgentGate AI review check run created.',
+    message: 'Auteur AI review check run created.',
   }
 }
 
@@ -514,14 +514,14 @@ export async function publishAccountabilityCheckRun(
   if (!octokit || !pr.owner || !pr.headSha) {
     return {
       mode: 'demo' as const,
-      message: `Mock AgentGate accountability check for ${pr.repositoryName}#${pr.number}.`,
+      message: `Mock Auteur accountability check for ${pr.repositoryName}#${pr.number}.`,
     }
   }
 
   const response = await octokit.rest.checks.create({
     owner: pr.owner,
     repo: pr.repositoryName,
-    name: 'AgentGate Accountability',
+    name: 'Auteur Accountability',
     head_sha: pr.headSha,
     status: 'completed',
     conclusion: 'success',
@@ -534,7 +534,7 @@ export async function publishAccountabilityCheckRun(
   return {
     mode: 'live' as const,
     checkRunId: String(response.data.id),
-    message: 'AgentGate accountability check published.',
+    message: 'Auteur accountability check published.',
   }
 }
 

@@ -21,7 +21,7 @@ import { detectTestGap } from '@/lib/test-gap'
 const now = '2026-04-30T08:00:00.000Z'
 
 export const organization = {
-  id: 'org-agentgate',
+  id: 'org-auteur',
   name: 'Northstar Labs',
   slug: 'northstar-labs',
   planKey: 'team' as const,
@@ -688,7 +688,7 @@ export const auditEvents: AuditEvent[] = pullRequests.slice(0, 16).flatMap(
       {
         id: `audit-risk-${pullRequest.id}`,
         eventType: 'risk_score_calculated',
-        actor: 'AgentGate',
+        actor: 'Auteur',
         repositoryName: pullRequest.repositoryName,
         pullRequestNumber: pullRequest.number,
         summary: `Risk score calculated at ${pullRequest.riskScore}`,
@@ -700,7 +700,7 @@ export const auditEvents: AuditEvent[] = pullRequests.slice(0, 16).flatMap(
             {
               id: `audit-rule-${pullRequest.id}`,
               eventType: 'rule_triggered' as const,
-              actor: 'AgentGate',
+              actor: 'Auteur',
               repositoryName: pullRequest.repositoryName,
               pullRequestNumber: pullRequest.number,
               summary: `${pullRequest.ruleViolations.length} rules triggered`,

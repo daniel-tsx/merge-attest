@@ -311,7 +311,7 @@ describe('PR review lifecycle', () => {
             organization: { githubInstallationId: 'install_1' },
             repository: {
               owner: 'northstar',
-              name: 'agent-gate',
+              name: 'auteur',
               reviewSettings: {
                 aiReviewsEnabled: true,
                 ignoredPaths: [],
@@ -373,7 +373,7 @@ describe('PR review lifecycle', () => {
             organization: { githubInstallationId: 'install_1' },
             repository: {
               owner: 'northstar',
-              name: 'agent-gate',
+              name: 'auteur',
               reviewSettings: {
                 aiReviewsEnabled: true,
                 ignoredPaths: [],
@@ -436,7 +436,7 @@ describe('PR review lifecycle', () => {
             organization: { githubInstallationId: 'install_1' },
             repository: {
               owner: 'northstar',
-              name: 'agent-gate',
+              name: 'auteur',
               reviewSettings: {
                 aiReviewsEnabled: true,
                 ignoredPaths: [],

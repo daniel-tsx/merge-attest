@@ -60,7 +60,7 @@ export default function SignInPage() {
       description="Sign in to continue to your AI pull request control center."
       footer={
         <>
-          New to AgentGate?{' '}
+          New to Auteur?{' '}
           <Link
             className="font-medium text-foreground hover:text-accent"
             href="/sign-up"

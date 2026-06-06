@@ -39,7 +39,7 @@ export default function AdminSubscriptionsPage({ searchParams }: PageProps) {
       <PageHeader
         eyebrow="Platform"
         title="Subscriptions"
-        description="Review billing across every workspace. Plan and status overrides update AgentGate only — real billing changes happen in the Lemon Squeezy customer portal."
+        description="Review billing across every workspace. Plan and status overrides update Auteur only — real billing changes happen in the Lemon Squeezy customer portal."
       />
       <AdminNav />
       <Suspense fallback={<TableSkeleton label="Loading subscriptions" />}>

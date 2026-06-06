@@ -12,7 +12,7 @@ describe('Prisma data mappers', () => {
     expect(
       mapRepository({
         id: 'repo-1',
-        name: 'agent-gate',
+        name: 'auteur',
         provider: 'github',
         owner: 'northstar',
         defaultBranch: 'main',
@@ -39,7 +39,7 @@ describe('Prisma data mappers', () => {
     const result = mapPullRequest({
       id: 'pr-1',
       repositoryId: 'repo-1',
-      repository: { name: 'agent-gate' },
+      repository: { name: 'auteur' },
       number: 12,
       title: 'Add auth guard',
       author: 'cursor-agent',
@@ -152,7 +152,7 @@ describe('Prisma data mappers', () => {
       ],
     })
 
-    expect(result.repositoryName).toBe('agent-gate')
+    expect(result.repositoryName).toBe('auteur')
     expect(result.headSha).toBe('abc123')
     expect(result.riskSignals[0].filePaths).toEqual(['lib/auth.ts'])
     expect(result.testGapAnalysis.suggestedTestFiles).toEqual([

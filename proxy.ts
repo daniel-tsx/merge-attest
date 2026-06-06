@@ -57,7 +57,7 @@ function responseWithSecurity(response: NextResponse, request: NextRequest) {
 
 function nextWithPathname(request: NextRequest) {
   const headers = new Headers(request.headers)
-  headers.set('x-agentgate-pathname', request.nextUrl.pathname)
+  headers.set('x-auteur-pathname', request.nextUrl.pathname)
   return NextResponse.next({ request: { headers } })
 }
 

@@ -3,8 +3,8 @@ import { PrismaClient } from '@/lib/generated/prisma/client'
 import { getDatabaseUrl, validateProductionEnv } from '@/lib/env'
 
 const globalForPrisma = globalThis as typeof globalThis & {
-  agentGatePrisma?: PrismaClient
-  agentGatePrismaUrl?: string
+  auteurPrisma?: PrismaClient
+  auteurPrismaUrl?: string
 }
 
 export function getPrismaClient() {
@@ -14,13 +14,13 @@ export function getPrismaClient() {
   if (!databaseUrl) return null
 
   if (
-    !globalForPrisma.agentGatePrisma ||
-    globalForPrisma.agentGatePrismaUrl !== databaseUrl
+    !globalForPrisma.auteurPrisma ||
+    globalForPrisma.auteurPrismaUrl !== databaseUrl
   ) {
     const adapter = new PrismaPg({ connectionString: databaseUrl })
-    globalForPrisma.agentGatePrisma = new PrismaClient({ adapter })
-    globalForPrisma.agentGatePrismaUrl = databaseUrl
+    globalForPrisma.auteurPrisma = new PrismaClient({ adapter })
+    globalForPrisma.auteurPrismaUrl = databaseUrl
   }
 
-  return globalForPrisma.agentGatePrisma
+  return globalForPrisma.auteurPrisma
 }

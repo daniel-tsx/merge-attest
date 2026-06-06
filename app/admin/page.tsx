@@ -54,7 +54,7 @@ export default function AdminOverviewPage() {
       <PageHeader
         eyebrow="Platform"
         title="Admin overview"
-        description="Cross-tenant analytics across every AgentGate workspace: growth, revenue, plan mix, and platform health."
+        description="Cross-tenant analytics across every Auteur workspace: growth, revenue, plan mix, and platform health."
       />
       <AdminNav />
       <Suspense fallback={<DashboardSkeleton />}>

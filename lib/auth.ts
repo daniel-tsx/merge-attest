@@ -29,8 +29,8 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       await sendTransactionalEmail({
         to: user.email,
-        subject: 'Reset your AgentGate password',
-        text: `Reset your AgentGate password: ${url}`,
+        subject: 'Reset your Auteur password',
+        text: `Reset your Auteur password: ${url}`,
       })
     },
   },
@@ -40,8 +40,8 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       await sendTransactionalEmail({
         to: user.email,
-        subject: 'Verify your AgentGate email',
-        text: `Verify your AgentGate email address: ${url}`,
+        subject: 'Verify your Auteur email',
+        text: `Verify your Auteur email address: ${url}`,
       })
     },
   },

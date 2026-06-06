@@ -4,7 +4,7 @@
 //
 //   pnpm tsx prisma/seed-dev-org.ts [user-email]
 //
-// Defaults to the dev@agentgate.test account created during the UI revamp.
+// Defaults to the dev@auteur.test account created during the UI revamp.
 import 'dotenv/config'
 import { PrismaClient } from '../lib/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
@@ -15,13 +15,13 @@ import {
   repoRules,
 } from '../lib/demo-data'
 
-const TARGET_EMAIL = process.argv[2] ?? 'dev@agentgate.test'
+const TARGET_EMAIL = process.argv[2] ?? 'dev@auteur.test'
 const pid = (id: string) => `dev_${id}`
 
 const adapter = new PrismaPg({
   connectionString:
     process.env.DATABASE_URL ??
-    'postgresql://postgres:postgres@localhost:5432/agentgate',
+    'postgresql://postgres:postgres@localhost:5432/auteur',
 })
 const prisma = new PrismaClient({ adapter })
 

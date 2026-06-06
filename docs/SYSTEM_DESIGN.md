@@ -3,7 +3,7 @@
 **Status:** `current`
 **Last verified:** 2026-05-31 (architecture and UI layers verified against code)
 
-AgentGate is a multi-tenant Next.js application that ingests GitHub pull request activity, runs deterministic governance signals, enforces plan entitlements, persists audit evidence, and exposes an operational UI for engineering teams.
+Auteur is a multi-tenant Next.js application that ingests GitHub pull request activity, runs deterministic governance signals, enforces plan entitlements, persists audit evidence, and exposes an operational UI for engineering teams.
 
 For UI tokens, component rules, and merge checklists, read [`features/DESIGN_SYSTEM.md`](features/DESIGN_SYSTEM.md) after this document.
 
@@ -83,7 +83,7 @@ flowchart TB
 
 | Layer         | Location                        | Responsibility                                                                                                                   |
 | ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-agentgate-pathname` header                            |
+| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-auteur-pathname` header                            |
 | Root layout   | `app/layout.tsx`                | Fonts, `ThemeProvider` (next-themes), `TooltipProvider`, `Toaster` (Sonner), `NuqsAdapter`, org context for shell, `globals.css` |
 | Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                                                        |
 | App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                                                         |
@@ -98,7 +98,7 @@ flowchart TB
 ### Authenticated page request
 
 1. `proxy.ts` checks session (or allows dev demo without DB).
-2. Request proceeds with `x-agentgate-pathname` set.
+2. Request proceeds with `x-auteur-pathname` set.
 3. `app/layout.tsx` loads org via cached `getCurrentOrganization()` for shell props.
 4. `RootShell` renders `AppShell` for app routes.
 5. Page server component parses URL state (`search-params.ts` + `nuqs`), loads org-scoped data from `app-data.ts`, renders with shared layout components.
@@ -181,7 +181,7 @@ AI output is sanitized before any GitHub publish (`lib/github/output.ts`). Treat
 
 ## UI System Architecture
 
-AgentGate UI is a **three-layer component model**. Keep new work in the correct layer to preserve consistency.
+Auteur UI is a **three-layer component model**. Keep new work in the correct layer to preserve consistency.
 
 ```
 app/globals.css          ← design tokens (source of truth for color, radius, shadow)
@@ -195,7 +195,7 @@ app/**/page.tsx          ← route composition — data fetch + layout, almost n
 
 ### Component library (`components/ui/`)
 
-Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-authority` where variants are needed — but they are wired to **AgentGate's own semantic tokens**, not shadcn's default palette. `components.json` exists so the shadcn CLI is usable, but anything produced by `npx shadcn add` must be re-tokenized before merge: this project redefines `accent` as brand indigo (stock shadcn treats `accent` as a neutral hover surface) and uses `surface-*`, `danger`, and `focus-ring` instead of `card` / `popover` / `destructive` / `ring`.
+Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-authority` where variants are needed — but they are wired to **Auteur's own semantic tokens**, not shadcn's default palette. `components.json` exists so the shadcn CLI is usable, but anything produced by `npx shadcn add` must be re-tokenized before merge: this project redefines `accent` as brand indigo (stock shadcn treats `accent` as a neutral hover surface) and uses `surface-*`, `danger`, and `focus-ring` instead of `card` / `popover` / `destructive` / `ring`.
 
 | Primitive                                          | Basis               | Notes                                                          |
 | -------------------------------------------------- | ------------------- | -------------------------------------------------------------- |
