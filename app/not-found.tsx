@@ -9,7 +9,7 @@ export default function NotFoundPage() {
       <Card className="w-full max-w-lg">
         <CardHeader className="flex flex-col items-start gap-3 border-b-0 pb-0">
           <GateScan size="lg" tone="muted" state="question" />
-          <CardTitle className="text-base">Nothing behind this gate</CardTitle>
+          <CardTitle className="text-base">Page not found</CardTitle>
           <p className="text-sm text-muted-foreground">
             This page may have moved, or the pull request, repository, or
             workspace resource may no longer be available.

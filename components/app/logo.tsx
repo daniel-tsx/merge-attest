@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils'
 
-// Pen-nib monogram: a fountain-pen nib (slit + vent hole) reads as the mark of
-// an author — a nod to "Auteur", the author behind the work. The apex also
-// forms an "A".
-const NIB_BODY = 'M16 5 L25 25.5 L7 25.5 Z'
-const NIB_SLIT = 'M16 12.5 V18.5'
+// Two-tone "A" monogram for Auteur (the author's initial): apex, left stroke,
+// and crossbar in the foreground tone; the right stroke in the brand accent.
+const LEFT_STROKE = 'M6 26 L16 6'
+const CROSSBAR = 'M10 18 H22'
+const RIGHT_STROKE = 'M16 6 L26 26'
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -16,9 +16,9 @@ export function LogoMark({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d={NIB_BODY} stroke="currentColor" strokeWidth="2.6" />
-      <path d={NIB_SLIT} className="stroke-accent" strokeWidth="2.6" />
-      <circle cx="16" cy="20.9" r="1.5" className="fill-accent" />
+      <path d={LEFT_STROKE} stroke="currentColor" strokeWidth="3" />
+      <path d={CROSSBAR} stroke="currentColor" strokeWidth="3" />
+      <path d={RIGHT_STROKE} className="stroke-accent" strokeWidth="3" />
     </svg>
   )
 }

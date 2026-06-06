@@ -31,10 +31,10 @@ const haloClass: Record<GateScanTone, string> = {
   muted: 'bg-surface-muted',
 }
 
-// "A" gate monogram, matching the product logo (LogoMark).
-const GATE_LEGS = 'M10.5 39.75 L24 8.25 L37.5 39.75'
-const GATE_CROSSBAR = 'M15.9 27.15 H32.1'
-const GATE_OPENING = 'M24 8.25 L37.5 39.75 L10.5 39.75 Z'
+// "A" monogram, matching the product logo (LogoMark), scaled to the 48 viewBox.
+const GATE_LEGS = 'M9 39 L24 9 L39 39'
+const GATE_CROSSBAR = 'M15 27 H33'
+const GATE_OPENING = 'M24 9 L39 39 L9 39 Z'
 const FISSURE_PATH = 'M25 14 L20.5 23 L26.5 30 L21 39'
 const QUESTION_PATH =
   'M21.4 30.5a2.8 2.8 0 1 1 5 2.1c-1.05 1.05-2.5 1.6-2.5 3.45'
