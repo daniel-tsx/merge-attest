@@ -28,7 +28,7 @@ import {
 } from '@/components/app/status-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Select } from '@/components/ui/select'
 import {
   Table,
@@ -449,8 +449,7 @@ export default async function PullRequestDetailPage({
                     <span className="block text-[11px] font-medium uppercase tracking-wider text-subtle-foreground">
                       Review due date
                     </span>
-                    <Input
-                      type="date"
+                    <DatePicker
                       name="reviewDueAt"
                       defaultValue={pr.reviewDueAt?.slice(0, 10)}
                       disabled={!canRecord}

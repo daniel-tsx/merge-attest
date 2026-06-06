@@ -83,7 +83,7 @@ flowchart TB
 
 | Layer         | Location                        | Responsibility                                                                                                                   |
 | ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-auteur-pathname` header                            |
+| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-auteur-pathname` header                               |
 | Root layout   | `app/layout.tsx`                | Fonts, `ThemeProvider` (next-themes), `TooltipProvider`, `Toaster` (Sonner), `NuqsAdapter`, org context for shell, `globals.css` |
 | Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                                                        |
 | App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                                                         |
@@ -197,26 +197,29 @@ app/**/page.tsx          ← route composition — data fetch + layout, almost n
 
 Primitives are **shadcn-style** — Radix UI behavior plus `class-variance-authority` where variants are needed — but they are wired to **Auteur's own semantic tokens**, not shadcn's default palette. `components.json` exists so the shadcn CLI is usable, but anything produced by `npx shadcn add` must be re-tokenized before merge: this project redefines `accent` as brand indigo (stock shadcn treats `accent` as a neutral hover surface) and uses `surface-*`, `danger`, and `focus-ring` instead of `card` / `popover` / `destructive` / `ring`.
 
-| Primitive                                          | Basis               | Notes                                                          |
-| -------------------------------------------------- | ------------------- | -------------------------------------------------------------- |
-| `Button`                                           | cva + Radix Slot    | `default`, `secondary`, `ghost`, `accent`, `danger`, `outline` |
-| `Badge` / `StatusDot`                              | tokens              | domain tones (see status badges below)                         |
-| `Card` (+ Header/Title/Description/Content/Footer) | tokens              | framed data panels                                             |
-| `Input`, `Textarea`                                | tokens              | form controls with `aria-invalid` styling                      |
-| `Select`                                           | native `<select>`   | **form primitive** for uncontrolled `FormData` forms           |
-| `Table` (+ subcomponents)                          | tokens              | dense scan-and-review tables                                   |
-| `Skeleton`                                         | tokens              | shimmer / pulse loading                                        |
-| `Sheet`                                            | Radix Dialog        | side drawer (mobile navigation)                                |
-| `DropdownMenu`                                     | Radix DropdownMenu  | row / overflow action menus                                    |
-| `Tabs`                                             | Radix Tabs          | tabbed panels                                                  |
-| `Switch`                                           | Radix Switch        | boolean form toggles (submits `on` when checked)               |
-| `Separator`                                        | Radix Separator     | standalone dividers                                            |
-| `Avatar` (+ Image/Fallback)                        | Radix Avatar        | identity initials                                              |
-| `Progress`                                         | Radix Progress      | usage / completion meters (`indicatorClassName` for tone)      |
-| `Label`                                            | Radix Label         | explicit control labels                                        |
-| `Tooltip`                                          | Radix Tooltip       | hover/focus labels; one root `TooltipProvider` in the layout   |
-| `Toaster`                                          | Sonner              | transient mutation feedback; theme-synced via `next-themes`    |
-| `Command`                                          | cmdk + Radix Dialog | ⌘K command palette (`components/app/command-palette.tsx`)      |
+| Primitive                                          | Basis                | Notes                                                              |
+| -------------------------------------------------- | -------------------- | ------------------------------------------------------------------ |
+| `Button`                                           | cva + Radix Slot     | `default`, `secondary`, `ghost`, `accent`, `danger`, `outline`     |
+| `Badge` / `StatusDot`                              | tokens               | domain tones (see status badges below)                             |
+| `Card` (+ Header/Title/Description/Content/Footer) | tokens               | framed data panels                                                 |
+| `Input`, `Textarea`                                | tokens               | form controls with `aria-invalid` styling                          |
+| `Select`                                           | native `<select>`    | **form primitive** for uncontrolled `FormData` forms               |
+| `DatePicker`                                       | Popover + Calendar   | date field for `FormData` forms; hidden input submits `YYYY-MM-DD` |
+| `Table` (+ subcomponents)                          | tokens               | dense scan-and-review tables                                       |
+| `Skeleton`                                         | tokens               | shimmer / pulse loading                                            |
+| `Sheet`                                            | Radix Dialog         | side drawer (mobile navigation)                                    |
+| `DropdownMenu`                                     | Radix DropdownMenu   | row / overflow action menus                                        |
+| `Popover`                                          | Radix Popover        | anchored overlay (e.g. `DatePicker` calendar)                      |
+| `Calendar`                                         | react-day-picker v10 | month grid, re-tokenized (selected = indigo `accent`)              |
+| `Tabs`                                             | Radix Tabs           | tabbed panels                                                      |
+| `Switch`                                           | Radix Switch         | boolean form toggles (submits `on` when checked)                   |
+| `Separator`                                        | Radix Separator      | standalone dividers                                                |
+| `Avatar` (+ Image/Fallback)                        | Radix Avatar         | identity initials                                                  |
+| `Progress`                                         | Radix Progress       | usage / completion meters (`indicatorClassName` for tone)          |
+| `Label`                                            | Radix Label          | explicit control labels                                            |
+| `Tooltip`                                          | Radix Tooltip        | hover/focus labels; one root `TooltipProvider` in the layout       |
+| `Toaster`                                          | Sonner               | transient mutation feedback; theme-synced via `next-themes`        |
+| `Command`                                          | cmdk + Radix Dialog  | ⌘K command palette (`components/app/command-palette.tsx`)          |
 
 Theming: light tokens in `:root`, a `.dark` scale overrides the same vars, and
 `@theme inline` maps `--color-* → var(--*)` so the `.dark` class re-themes all

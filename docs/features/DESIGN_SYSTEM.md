@@ -97,7 +97,7 @@ Badges are metadata, not decoration. Keep them small, text-first, and close to t
 
 The primitive set is shadcn-style (Radix UI behavior + `class-variance-authority`) but wired to the tokens above, not shadcn's default palette. `components.json` makes the shadcn CLI usable; re-tokenize anything `npx shadcn add` generates (notably `accent`, which is brand indigo here, and `surface-*` / `danger` / `focus-ring` in place of `card` / `popover` / `destructive` / `ring`).
 
-**Shipped** (`components/ui/`): `Button`, `Badge`/`StatusDot`, `Card`, `Input`, `Textarea`, `Select` (native), `Table`, `Skeleton`, `Sheet`, `DropdownMenu`, `Tabs`, `Switch`, `Separator`, `Avatar`, `Progress`, `Label`, `Tooltip` (Radix), `Toast` (Sonner — `sonner.tsx`, theme-synced), and `Command` (cmdk — `command.tsx`, used by the ⌘K palette).
+**Shipped** (`components/ui/`): `Button`, `Badge`/`StatusDot`, `Card`, `Input`, `Textarea`, `Select` (native), `DatePicker` (`date-picker.tsx` — `Popover` + `react-day-picker` `Calendar`, hidden input submits `YYYY-MM-DD` for `FormData` forms), `Table`, `Skeleton`, `Sheet`, `Popover` (Radix), `Calendar` (react-day-picker, re-tokenized), `DropdownMenu`, `Tabs`, `Switch`, `Separator`, `Avatar`, `Progress`, `Label`, `Tooltip` (Radix), `Toast` (Sonner — `sonner.tsx`, theme-synced), and `Command` (cmdk — `command.tsx`, used by the ⌘K palette).
 
 See [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) for the full primitive table and per-component usage.
 
