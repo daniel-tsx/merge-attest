@@ -49,7 +49,8 @@ tag commits and accounts today.
 ## Agent Identity Registry
 
 Admins map their own signals to agents at **Settings → Agent registry** (`/settings/agents`,
-owner/admin only, Team plan or higher for custom rules — built-in detection runs on every plan).
+owner/admin only). Custom identity rules are included during free early access; built-in
+detection also runs for every workspace.
 
 - Model: `AgentIdentityRule` (org-scoped) — `matchType` (`bot_login`, `email_domain`,
   `branch_prefix`, `label`, `commit_trailer`), `pattern`, `agentSource`, `enabled`.
@@ -106,7 +107,7 @@ exported via `GET /api/compliance/authorship/export?format=csv|json`.
   breakdown, review coverage (merged AI work with vs without a human `approved`/`risk_accepted`
   decision), and an AI-authored-share trend. Counts are PR- and line-volume based, **not**
   intra-file blame — UI/export copy states this.
-- **Export** — owner/admin only, gated by the `auditExport` entitlement (Growth+) and the
+- **Export** — owner/admin only, gated by the `auditExport` entitlement and the
   plan retention window (`getAuditRetentionStart`). `csv` = per-agent ledger; `json` = an
   evidence bundle (summary, per-agent, per-PR attribution rows) carrying a modest notice:
   "supporting EU AI Act human-oversight / SOC2 review — not a certification." Each

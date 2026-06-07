@@ -88,16 +88,16 @@ async function ApprovalsContent({ searchParams }: PageProps) {
               </div>
               <div>
                 <div className="font-semibold text-foreground">
-                  Approval workflow requires the Team plan
+                  Approval workflow is not enabled for this workspace
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Upgrade to record approval decisions, reviewer assignments,
-                  and risk acceptance.
+                  Free early access includes this workflow. Contact support if
+                  it is unavailable for your workspace.
                 </div>
               </div>
             </div>
             <Button asChild>
-              <a href="/settings/billing">View upgrade options</a>
+              <a href="/settings/billing">View launch limits</a>
             </Button>
           </CardContent>
         </Card>

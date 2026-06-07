@@ -77,7 +77,7 @@ export async function recordApprovalDecision(
     return fail('You do not have permission to record approval decisions.')
   }
   if (!isFeatureAvailable(organization.planKey, 'approvals')) {
-    return fail('Approval workflows require the Team plan or higher.')
+    return fail('Approval workflows are not enabled for this workspace.')
   }
 
   const rawNote = formData.get('note')

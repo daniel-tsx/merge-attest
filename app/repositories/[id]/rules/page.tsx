@@ -100,7 +100,8 @@ const statusMessages: Record<string, StatusEntry> = {
   },
   upgrade_required: {
     tone: 'info',
-    message: 'Custom repository rules require the Team plan or higher.',
+    message:
+      'Custom repository rules are not enabled for this workspace. Free early access includes this feature.',
   },
 }
 
@@ -318,16 +319,17 @@ export default async function RepositoryRulesPage({
               </div>
               <div>
                 <div className="font-semibold text-foreground">
-                  Custom rules require the Team plan
+                  Custom rules are not enabled
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Upgrade to create templates, scoped policies, and rule actions
-                  for this repository.
+                  Free early access includes templates, scoped policies, and
+                  rule actions. Contact support if this workspace cannot manage
+                  them.
                 </div>
               </div>
             </div>
             <Button asChild>
-              <a href="/settings/billing">View upgrade options</a>
+              <a href="/settings/billing">View launch limits</a>
             </Button>
           </CardContent>
         </Card>

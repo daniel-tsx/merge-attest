@@ -9,6 +9,7 @@ import {
   Fingerprint,
   GitPullRequest,
   KeyRound,
+  Rocket,
   Settings as SettingsIcon,
   Users,
   type LucideIcon,
@@ -56,6 +57,12 @@ const items: Array<{
     label: 'Usage',
     icon: Database,
     description: 'PR check consumption',
+  },
+  {
+    href: '/settings/billing',
+    label: 'Plan',
+    icon: Rocket,
+    description: 'Launch limits',
   },
   {
     href: '/settings#api-keys',

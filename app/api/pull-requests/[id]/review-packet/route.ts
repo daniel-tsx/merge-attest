@@ -36,7 +36,7 @@ export async function GET(
 
   if (!isFeatureAvailable(organization.planKey, 'auditExport')) {
     return NextResponse.json(
-      { error: 'Review packet exports require the Growth plan or Enterprise.' },
+      { error: 'Review packet exports are not enabled for this workspace.' },
       { status: 403 },
     )
   }

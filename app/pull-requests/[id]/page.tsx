@@ -110,7 +110,7 @@ export default async function PullRequestDetailPage({
           ) : (
             <Button variant="secondary" disabled>
               <Download aria-hidden="true" />
-              Growth plan review packet
+              Review packet unavailable
             </Button>
           )
         }
@@ -410,8 +410,8 @@ export default async function PullRequestDetailPage({
                     className="mt-0.5 size-3.5 shrink-0"
                     aria-hidden="true"
                   />
-                  Approval decisions require the Team plan or higher. Upgrade in
-                  billing to enable this workflow.
+                  Approval decisions are not enabled for this workspace. Free
+                  early access includes this workflow.
                 </div>
               ) : null}
               <div className="rounded-control border border-border bg-surface-muted/30 p-3">

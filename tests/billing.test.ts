@@ -11,12 +11,16 @@ describe('billing helpers', () => {
     expect(hasLemonSqueezyCustomerPortalAccess({})).toBe(false)
   })
 
-  it('does not report mock billing mode in production', async () => {
+  it('keeps paid billing disabled by default in production', async () => {
     vi.stubEnv('NODE_ENV', 'production')
+    vi.stubEnv('ENABLE_PAID_BILLING', '')
     vi.stubEnv('LEMON_SQUEEZY_API_KEY', '')
     vi.stubEnv('LEMON_SQUEEZY_STORE_ID', '')
     const { getBillingMode } = await import('../lib/billing')
 
+    expect(getBillingMode()).toBe('disabled')
+
+    vi.stubEnv('ENABLE_PAID_BILLING', 'true')
     expect(getBillingMode()).toBe('unconfigured')
 
     vi.unstubAllEnvs()

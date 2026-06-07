@@ -27,7 +27,7 @@ Do **not** treat `archive/` docs as current product state unless the task is exp
 
 Auteur is a **GitHub-native SaaS control center** for teams shipping AI-assisted code. It monitors pull requests, scores risk, detects test gaps, evaluates repository rules, records approvals, meters plan usage, exports audit evidence, and queues advisory AI reviews.
 
-**Launch posture (early access):** shipping free-only to grow adoption. The `free` plan in `lib/entitlements.ts` has **all feature flags enabled** and is capped only by numeric limits (3 repos, 200 PR checks/mo, 7-day audit retention). Public pricing and the in-app billing/upgrade UI are hidden (`app/page.tsx`, settings nav), but billing infrastructure (Lemon Squeezy checkout/portal/webhooks, paid-tier entitlements) is left intact and dormant for later monetization — re-gate the `free` flags and un-hide pricing when paid plans return.
+**Launch posture (early access):** shipping free-only to grow adoption. The `free` plan in `lib/entitlements.ts` has **all feature flags enabled** and is capped only by numeric limits (3 repos, 200 PR checks/mo, 7-day audit retention). Public pricing and the in-app upgrade UI are removed. `/settings/billing` is a launch plan/limits page, and paid checkout/portal routes are disabled unless `ENABLE_PAID_BILLING=true`. Billing infrastructure (Lemon Squeezy helpers/webhooks, paid-tier entitlements, billing columns) remains dormant for later monetization — re-gate the `free` flags and re-enable paid billing when paid plans return.
 
 **What is real today (verified in code):**
 
@@ -36,7 +36,7 @@ Auteur is a **GitHub-native SaaS control center** for teams shipping AI-assisted
 - Local demo fallback when `DATABASE_URL` is missing (dev only; production fails closed)
 - GitHub App install/sync/webhooks with durable delivery queue and job runner endpoints
 - Persisted approvals, audit events, plan entitlements, and monthly PR-check metering
-- Lemon Squeezy checkout, customer portal, and subscription webhooks (intact but dormant; pricing/upgrade UI hidden during free-only early access)
+- Lemon Squeezy checkout, customer portal, and subscription webhooks (intact but dormant; checkout/portal disabled while `ENABLE_PAID_BILLING` is false)
 - OpenRouter BYOK storage, repository AI settings, durable PR review queue — **model execution intentionally not enabled yet**
 - Deterministic risk, test-gap, and rule evaluation (not LLM-based)
 - Explainable agent attribution (commit trailers, bot accounts, emails, branches) with a per-org identity registry (see `features/AI_GOVERNANCE.md`)
@@ -68,15 +68,14 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 
 ## Known Documentation Drift
 
-| Topic            | Code truth                                                          | Stale doc claim                                                         | Action                                                       |
-| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Billing provider | Lemon Squeezy env vars in `.env.example`, `lib/billing.ts`          | `.github/workflows/ci.yml` still sets `PADDLE_*` placeholders           | Trust `.env.example` and billing modules; CI env is outdated |
-| Product maturity | Real auth, Prisma, webhooks, billing boundaries                     | `archive/implementation/PRODUCTIZATION_PLAN.md` describes demo-only MVP | Historical only                                              |
-| Launch blockers  | Many P0 fixes may be landed since review                            | `archive/reviews/LAUNCH_READINESS_REVIEW.md` (2026-05-02)               | Re-verify security claims in code before citing              |
-| AI reviews       | Worker skips after guardrails: "model execution is not enabled yet" | Some ops docs imply live AI output                                      | Check `lib/jobs/pr-review-worker.ts`                         |
-| Test command     | `pnpm exec vitest run tests` passes                                 | `pnpm test` also runs stale Paddle tests under `.claude/worktrees/`     | Prefer scoped test run until worktrees excluded              |
-| Production auth  | `validateProductionEnv()` requires `BETTER_AUTH_API_KEY`            | `.env.example` lists it without "required in prod" emphasis             | Required in production per `lib/env.ts`                      |
-| React Query      | `@tanstack/react-query` in dependencies                             | `features/DESIGN_SYSTEM.md` says unused                                 | Unused in app code; dependency may be removable later        |
+| Topic            | Code truth                                                          | Stale doc claim                                                         | Action                                                |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
+| Product maturity | Real auth, Prisma, webhooks, billing boundaries                     | `archive/implementation/PRODUCTIZATION_PLAN.md` describes demo-only MVP | Historical only                                       |
+| Launch blockers  | Many P0 fixes may be landed since review                            | `archive/reviews/LAUNCH_READINESS_REVIEW.md` (2026-05-02)               | Re-verify security claims in code before citing       |
+| AI reviews       | Worker skips after guardrails: "model execution is not enabled yet" | Some ops docs imply live AI output                                      | Check `lib/jobs/pr-review-worker.ts`                  |
+| Test command     | `pnpm exec vitest run tests` passes                                 | `pnpm test` also runs stale Paddle tests under `.claude/worktrees/`     | Prefer scoped test run until worktrees excluded       |
+| Production auth  | `validateProductionEnv()` requires `BETTER_AUTH_API_KEY`            | `.env.example` lists it without "required in prod" emphasis             | Required in production per `lib/env.ts`               |
+| React Query      | `@tanstack/react-query` in dependencies                             | `features/DESIGN_SYSTEM.md` says unused                                 | Unused in app code; dependency may be removable later |
 
 ## Source-of-Truth Map
 
@@ -165,30 +164,31 @@ pnpm db:seed
 
 Source: `.env.example` + `lib/env.ts` + module readers. `✓` = required in production.
 
-| Variable                                    | Purpose                                               |
-| ------------------------------------------- | ----------------------------------------------------- |
-| `DATABASE_URL` ✓                            | PostgreSQL connection                                 |
-| `BETTER_AUTH_SECRET` ✓                      | Auth signing secret                                   |
-| `BETTER_AUTH_URL` ✓                         | Public app URL for auth                               |
-| `BETTER_AUTH_API_KEY` ✓                     | Better Auth Infra dash plugin                         |
-| `BETTER_AUTH_API_URL`                       | Better Auth Infra override                            |
-| `BETTER_AUTH_KV_URL`                        | Better Auth Infra KV                                  |
-| `AI_PROVIDER_ENCRYPTION_KEY`                | OpenRouter key encryption (falls back to auth secret) |
-| `GITHUB_APP_ID` ✓                           | GitHub App                                            |
-| `GITHUB_APP_SLUG` ✓                         | Install URL slug                                      |
-| `GITHUB_APP_PRIVATE_KEY` ✓                  | App auth                                              |
-| `GITHUB_WEBHOOK_SECRET` ✓                   | Webhook HMAC                                          |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | OAuth (if used)                                       |
-| `LEMON_SQUEEZY_API_KEY`                     | Billing live mode                                     |
-| `LEMON_SQUEEZY_STORE_ID`                    | Billing live mode                                     |
-| `LEMON_SQUEEZY_WEBHOOK_SECRET`              | Subscription webhooks                                 |
-| `LEMON_SQUEEZY_*_VARIANT_ID`                | Starter / Team / Growth plans                         |
-| `EMAIL_FROM`                                | Transactional email                                   |
-| `RESEND_API_KEY`                            | Resend delivery                                       |
-| `JOB_RUNNER_SECRET`                         | Scheduled job bearer auth                             |
-| `SUPPORT_EMAIL`                             | Support contact surface                               |
-| `APP_VERSION`                               | Release label in logs                                 |
-| `ADMIN_EMAILS`                              | Comma-separated allowlist for the `/admin` dashboard  |
+| Variable                                    | Purpose                                                |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `DATABASE_URL` ✓                            | PostgreSQL connection                                  |
+| `BETTER_AUTH_SECRET` ✓                      | Auth signing secret                                    |
+| `BETTER_AUTH_URL` ✓                         | Public app URL for auth                                |
+| `BETTER_AUTH_API_KEY` ✓                     | Better Auth Infra dash plugin                          |
+| `BETTER_AUTH_API_URL`                       | Better Auth Infra override                             |
+| `BETTER_AUTH_KV_URL`                        | Better Auth Infra KV                                   |
+| `AI_PROVIDER_ENCRYPTION_KEY`                | OpenRouter key encryption (falls back to auth secret)  |
+| `GITHUB_APP_ID` ✓                           | GitHub App                                             |
+| `GITHUB_APP_SLUG` ✓                         | Install URL slug                                       |
+| `GITHUB_APP_PRIVATE_KEY` ✓                  | App auth                                               |
+| `GITHUB_WEBHOOK_SECRET` ✓                   | Webhook HMAC                                           |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | OAuth (if used)                                        |
+| `ENABLE_PAID_BILLING`                       | Set `true` only when paid checkout/portal should work  |
+| `LEMON_SQUEEZY_API_KEY`                     | Billing live mode                                      |
+| `LEMON_SQUEEZY_STORE_ID`                    | Billing live mode                                      |
+| `LEMON_SQUEEZY_WEBHOOK_SECRET`              | Subscription webhooks                                  |
+| `LEMON_SQUEEZY_*_VARIANT_ID`                | Paid plan variants (dormant while paid billing is off) |
+| `EMAIL_FROM`                                | Transactional email                                    |
+| `RESEND_API_KEY`                            | Resend delivery                                        |
+| `JOB_RUNNER_SECRET`                         | Scheduled job bearer auth                              |
+| `SUPPORT_EMAIL`                             | Support contact surface                                |
+| `APP_VERSION`                               | Release label in logs                                  |
+| `ADMIN_EMAILS`                              | Comma-separated allowlist for the `/admin` dashboard   |
 
 **Removed:** all `PADDLE_*` variables (legacy; migration `20260518173000_lemon_squeezy_billing`).
 

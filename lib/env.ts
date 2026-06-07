@@ -48,6 +48,10 @@ export function getAdminEmails(env: Env = process.env) {
     .filter(Boolean)
 }
 
+export function getSupportEmail(env: Env = process.env) {
+  return readEnv('SUPPORT_EMAIL', env) ?? 'support@example.com'
+}
+
 export function validateProductionEnv(env: Env = process.env) {
   if (!isProduction(env)) return
 

@@ -13,7 +13,7 @@ Use this checklist before running Auteur for customer work.
 - `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, Auteur derives encryption from `BETTER_AUTH_SECRET`.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
 - `GITHUB_WEBHOOK_SECRET` is configured in both Auteur and the GitHub App.
-- Lemon Squeezy API key, store ID, webhook secret, and Starter/Team/Growth variant IDs are configured before enabling production billing.
+- `ENABLE_PAID_BILLING=false` for the free early-access launch. Configure Lemon Squeezy API key, store ID, webhook secret, and Starter/Team/Growth variant IDs only before enabling paid billing.
 - `EMAIL_FROM` and `RESEND_API_KEY` are configured before enabling email verification and password reset delivery.
 - `JOB_RUNNER_SECRET` is configured before enabling scheduled operational job endpoints.
 - `SUPPORT_EMAIL` is configured before publishing support contact details.
@@ -22,7 +22,7 @@ Use this checklist before running Auteur for customer work.
 ## Runtime Checks
 
 - `GET /api/health` returns `{ "status": "ok" }` without exposing dependency details.
-- `GET /api/diagnostics` works for owners/admins and shows database, GitHub, Lemon Squeezy, email, and job queue status.
+- `GET /api/diagnostics` works for owners/admins and shows database, GitHub, paid billing enablement, email, and job queue status.
 - Scheduled calls to `/api/jobs/github-webhooks`, `/api/jobs/pr-reviews`, and `/api/jobs/retention` succeed with the job runner bearer token.
 - OpenRouter key verification from `/settings/ai` succeeds before enabling AI review jobs for pilot workspaces.
 - Repository AI review settings remain disabled until a pilot repository has confirmed OpenRouter credentials, expected ignored-path rules, and agreed output toggles.
@@ -38,7 +38,7 @@ Use this checklist before running Auteur for customer work.
 - Database migrations have been applied.
 - Existing Paddle subscribers, if any, have been migrated through Lemon Squeezy and their new Lemon Squeezy customer/subscription ids have been reconciled before enabling paid access.
 - Audit export retention matches the active customer plan.
-- Billing mode is `live` in production, not `mock` or `unconfigured`.
+- Billing mode is `disabled` for the free early-access launch. It should be `live`, not `mock` or `unconfigured`, only after paid billing is enabled.
 - Transactional email mode is `live` in production, not `mock` or `unconfigured`.
 - Support knows the configured support email and escalation path.
 - Incident review packets can be exported for risky merged pull requests.

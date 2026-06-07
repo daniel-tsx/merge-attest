@@ -26,7 +26,12 @@ function isLemonSqueezyConfigured() {
   return Boolean(getLemonSqueezyApiKey() && getLemonSqueezyStoreId())
 }
 
+export function isPaidBillingEnabled() {
+  return getEnv('ENABLE_PAID_BILLING') === 'true'
+}
+
 export function getBillingMode() {
+  if (!isPaidBillingEnabled()) return 'disabled'
   if (isLemonSqueezyConfigured()) return 'live'
   return isProduction() ? 'unconfigured' : 'mock'
 }

@@ -21,8 +21,8 @@ Auteur exposes a small set of operational and integration endpoints.
 
 ## Billing
 
-- `POST /api/billing/checkout`: owner-only checkout entry point for paid plans.
-- `POST /api/billing/portal`: owner-only Lemon Squeezy customer portal redirect.
+- `POST /api/billing/checkout`: owner-only checkout entry point for paid plans; disabled during free early access unless `ENABLE_PAID_BILLING=true`.
+- `POST /api/billing/portal`: owner-only Lemon Squeezy customer portal redirect; disabled during free early access unless `ENABLE_PAID_BILLING=true`.
 
 ## Account Recovery
 

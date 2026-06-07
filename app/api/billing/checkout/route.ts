@@ -3,6 +3,7 @@ import {
   createCheckoutSession,
   getBillingReturnUrl,
   getBillingMode,
+  isPaidBillingEnabled,
   isPaidPlan,
 } from '@/lib/billing'
 import { ensureCurrentUserOrganization } from '@/lib/auth/session'
@@ -33,6 +34,13 @@ export async function POST(request: Request) {
     )
   }
 
+  if (!isPaidBillingEnabled()) {
+    return NextResponse.json(
+      { error: 'Paid checkout is disabled during free early access.' },
+      { status: 403 },
+    )
+  }
+
   if (getBillingMode() === 'unconfigured') {
     return NextResponse.json(
       {
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
   const formData = await request.formData()
   const planKey = formData.get('planKey')
   if (!isPlanKey(planKey) || !isPaidPlan(planKey)) {
-    return NextResponse.json({ error: 'Invalid paid plan.' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid plan.' }, { status: 400 })
   }
 
   if (planKey === organization.planKey) {

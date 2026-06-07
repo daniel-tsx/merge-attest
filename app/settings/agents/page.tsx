@@ -89,7 +89,8 @@ const statusMessages: Record<string, StatusEntry> = {
   },
   upgrade_required: {
     tone: 'info',
-    message: 'Custom identity rules require the Team plan or higher.',
+    message:
+      'Custom identity rules are not enabled for this workspace. Free early access includes this feature.',
   },
 }
 
@@ -165,16 +166,16 @@ export default async function AgentRegistryPage({
               </div>
               <div>
                 <div className="font-semibold text-foreground">
-                  Custom identity rules require the Team plan
+                  Custom identity rules are not enabled
                 </div>
                 <div className="mt-0.5 text-sm text-muted-foreground">
-                  Built-in detection runs on every plan. Upgrade to add your own
-                  bot accounts, branch prefixes, and commit-trailer mappings.
+                  Free early access includes custom identity rules. Contact
+                  support if this workspace cannot add them.
                 </div>
               </div>
             </div>
             <Button asChild>
-              <a href="/settings/billing">View upgrade options</a>
+              <a href="/settings/billing">View launch limits</a>
             </Button>
           </CardContent>
         </Card>

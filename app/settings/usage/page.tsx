@@ -79,8 +79,8 @@ export default async function UsageSettingsPage({
               </div>
               <div className="mt-0.5 text-sm text-muted-foreground">
                 {remainingChecks === 0
-                  ? 'New pull request checks will resume at the start of next month.'
-                  : 'You are close to this month’s PR check allowance.'}
+                  ? 'New pull request checks will resume at the start of next month. Paid expansion plans are planned after early access for teams that need higher limits.'
+                  : 'You are close to this month’s PR check allowance. Paid expansion plans are planned after early access for teams that need higher limits.'}
               </div>
             </div>
           </CardContent>
@@ -89,7 +89,7 @@ export default async function UsageSettingsPage({
       {showCurrentPeriod ? (
         <Card>
           <CardHeader>
-            <CardTitle>Current billing period</CardTitle>
+            <CardTitle>Current usage period</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
@@ -109,7 +109,7 @@ export default async function UsageSettingsPage({
                   value={Math.max(2, usagePercent)}
                   indicatorClassName={usageBarTone}
                   className="mt-3"
-                  aria-label="PR checks used this billing period"
+                  aria-label="PR checks used this usage period"
                 />
               ) : null}
             </div>

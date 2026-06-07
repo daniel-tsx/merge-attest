@@ -108,7 +108,7 @@ const baseNavSections: NavSection[] = [
         href: '/settings',
         label: 'Settings',
         icon: Settings,
-        description: 'Team, GitHub, billing, and usage',
+        description: 'Team, GitHub, plan, and usage',
       },
     ],
   },

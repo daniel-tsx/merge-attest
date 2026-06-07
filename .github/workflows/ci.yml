@@ -17,12 +17,7 @@ jobs:
       GITHUB_APP_SLUG: auteur-ci
       GITHUB_APP_PRIVATE_KEY: ci-placeholder-private-key
       GITHUB_WEBHOOK_SECRET: ci-placeholder-github-webhook-secret
-      PADDLE_API_KEY: ci-placeholder-paddle-api-key
-      PADDLE_WEBHOOK_SECRET: ci-placeholder-paddle-webhook-secret
-      PADDLE_STARTER_PRICE_ID: pri_ci_starter
-      PADDLE_TEAM_PRICE_ID: pri_ci_team
-      PADDLE_GROWTH_PRICE_ID: pri_ci_growth
-      PADDLE_CUSTOMER_PORTAL_URL: https://billing.example.test
+      ENABLE_PAID_BILLING: 'false'
       JOB_RUNNER_SECRET: ci-placeholder-job-runner-secret
       EMAIL_FROM: 'Auteur CI <noreply@example.com>'
       RESEND_API_KEY: ci-placeholder-resend-api-key

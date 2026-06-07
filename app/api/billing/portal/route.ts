@@ -3,6 +3,7 @@ import { ensureCurrentUserOrganization } from '@/lib/auth/session'
 import {
   getBillingReturnUrl,
   getLemonSqueezyCustomerPortalUrl,
+  isPaidBillingEnabled,
 } from '@/lib/billing'
 import { canManageBilling } from '@/lib/collaboration'
 
@@ -19,6 +20,13 @@ export async function POST() {
   if (!canManageBilling(organization.role)) {
     return NextResponse.json(
       { error: 'Only workspace owners can manage billing.' },
+      { status: 403 },
+    )
+  }
+
+  if (!isPaidBillingEnabled()) {
+    return NextResponse.json(
+      { error: 'Billing portal is disabled during free early access.' },
       { status: 403 },
     )
   }

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
   if (!isFeatureAvailable(organization.planKey, 'auditExport')) {
     return NextResponse.json(
-      { error: 'Audit exports require the Growth plan or Enterprise.' },
+      { error: 'Audit exports are not enabled for this workspace.' },
       { status: 403 },
     )
   }

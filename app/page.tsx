@@ -194,11 +194,12 @@ const comparisonRows = [
     others: 'Vendor-managed model access, with enterprise options',
   },
   {
-    capability: 'Pricing shape',
-    auteur: 'Workspace plans from $19/mo, not per-developer seats',
-    coderabbit: '$24 or $48 per developer/mo when billed annually',
-    copilot: '$10 or $39 per user/mo, with usage changes for reviews',
-    others: 'Commonly $30 to $40 per user/mo on team plans',
+    capability: 'Launch access',
+    auteur:
+      'Free early access with usage limits; paid expansion planned after launch',
+    coderabbit: 'Commercial AI review plans with seat-based pricing',
+    copilot: 'Bundled into GitHub paid plans and usage policies',
+    others: 'Commercial review tools commonly price by team or developer seat',
   },
 ]
 
@@ -692,7 +693,7 @@ export default async function Home() {
                       Competitive frame
                     </h3>
                     <p className="font-mono text-[10px] text-subtle-foreground">
-                      Public pricing checked May 19, 2026
+                      Free early-access launch
                     </p>
                   </div>
                 </div>
@@ -769,9 +770,9 @@ export default async function Home() {
                 </div>
               </div>
               <p className="mt-4 text-xs leading-relaxed text-subtle-foreground">
-                Competitor details are summarized from public pricing and
-                product pages. Auteur pricing is workspace-based, while many AI
-                review tools price by user or developer seat.
+                Auteur is launching free to learn from real repository usage.
+                Paid plans are planned later for teams that need higher usage
+                limits.
               </p>
             </div>
           </div>

@@ -14,7 +14,7 @@ Agent onboarding entry: `docs/AGENT_START_HERE.md`
 - Better Auth with Prisma-backed user, account, session, and verification tables
 - Octokit GitHub App service boundary
 - OpenRouter BYOK AI review provider boundary
-- Lemon Squeezy billing service boundary
+- Lemon Squeezy billing service boundary (dormant during free early access)
 - React Hook Form and Zod for validated forms
 - Recharts dashboards
 - Vitest unit tests
@@ -32,7 +32,7 @@ The app runs with seeded demo data in the UI when GitHub, Lemon Squeezy, and Pos
 
 ## Production Safety
 
-Production deployments must provide database, Better Auth, GitHub App, Lemon Squeezy, job runner, transactional email, and support environment variables. Local development still supports demo mode, but production fails closed for missing launch-critical configuration.
+Production deployments must provide database, Better Auth, GitHub App, job runner, transactional email, and support environment variables. Lemon Squeezy is optional while `ENABLE_PAID_BILLING=false` for the free early-access launch. Local development still supports demo mode, but production fails closed for missing launch-critical configuration.
 
 Authenticated app access is available through `/sign-up` and `/sign-in`. Password reset is available through `/forgot-password` and `/reset-password`, and production sign-up requires transactional email for verification. When PostgreSQL is configured, new users are provisioned with a default free organization workspace. In production, app pages redirect unauthenticated users to `/sign-in`.
 
@@ -42,9 +42,9 @@ The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, record
 
 Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post GitHub comments/check runs when live installation credentials and plan entitlements are available.
 
-Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. GitHub sync records monthly `pr_checks` usage, stops processing new checks or repositories when the current plan limit is reached, and only publishes GitHub check runs for plans with GitHub output enabled.
+Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. During free early access, the `free` plan enables all feature flags and is capped by numeric limits only: 3 connected repositories, 200 PR checks/month, and 7-day audit retention. GitHub sync records monthly `pr_checks` usage, stops processing new checks or repositories when the current plan limit is reached, and only publishes GitHub check runs for plans with GitHub output enabled.
 
-Lemon Squeezy checkout starts at `/api/billing/checkout` when `LEMON_SQUEEZY_API_KEY`, `LEMON_SQUEEZY_STORE_ID`, and the relevant `LEMON_SQUEEZY_*_VARIANT_ID` variables are configured. Lemon Squeezy webhooks are accepted at `/api/lemon-squeezy/webhook`, verified with `LEMON_SQUEEZY_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
+Paid checkout and portal routes stay disabled unless `ENABLE_PAID_BILLING=true`. When paid billing is re-enabled, Lemon Squeezy checkout starts at `/api/billing/checkout` with `LEMON_SQUEEZY_API_KEY`, `LEMON_SQUEEZY_STORE_ID`, and the relevant `LEMON_SQUEEZY_*_VARIANT_ID` variables configured. Lemon Squeezy webhooks are accepted at `/api/lemon-squeezy/webhook`, verified with `LEMON_SQUEEZY_WEBHOOK_SECRET`, and update organization subscription fields plus `planKey`.
 
 The Lemon Squeezy migration intentionally starts new Lemon Squeezy customer and subscription fields empty rather than reusing old Paddle identifiers. If a database has live Paddle subscribers, migrate those customers and subscriptions through Lemon Squeezy first, then backfill the resulting Lemon Squeezy ids before relying on customer portal access or webhook-only entitlement sync.
 
@@ -98,7 +98,7 @@ pnpm build
 - `/settings/team`
 - `/settings/github`
 - `/settings/ai`
-- `/settings/billing`
+- `/settings/billing` (plan and launch limits)
 - `/settings/usage`
 - `/admin` (platform admin; gated by `ADMIN_EMAILS`)
 - `/admin/subscriptions`
@@ -124,7 +124,7 @@ pnpm build
 - `lib/github/diff.ts` and `lib/github/output.ts`: PR diff filtering, changed-line validation support, managed AI review comments, inline review publishing, and advisory check-run output.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
 - `lib/admin/access.ts`, `lib/admin/admin-data.ts`, `lib/admin/metrics.ts`: platform admin gating (`ADMIN_EMAILS`), the only cross-tenant data module, and pure analytics helpers (see `features/ADMIN.md`).
-- `lib/billing.ts` and `lib/plans.ts`: Lemon Squeezy checkout/customer portal boundary and plan metadata.
+- `lib/billing.ts` and `lib/plans.ts`: paid billing enablement, Lemon Squeezy checkout/customer portal boundary, and plan metadata.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.
 - `lib/lemon-squeezy-webhooks.ts`: Lemon Squeezy webhook verification helpers and subscription-to-plan mapping.
 - `lib/onboarding.ts`: self-serve setup checklist state for dashboard onboarding.

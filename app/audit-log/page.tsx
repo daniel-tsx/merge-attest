@@ -92,7 +92,7 @@ async function AuditLogContent({ searchParams }: PageProps) {
         ) : (
           <Button variant="secondary" disabled>
             <Download aria-hidden="true" />
-            Growth plan export
+            Export unavailable
           </Button>
         )}
       </div>

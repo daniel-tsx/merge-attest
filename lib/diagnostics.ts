@@ -76,11 +76,13 @@ export async function getHealthDiagnostics(): Promise<DiagnosticCheck[]> {
   const billingMode = getBillingMode()
   checks.push({
     name: 'lemon_squeezy',
-    status: billingMode === 'live' ? 'ok' : 'warning',
+    status: billingMode === 'unconfigured' ? 'warning' : 'ok',
     message:
       billingMode === 'live'
         ? 'Lemon Squeezy API is configured.'
-        : `Lemon Squeezy billing mode is ${billingMode}.`,
+        : billingMode === 'disabled'
+          ? 'Paid billing is disabled for free early access.'
+          : `Lemon Squeezy billing mode is ${billingMode}.`,
   })
 
   checks.push(getJobRunnerDiagnostic())

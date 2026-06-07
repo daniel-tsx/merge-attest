@@ -135,7 +135,7 @@ function AuthorshipLedgerCard({
                   href="/settings/billing"
                   className="text-[11px] font-medium text-accent hover:underline"
                 >
-                  Growth plan — view upgrade
+                  View launch limits
                 </a>
               </>
             )}

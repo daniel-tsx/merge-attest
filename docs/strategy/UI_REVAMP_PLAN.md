@@ -213,8 +213,8 @@ Each phase is independently shippable after Phase 1.
 - Apply the same sort/sticky pattern to the other scan tables (repositories,
   activity, approvals, audit log) if desired.
 - **React `<ViewTransition>`** — once it stabilizes outside Next's experimental channel.
-- Verify the few app-only flows that need a Team plan (approval-decision toast) with
-  an upgraded org.
+- Verify the few app-only flows that are entitlement-gated
+  (approval-decision toast) with a non-free org when paid plans return.
 
 ## Sequencing
 
