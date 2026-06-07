@@ -1,10 +1,8 @@
 import { cn } from '@/lib/utils'
 
-// Two-tone "M" monogram for MergeAttest.
-const LEFT_STROKE = 'M6 26 V6'
-const INNER_LEFT_STROKE = 'M6 6 L16 18'
-const INNER_RIGHT_STROKE = 'M16 18 L26 6'
-const RIGHT_STROKE = 'M26 6 V26'
+// MergeAttest mark: connected merge rails with an attestation check.
+const MERGE_RAILS = 'M6.5 25 V7.5 L16 18.5 L25.5 7.5 V25'
+const ATTEST_CHECK = 'M10 21 L14.3 25 L23 15.25'
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -16,10 +14,8 @@ export function LogoMark({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d={LEFT_STROKE} stroke="currentColor" strokeWidth="3" />
-      <path d={INNER_LEFT_STROKE} stroke="currentColor" strokeWidth="3" />
-      <path d={INNER_RIGHT_STROKE} className="stroke-accent" strokeWidth="3" />
-      <path d={RIGHT_STROKE} className="stroke-accent" strokeWidth="3" />
+      <path d={MERGE_RAILS} stroke="currentColor" strokeWidth="3" />
+      <path d={ATTEST_CHECK} className="stroke-accent" strokeWidth="3" />
     </svg>
   )
 }

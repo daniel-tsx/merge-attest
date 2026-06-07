@@ -31,10 +31,10 @@ const haloClass: Record<GateScanTone, string> = {
   muted: 'bg-surface-muted',
 }
 
-// "A" monogram, matching the product logo (LogoMark), scaled to the 48 viewBox.
-const GATE_LEGS = 'M9 39 L24 9 L39 39'
-const GATE_CROSSBAR = 'M15 27 H33'
-const GATE_OPENING = 'M24 9 L39 39 L9 39 Z'
+// MergeAttest mark, matching the product logo (LogoMark), scaled to the 48 viewBox.
+const MERGE_RAILS = 'M8 38 V10 L24 27 L40 10 V38'
+const ATTEST_CHECK = 'M14 31 L20 37 L34 22'
+const MARK_OPENING = 'M8 38 V10 L24 27 L40 10 V38 Z'
 const FISSURE_PATH = 'M25 14 L20.5 23 L26.5 30 L21 39'
 const QUESTION_PATH =
   'M21.4 30.5a2.8 2.8 0 1 1 5 2.1c-1.05 1.05-2.5 1.6-2.5 3.45'
@@ -82,7 +82,7 @@ export function GateScan({
       >
         <defs>
           <clipPath id={clipId}>
-            <path d={GATE_OPENING} />
+            <path d={MARK_OPENING} />
           </clipPath>
           <linearGradient id={beamId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="currentColor" stopOpacity="0" />
@@ -105,8 +105,8 @@ export function GateScan({
           </g>
         )}
 
-        <path d={GATE_LEGS} />
-        <path d={GATE_CROSSBAR} />
+        <path d={MERGE_RAILS} />
+        <path d={ATTEST_CHECK} />
 
         {state === 'fissure' && <path d={FISSURE_PATH} />}
 
