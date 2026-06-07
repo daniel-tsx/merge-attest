@@ -23,7 +23,7 @@ vi.mock('@/lib/github', () => ({
 const pullRequest = {
   id: 'pr_1',
   number: 42,
-  repositoryName: 'auteur',
+  repositoryName: 'mergeattest',
   owner: 'northstar',
   installationId: 'install_1',
   headSha: 'abc123',
@@ -73,7 +73,7 @@ describe('GitHub AI review output', () => {
     )
   })
 
-  it('formats managed comments with Auteur signals and deep links', () => {
+  it('formats managed comments with MergeAttest signals and deep links', () => {
     const body = formatAiReviewManagedComment({
       pullRequest,
       review,
@@ -81,10 +81,10 @@ describe('GitHub AI review output', () => {
       appBaseUrl: 'https://app.example.test',
     })
 
-    expect(body).toContain('## Auteur AI review')
+    expect(body).toContain('## MergeAttest AI review')
     expect(body).toContain('Risk: 72 (high)')
     expect(body).toContain(
-      '[Open in Auteur](https://app.example.test/pull-requests/pr_1)',
+      '[Open in MergeAttest](https://app.example.test/pull-requests/pr_1)',
     )
   })
 
@@ -110,7 +110,7 @@ describe('GitHub AI review output', () => {
       }),
     ).toBe('success')
     expect(formatAiReviewCheckOutput({ pullRequest, review }).title).toBe(
-      'Auteur AI review found 2 findings',
+      'MergeAttest AI review found 2 findings',
     )
   })
 
@@ -131,7 +131,7 @@ describe('GitHub AI review output', () => {
       action: 'created',
       checkRunId: 'check_1',
       conclusion: 'neutral',
-      message: 'Auteur AI review check run created.',
+      message: 'MergeAttest AI review check run created.',
     })
 
     await expect(
@@ -164,7 +164,7 @@ describe('GitHub AI review output', () => {
       action: 'created',
       checkRunId: 'check_1',
       conclusion: 'neutral',
-      message: 'Auteur AI review check run created.',
+      message: 'MergeAttest AI review check run created.',
     })
 
     await expect(
@@ -185,7 +185,7 @@ describe('GitHub AI review output', () => {
     })
     expect(postPullRequestReview).toHaveBeenCalledWith(
       expect.objectContaining({ number: 42, headSha: 'abc123' }),
-      'Auteur AI review inline findings.',
+      'MergeAttest AI review inline findings.',
       [
         expect.objectContaining({
           path: 'lib/review.ts',
@@ -196,7 +196,7 @@ describe('GitHub AI review output', () => {
     )
     expect(postPullRequestComment).toHaveBeenCalledWith(
       expect.objectContaining({ commentId: undefined }),
-      expect.stringContaining('## Auteur AI review'),
+      expect.stringContaining('## MergeAttest AI review'),
     )
     expect(publishAiReviewCheckRun).toHaveBeenCalledWith(
       expect.objectContaining({ checkRunId: undefined }),
@@ -216,7 +216,7 @@ describe('GitHub AI review output', () => {
       action: 'updated',
       checkRunId: 'check_1',
       conclusion: 'neutral',
-      message: 'Auteur AI review check run updated.',
+      message: 'MergeAttest AI review check run updated.',
     })
 
     await expect(

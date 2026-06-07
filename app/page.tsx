@@ -25,9 +25,9 @@ import { getServerSession } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
-  title: 'Auteur — AI Pull Request Governance',
+  title: 'MergeAttest — AI Pull Request Governance',
   description:
-    'Auteur attributes every pull request to the AI agent that wrote it, scores risk, tracks per-agent trust, and exports AI-authorship evidence for EU AI Act and SOC2 reviews — with approvals and an audit trail.',
+    'MergeAttest attributes every pull request to the AI agent that wrote it, scores risk, tracks per-agent trust, and exports AI-authorship evidence for EU AI Act and SOC2 reviews — with approvals and an audit trail.',
 }
 
 const introStyle = (index: number): CSSProperties =>
@@ -151,28 +151,28 @@ const governancePillars = [
 const comparisonRows = [
   {
     capability: 'Primary job',
-    auteur: 'Govern AI-assisted pull requests before merge',
+    mergeattest: 'Govern AI-assisted pull requests before merge',
     coderabbit: 'Generate AI review comments and developer follow-ups',
     copilot: 'Assist coding and run GitHub-hosted code review',
     others: 'Accelerate PR review, stacking, or code quality workflows',
   },
   {
     capability: 'Trust model',
-    auteur: 'Deterministic signals first, advisory AI second',
+    mergeattest: 'Deterministic signals first, advisory AI second',
     coderabbit: 'AI reviewer output is the main product surface',
     copilot: 'Model-selected review output inside GitHub',
     others: 'AI review and workflow automation vary by product',
   },
   {
     capability: 'Governance controls',
-    auteur: 'Rules, approvals, risk status, and audit trail together',
+    mergeattest: 'Rules, approvals, risk status, and audit trail together',
     coderabbit: 'Enterprise audit logging and RBAC on higher tiers',
     copilot: 'Uses GitHub platform permissions and billing controls',
     others: 'Team controls depend on plan and platform focus',
   },
   {
     capability: 'AI authorship',
-    auteur:
+    mergeattest:
       'Attributes each PR to a specific agent with confidence and evidence, then exports authorship evidence',
     coderabbit: 'No per-agent authorship attribution or reporting',
     copilot: 'No cross-agent authorship attribution',
@@ -181,21 +181,21 @@ const comparisonRows = [
   },
   {
     capability: 'Test and policy gaps',
-    auteur: 'Flags missing tests and sensitive repository changes',
+    mergeattest: 'Flags missing tests and sensitive repository changes',
     coderabbit: 'Focuses on review, fixes, linters, and SAST integrations',
     copilot: 'Focuses on code review assistance',
     others: 'Usually focused on review quality or PR workflow speed',
   },
   {
     capability: 'AI provider control',
-    auteur: 'OpenRouter BYOK boundary for organization-owned keys',
+    mergeattest: 'OpenRouter BYOK boundary for organization-owned keys',
     coderabbit: 'Vendor-managed AI review service',
     copilot: 'GitHub-managed model routing',
     others: 'Vendor-managed model access, with enterprise options',
   },
   {
     capability: 'Launch access',
-    auteur:
+    mergeattest:
       'Free early access with usage limits; paid expansion planned after launch',
     coderabbit: 'Commercial AI review plans with seat-based pricing',
     copilot: 'Bundled into GitHub paid plans and usage policies',
@@ -207,7 +207,7 @@ const steps = [
   {
     title: 'Connect GitHub',
     description:
-      'Install the Auteur GitHub App and sync the repositories you want to govern.',
+      'Install the MergeAttest GitHub App and sync the repositories you want to govern.',
   },
   {
     title: 'Score every AI PR',
@@ -285,7 +285,7 @@ export default async function Home() {
               <LogoMark className="size-4" />
             </span>
             <span className="text-sm font-semibold tracking-tight text-foreground">
-              Auteur
+              MergeAttest
             </span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
@@ -349,7 +349,7 @@ export default async function Home() {
                 style={introStyle(1)}
                 className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
               >
-                Auteur is the control layer around AI coding agents:
+                MergeAttest is the control layer around AI coding agents:
                 deterministic risk scoring, missing-test detection, repository
                 rules, human approvals, and audit evidence in one GitHub-native
                 workflow.
@@ -598,7 +598,7 @@ export default async function Home() {
                 Know which AI agent wrote your code — and prove it
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Coding-agent adoption is near-universal; trust is not. Auteur
+                Coding-agent adoption is near-universal; trust is not. MergeAttest
                 attributes every pull request to the agent behind it, tracks
                 each agent&apos;s track record, and turns it into audit-ready
                 evidence — the white space no AI reviewer owns.
@@ -661,13 +661,13 @@ export default async function Home() {
             <div data-reveal>
               <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-end lg:gap-14">
                 <div>
-                  <SectionIndex index="04" label="Why Auteur" />
+                  <SectionIndex index="04" label="Why MergeAttest" />
                   <h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     Built for governance, not another comment stream
                   </h2>
                   <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
                     CodeRabbit, Copilot, Qodo, and Graphite help teams review
-                    code faster. Auteur answers the next question: should this
+                    code faster. MergeAttest answers the next question: should this
                     AI-assisted change be allowed to merge, who accepted the
                     risk, and where is the evidence?
                   </p>
@@ -700,7 +700,7 @@ export default async function Home() {
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[880px] text-left text-xs">
                     <caption className="sr-only">
-                      Comparison between Auteur and AI code review tools.
+                      Comparison between MergeAttest and AI code review tools.
                     </caption>
                     <thead className="bg-background text-[11px] uppercase tracking-wider text-subtle-foreground">
                       <tr>
@@ -714,7 +714,7 @@ export default async function Home() {
                           scope="col"
                           className="w-[210px] px-4 py-3 font-medium text-foreground"
                         >
-                          Auteur
+                          MergeAttest
                         </th>
                         <th
                           scope="col"
@@ -751,7 +751,7 @@ export default async function Home() {
                                 className="mt-0.5 size-3.5 shrink-0 text-success"
                                 aria-hidden="true"
                               />
-                              <span>{row.auteur}</span>
+                              <span>{row.mergeattest}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">
@@ -770,7 +770,7 @@ export default async function Home() {
                 </div>
               </div>
               <p className="mt-4 text-xs leading-relaxed text-subtle-foreground">
-                Auteur is launching free to learn from real repository usage.
+                MergeAttest is launching free to learn from real repository usage.
                 Paid plans are planned later for teams that need higher usage
                 limits.
               </p>
@@ -789,7 +789,7 @@ export default async function Home() {
                 Live in minutes, governed from day one
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Connect a repository and Auteur starts scoring pull requests
+                Connect a repository and MergeAttest starts scoring pull requests
                 immediately — no pipeline changes required.
               </p>
             </div>
@@ -862,7 +862,7 @@ export default async function Home() {
               <LogoMark className="size-3.5" />
             </span>
             <span className="text-sm font-semibold tracking-tight text-foreground">
-              Auteur
+              MergeAttest
             </span>
           </div>
           <nav className="flex items-center gap-6 text-xs font-medium text-muted-foreground">
@@ -880,7 +880,7 @@ export default async function Home() {
             </Link>
           </nav>
           <p className="font-mono text-[11px] text-subtle-foreground">
-            © {new Date().getFullYear()} Auteur
+            © {new Date().getFullYear()} MergeAttest
           </p>
         </div>
       </footer>

@@ -44,7 +44,7 @@ export function AttributionPanel({
           AI attribution
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          How Auteur determined who authored this change.
+          How MergeAttest determined who authored this change.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

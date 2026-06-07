@@ -3,7 +3,7 @@
 **Status:** `current`
 **Location:** `docs/features/API.md`
 
-Auteur exposes a small set of operational and integration endpoints.
+MergeAttest exposes a small set of operational and integration endpoints.
 
 ## Health And Diagnostics
 

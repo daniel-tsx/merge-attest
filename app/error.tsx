@@ -23,7 +23,7 @@ export default function ErrorPage({
           <GateScan size="lg" tone="danger" state="fissure" />
           <CardTitle className="text-base">Something went wrong</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Auteur could not load this view. The error has been surfaced to the
+            MergeAttest could not load this view. The error has been surfaced to the
             runtime logs with the current release context.
           </p>
           {error.digest && (

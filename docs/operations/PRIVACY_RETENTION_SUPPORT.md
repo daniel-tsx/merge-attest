@@ -5,9 +5,9 @@
 
 ## Customer Data
 
-Auteur stores organization membership, connected repository metadata, pull request metadata, changed file paths, risk signals, rule violations, approvals, review notes, AI review job metadata, repository AI review settings, audit events, billing identifiers, and usage records.
+MergeAttest stores organization membership, connected repository metadata, pull request metadata, changed file paths, risk signals, rule violations, approvals, review notes, AI review job metadata, repository AI review settings, audit events, billing identifiers, and usage records.
 
-Auteur does not need to store full source file contents to provide the current product workflow. AI review guardrails use GitHub pull request diffs during processing, but the product should keep future integrations scoped to metadata unless a customer explicitly opts in.
+MergeAttest does not need to store full source file contents to provide the current product workflow. AI review guardrails use GitHub pull request diffs during processing, but the product should keep future integrations scoped to metadata unless a customer explicitly opts in.
 
 OpenRouter API keys are customer-provided credentials and must be encrypted before storage. Do not include plaintext keys in diagnostics, audit exports, review packets, or logs.
 

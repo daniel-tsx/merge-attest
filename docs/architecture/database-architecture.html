@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Database Architecture &amp; Data Structure</title>
+    <title>MergeAttest — Database Architecture &amp; Data Structure</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -278,7 +278,7 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Database Architecture &amp; Data Structure</h1>
+      <h1>MergeAttest — Database Architecture &amp; Data Structure</h1>
       <p>
         Comprehensive reference for PostgreSQL schema, multi-tenant data model,
         read/write paths, indexing strategy, setup commands, and operational
@@ -316,7 +316,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur is a <strong>multi-tenant SaaS</strong> control center for
+          MergeAttest is a <strong>multi-tenant SaaS</strong> control center for
           AI-assisted pull request governance. All business data is scoped to an
           <strong>Organization</strong> (workspace). PostgreSQL is the system of
           record; Prisma 7 is the ORM with a driver adapter
@@ -414,7 +414,7 @@
         </p>
         <pre><code>// lib/prisma.ts — simplified
 const adapter = new PrismaPg({ connectionString: databaseUrl })
-globalForPrisma.auteurPrisma = new PrismaClient({ adapter })</code></pre>
+globalForPrisma.mergeattestPrisma = new PrismaClient({ adapter })</code></pre>
       </section>
 
       <section id="architecture">
@@ -883,7 +883,7 @@ catch (error) {
           pullRequest.upsert (by repositoryId + number) ├─ Replace child rows:
           files, riskSignals, testGap, violations ├─ recordPrChecks() with
           sourceKey = repo:pr:sha ├─ Write AuditEvent + AgentActivity ├─
-          publishAuteurCheckRun() (if plan allows) └─ enqueueAiReviewJob()
+          publishMergeAttestCheckRun() (if plan allows) └─ enqueueAiReviewJob()
           (if repo AI settings enabled)
         </div>
 
@@ -943,7 +943,7 @@ metric      = "pr_checks"</code></pre>
 
         <h3>6.1 Environment</h3>
         <pre><code># .env.example
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/auteur?schema=public"</code></pre>
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mergeattest?schema=public"</code></pre>
         <p>
           Optional but related: <code>AI_PROVIDER_ENCRYPTION_KEY</code> (falls
           back to <code>BETTER_AUTH_SECRET</code> for credential encryption).
@@ -1723,7 +1723,7 @@ datasource: process.env.DATABASE_URL</code></pre>
     </main>
 
     <footer>
-      Auteur database architecture reference · Generated from codebase
+      MergeAttest database architecture reference · Generated from codebase
       analysis · June 2026
     </footer>
   </body>

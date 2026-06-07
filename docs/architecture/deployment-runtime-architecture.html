@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Deployment &amp; Runtime Architecture</title>
+    <title>MergeAttest — Deployment &amp; Runtime Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -226,9 +226,9 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Deployment &amp; Runtime Architecture</h1>
+      <h1>MergeAttest — Deployment &amp; Runtime Architecture</h1>
       <p>
-        How Auteur runs on Vercel-friendly serverless Next.js: build
+        How MergeAttest runs on Vercel-friendly serverless Next.js: build
         pipeline, database migrations, environment validation, demo mode,
         connection pooling, external cron jobs, and edge middleware.
       </p>
@@ -259,7 +259,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur is a Next.js 16 App Router application deployed as
+          MergeAttest is a Next.js 16 App Router application deployed as
           serverless functions on Vercel (or compatible hosts). There is no
           long-running Node process — background work is triggered by external
           HTTPS cron hitting authenticated job routes. PostgreSQL is accessed
@@ -553,7 +553,7 @@ new PrismaClient({ adapter })</code></pre>
           pooler, PgBouncer, PlanetScale Postgres proxy, etc.) rather than a
           direct single-session URL when traffic scales. The adapter uses the
           <code>pg</code> driver; pool sizing is governed by the provider's
-          pooler, not Auteur application code.
+          pooler, not MergeAttest application code.
         </div>
       </section>
 
@@ -649,7 +649,7 @@ new PrismaClient({ adapter })</code></pre>
             </tr>
             <tr>
               <td>Pathname header</td>
-              <td>Sets <code>x-auteur-pathname</code> for downstream use</td>
+              <td>Sets <code>x-mergeattest-pathname</code> for downstream use</td>
             </tr>
           </tbody>
         </table>
@@ -719,7 +719,7 @@ new PrismaClient({ adapter })</code></pre>
     </main>
 
     <footer>
-      Auteur deployment &amp; runtime architecture reference · June 2026
+      MergeAttest deployment &amp; runtime architecture reference · June 2026
     </footer>
   </body>
 </html>

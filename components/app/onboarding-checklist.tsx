@@ -65,7 +65,7 @@ export function OnboardingChecklist({ status }: { status: OnboardingStatus }) {
               Finish your setup
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Connect GitHub and sync your first repository so Auteur can start
+              Connect GitHub and sync your first repository so MergeAttest can start
               monitoring pull requests.
             </p>
           </div>

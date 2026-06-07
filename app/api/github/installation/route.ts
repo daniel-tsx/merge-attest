@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
   await prisma.auditEvent.create({
     data: {
       eventType: 'settings_changed',
-      actor: 'Auteur',
+      actor: 'MergeAttest',
       summary: 'GitHub App installation connected',
       metadata: {
         installationId,

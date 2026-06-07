@@ -35,7 +35,7 @@ A cross-tenant operator console at `/admin` for the SaaS operator. It is distinc
 
 All re-check admin access and write an `AuditEvent`.
 
-- `updateOrgBilling(orgId, formData)` — overrides `planKey` + `billingStatus` (enum-validated). **Mutates Auteur's database only** — it does not call Lemon Squeezy. Use it for comped accounts or reconciling webhook drift; real billing changes go through the customer portal.
+- `updateOrgBilling(orgId, formData)` — overrides `planKey` + `billingStatus` (enum-validated). **Mutates MergeAttest's database only** — it does not call Lemon Squeezy. Use it for comped accounts or reconciling webhook drift; real billing changes go through the customer portal.
 - `openCustomerPortal(orgId, formData)` — resolves the Lemon Squeezy customer-portal URL (`lib/billing.ts`) and redirects.
 - `deleteUser(userId, formData)` — permanent. Refuses to delete your own account, any `ADMIN_EMAILS` account, or the sole owner of an organization. Writes a per-org audit event before deletion.
 

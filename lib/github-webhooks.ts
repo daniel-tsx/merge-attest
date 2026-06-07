@@ -458,7 +458,7 @@ async function processPullRequestReviewWebhook(input: {
   if (!decision) {
     return {
       processed: false,
-      message: `Review state ${state ?? 'unknown'} does not change Auteur approval status.`,
+      message: `Review state ${state ?? 'unknown'} does not change MergeAttest approval status.`,
     }
   }
 

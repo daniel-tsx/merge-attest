@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils'
 
-// Two-tone "A" monogram for Auteur (the author's initial): apex, left stroke,
-// and crossbar in the foreground tone; the right stroke in the brand accent.
-const LEFT_STROKE = 'M6 26 L16 6'
-const CROSSBAR = 'M10 18 H22'
-const RIGHT_STROKE = 'M16 6 L26 26'
+// Two-tone "M" monogram for MergeAttest.
+const LEFT_STROKE = 'M6 26 V6'
+const INNER_LEFT_STROKE = 'M6 6 L16 18'
+const INNER_RIGHT_STROKE = 'M16 18 L26 6'
+const RIGHT_STROKE = 'M26 6 V26'
 
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -17,7 +17,8 @@ export function LogoMark({ className }: { className?: string }) {
       strokeLinejoin="round"
     >
       <path d={LEFT_STROKE} stroke="currentColor" strokeWidth="3" />
-      <path d={CROSSBAR} stroke="currentColor" strokeWidth="3" />
+      <path d={INNER_LEFT_STROKE} stroke="currentColor" strokeWidth="3" />
+      <path d={INNER_RIGHT_STROKE} className="stroke-accent" strokeWidth="3" />
       <path d={RIGHT_STROKE} className="stroke-accent" strokeWidth="3" />
     </svg>
   )
@@ -27,7 +28,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <LogoMark />
-      <span className="text-sm font-semibold tracking-tight">Auteur</span>
+      <span className="text-sm font-semibold tracking-tight">MergeAttest</span>
     </div>
   )
 }

@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
       retentionWindowStart: retentionStart?.toISOString(),
     })
     body = JSON.stringify(bundle, null, 2)
-    fileName = `auteur-authorship-evidence-${timestamp}.json`
+    fileName = `mergeattest-authorship-evidence-${timestamp}.json`
     contentType = 'application/json; charset=utf-8'
   } else {
     const ledger = buildAuthorshipLedger(pullRequests)
     body = serializeAuthorshipLedgerCsv(ledger)
-    fileName = `auteur-authorship-${timestamp}.csv`
+    fileName = `mergeattest-authorship-${timestamp}.csv`
     contentType = 'text/csv; charset=utf-8'
   }
 

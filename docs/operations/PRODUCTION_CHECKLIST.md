@@ -3,16 +3,16 @@
 **Status:** `current`
 **Location:** `docs/operations/PRODUCTION_CHECKLIST.md`
 
-Use this checklist before running Auteur for customer work.
+Use this checklist before running MergeAttest for customer work.
 
 ## Required Environment
 
 - `DATABASE_URL` points at a managed PostgreSQL database with backups.
 - `BETTER_AUTH_SECRET` is unique, strong, and not shared with local development.
 - `BETTER_AUTH_URL` matches the production application URL.
-- `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, Auteur derives encryption from `BETTER_AUTH_SECRET`.
+- `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, MergeAttest derives encryption from `BETTER_AUTH_SECRET`.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
-- `GITHUB_WEBHOOK_SECRET` is configured in both Auteur and the GitHub App.
+- `GITHUB_WEBHOOK_SECRET` is configured in both MergeAttest and the GitHub App.
 - `ENABLE_PAID_BILLING=false` for the free early-access launch. Configure Lemon Squeezy API key, store ID, webhook secret, and Starter/Team/Growth variant IDs only before enabling paid billing.
 - `EMAIL_FROM` and `RESEND_API_KEY` are configured before enabling email verification and password reset delivery.
 - `JOB_RUNNER_SECRET` is configured before enabling scheduled operational job endpoints.

@@ -118,7 +118,7 @@ async function RepositoriesContent({ searchParams }: PageProps) {
             <EmptyState
               icon={Boxes}
               title="No repositories synced yet"
-              description="Connect the GitHub App, then sync repositories to import open pull requests and start applying Auteur rules."
+              description="Connect the GitHub App, then sync repositories to import open pull requests and start applying MergeAttest rules."
               actions={
                 organization.githubInstallationId ? (
                   <form action="/api/github/sync/repositories" method="post">

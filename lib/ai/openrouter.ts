@@ -30,7 +30,7 @@ function authHeaders(apiKey: string) {
   return {
     Authorization: `Bearer ${apiKey}`,
     'HTTP-Referer': process.env.BETTER_AUTH_URL ?? 'http://localhost:3000',
-    'X-Title': 'Auteur',
+    'X-Title': 'MergeAttest',
   }
 }
 

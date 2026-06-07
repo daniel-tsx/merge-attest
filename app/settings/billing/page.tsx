@@ -19,7 +19,7 @@ export default async function BillingSettingsPage() {
   const organization = await getCurrentOrganization()
   const entitlements = getPlanEntitlements(organization.planKey)
   const supportEmail = getSupportEmail()
-  const mailto = `mailto:${supportEmail}?subject=Higher%20Auteur%20early-access%20limits`
+  const mailto = `mailto:${supportEmail}?subject=Higher%20MergeAttest%20early-access%20limits`
   const limits = [
     {
       label: 'Repositories',
@@ -45,7 +45,7 @@ export default async function BillingSettingsPage() {
       <PageHeader
         eyebrow="Workspace"
         title="Plan and launch access"
-        description="Auteur is in free early access. Core governance features are enabled now; only usage limits apply while paid expansion plans stay disabled."
+        description="MergeAttest is in free early access. Core governance features are enabled now; only usage limits apply while paid expansion plans stay disabled."
         actions={
           <Button asChild variant="secondary">
             <a href={mailto}>

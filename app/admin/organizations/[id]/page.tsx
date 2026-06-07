@@ -75,7 +75,7 @@ export default async function AdminOrganizationDetailPage({
 
       <Section
         title="Subscription"
-        description="Override the plan and billing status in Auteur, or open the Lemon Squeezy customer portal."
+        description="Override the plan and billing status in MergeAttest, or open the Lemon Squeezy customer portal."
         contentClassName="space-y-5"
       >
         <div className="flex flex-wrap items-center gap-2 text-sm">

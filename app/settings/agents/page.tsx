@@ -149,7 +149,7 @@ export default async function AgentRegistryPage({
           </span>
         }
         title="Agent identity registry"
-        description="Teach Auteur which accounts, emails, branches, labels, and commit trailers map to each AI coding agent. Rules sharpen attribution on every synced pull request."
+        description="Teach MergeAttest which accounts, emails, branches, labels, and commit trailers map to each AI coding agent. Rules sharpen attribution on every synced pull request."
       />
       <SettingsNav />
 

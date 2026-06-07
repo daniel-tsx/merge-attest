@@ -3,7 +3,7 @@ import { buildAuthorshipLedger, type AuthorshipLedger } from '@/lib/reporting'
 import type { PlanKey, PullRequest } from '@/lib/types'
 
 const EVIDENCE_NOTICE =
-  'Evidence supporting EU AI Act human-oversight (Art. 14) and SOC2 change-management review. Generated from deterministic Auteur signals — not a certification.'
+  'Evidence supporting EU AI Act human-oversight (Art. 14) and SOC2 change-management review. Generated from deterministic MergeAttest signals — not a certification.'
 
 const ledgerCsvHeaders = [
   'agent',

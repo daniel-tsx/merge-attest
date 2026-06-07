@@ -371,8 +371,8 @@ model PullRequest {
   author                 String
   githubPullRequestId    String?
   githubNodeId           String?
-  githubAuteurCommentId  String?
-  githubAuteurCheckRunId String?
+  githubMergeAttestCommentId  String?
+  githubMergeAttestCheckRunId String?
   url                    String?
   headSha                String?
   branch                 String

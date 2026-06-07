@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Observability Architecture</title>
+    <title>MergeAttest — Observability Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -235,7 +235,7 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Observability Architecture</h1>
+      <h1>MergeAttest — Observability Architecture</h1>
       <p>
         Structured JSON logging, owner/admin diagnostics, health endpoints, and
         intentional absence of third-party APM/analytics SDKs. Designed for
@@ -270,7 +270,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur observability is deliberately lightweight: a single module
+          MergeAttest observability is deliberately lightweight: a single module
           (<code>lib/observability.ts</code>) emits one JSON object per log line
           to stdout/stderr. Vercel (or any log aggregator) captures these lines.
           There is no in-app Sentry, PostHog, Datadog, or OpenTelemetry exporter
@@ -823,6 +823,6 @@
       </section>
     </main>
 
-    <footer>Auteur observability architecture reference · June 2026</footer>
+    <footer>MergeAttest observability architecture reference · June 2026</footer>
   </body>
 </html>

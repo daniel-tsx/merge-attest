@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Governance Architecture</title>
+    <title>MergeAttest — Governance Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -255,7 +255,7 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Governance Architecture</h1>
+      <h1>MergeAttest — Governance Architecture</h1>
       <p>
         Deterministic pull-request governance: risk scoring from changed files
         and metadata, test-gap heuristics, configurable repo rules, approval
@@ -288,7 +288,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur governance is a
+          MergeAttest governance is a
           <strong>deterministic, rule-based pipeline</strong> that runs on every
           pull request sync. It inspects changed file paths, inferred agent
           metadata, and (when available) CI status to produce a risk score,
@@ -355,7 +355,7 @@
           approvalStatus + replace PullRequestFile, RiskSignal, RuleViolation,
           TestGapAnalysis rows + AuditEvent (pr_synced | risk_score_calculated)
           │ ├─ enqueueAiReviewJob() ← separate async LLM path (optional) └─
-          publishAuteurCheckRun() ← plan-gated GitHub output
+          publishMergeAttestCheckRun() ← plan-gated GitHub output
         </div>
 
         <h3>2.1 Inputs and outputs</h3>
@@ -1151,7 +1151,7 @@
         <h3>8.3 GitHub check run output</h3>
         <p>
           When the org plan includes <code>githubComments</code>, sync publishes
-          an Auteur check run with risk score, level, test gap status, CI
+          a MergeAttest check run with risk score, level, test gap status, CI
           status, and approval status. Failures to publish are logged but do not
           roll back persisted governance data.
         </p>
@@ -1236,7 +1236,7 @@
             <tr>
               <td><code>block_merge</code> is logical</td>
               <td>
-                Sets approval requirement in Auteur; actual GitHub branch
+                Sets approval requirement in MergeAttest; actual GitHub branch
                 protection merge blocking is external.
               </td>
             </tr>
@@ -1329,6 +1329,6 @@
       </section>
     </main>
 
-    <footer>Auteur governance architecture reference · June 2026</footer>
+    <footer>MergeAttest governance architecture reference · June 2026</footer>
   </body>
 </html>

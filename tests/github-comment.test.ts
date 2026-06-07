@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  getAuteurCheckConclusion,
+  getMergeAttestCheckConclusion,
   postPullRequestReview,
   publishAccountabilityCheckRun,
   publishAiReviewCheckRun,
   postPullRequestComment,
-  publishAuteurCheckRun,
+  publishMergeAttestCheckRun,
 } from '../lib/github'
 
 describe('GitHub comment helper', () => {
@@ -13,11 +13,11 @@ describe('GitHub comment helper', () => {
     const result = await postPullRequestComment(
       {
         number: 42,
-        repositoryName: 'auteur',
+        repositoryName: 'mergeattest',
         owner: 'northstar',
         commentId: '123',
       },
-      'Auteur decision: approved',
+      'MergeAttest decision: approved',
     )
 
     expect(result).toMatchObject({
@@ -25,9 +25,9 @@ describe('GitHub comment helper', () => {
     })
   })
 
-  it('maps Auteur state to GitHub check conclusions', () => {
+  it('maps MergeAttest state to GitHub check conclusions', () => {
     expect(
-      getAuteurCheckConclusion({
+      getMergeAttestCheckConclusion({
         approvalStatus: 'approved',
         riskLevel: 'medium',
         testGapStatus: 'none',
@@ -35,7 +35,7 @@ describe('GitHub comment helper', () => {
       }),
     ).toBe('success')
     expect(
-      getAuteurCheckConclusion({
+      getMergeAttestCheckConclusion({
         approvalStatus: 'pending',
         riskLevel: 'high',
         testGapStatus: 'high',
@@ -43,7 +43,7 @@ describe('GitHub comment helper', () => {
       }),
     ).toBe('action_required')
     expect(
-      getAuteurCheckConclusion({
+      getMergeAttestCheckConclusion({
         approvalStatus: 'rejected',
         riskLevel: 'high',
         testGapStatus: 'warning',
@@ -53,9 +53,9 @@ describe('GitHub comment helper', () => {
   })
 
   it('returns demo mode for check runs without installation credentials', async () => {
-    const result = await publishAuteurCheckRun({
+    const result = await publishMergeAttestCheckRun({
       number: 42,
-      repositoryName: 'auteur',
+      repositoryName: 'mergeattest',
       owner: 'northstar',
       headSha: 'abc123',
       checkRunId: '123',
@@ -75,13 +75,13 @@ describe('GitHub comment helper', () => {
     const result = await publishAiReviewCheckRun(
       {
         number: 42,
-        repositoryName: 'auteur',
+        repositoryName: 'mergeattest',
         owner: 'northstar',
         headSha: 'abc123',
         checkRunId: '123',
       },
       {
-        title: 'Auteur AI review found no findings',
+        title: 'MergeAttest AI review found no findings',
         summary: 'AI review completed.',
         conclusion: 'success',
       },
@@ -96,7 +96,7 @@ describe('GitHub comment helper', () => {
     const result = await publishAccountabilityCheckRun(
       {
         number: 42,
-        repositoryName: 'auteur',
+        repositoryName: 'mergeattest',
         owner: 'northstar',
         headSha: 'abc123',
       },
@@ -117,11 +117,11 @@ describe('GitHub comment helper', () => {
     const result = await postPullRequestReview(
       {
         number: 42,
-        repositoryName: 'auteur',
+        repositoryName: 'mergeattest',
         owner: 'northstar',
         headSha: 'abc123',
       },
-      'Auteur AI review inline findings.',
+      'MergeAttest AI review inline findings.',
       [],
     )
 

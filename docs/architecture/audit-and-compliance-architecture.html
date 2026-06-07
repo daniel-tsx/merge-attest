@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Audit &amp; Compliance Architecture</title>
+    <title>MergeAttest — Audit &amp; Compliance Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -226,7 +226,7 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Audit &amp; Compliance Architecture</h1>
+      <h1>MergeAttest — Audit &amp; Compliance Architecture</h1>
       <p>
         Durable audit evidence: <code>AuditEvent</code> vs operational
         <code>AgentActivity</code>, plan-gated retention and CSV export,
@@ -258,7 +258,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur maintains a tenant-scoped audit trail in PostgreSQL for
+          MergeAttest maintains a tenant-scoped audit trail in PostgreSQL for
           governance and compliance workflows. Audit events capture human and
           system actions with actor, summary, and JSON metadata. A separate
           <code>AgentActivity</code> stream powers PR timeline UX for agent/CI
@@ -402,11 +402,11 @@
             </tr>
             <tr>
               <td><code>github_comment_posted</code></td>
-              <td>Auteur comment on GitHub PR</td>
+              <td>MergeAttest comment on GitHub PR</td>
             </tr>
             <tr>
               <td><code>github_check_run_published</code></td>
-              <td>Auteur check run on GitHub</td>
+              <td>MergeAttest check run on GitHub</td>
             </tr>
             <tr>
               <td><code>settings_changed</code></td>
@@ -634,7 +634,7 @@ else → now - retentionDays (UTC calendar days)</code></pre>
           Response: <code>Content-Type: text/csv</code>,
           <code
             >Content-Disposition: attachment;
-            filename="auteur-audit-YYYY-MM-DD.csv"</code
+            filename="mergeattest-audit-YYYY-MM-DD.csv"</code
           >. CSV bytes are streamed to the client — not persisted server-side.
         </p>
       </section>
@@ -656,7 +656,7 @@ else → now - retentionDays (UTC calendar days)</code></pre>
           <tbody>
             <tr>
               <td><code>fileName</code></td>
-              <td>e.g. <code>auteur-audit-2026-06-03.csv</code></td>
+              <td>e.g. <code>mergeattest-audit-2026-06-03.csv</code></td>
             </tr>
             <tr>
               <td><code>format</code></td>
@@ -821,7 +821,7 @@ else → now - retentionDays (UTC calendar days)</code></pre>
     </main>
 
     <footer>
-      Auteur audit &amp; compliance architecture reference · June 2026
+      MergeAttest audit &amp; compliance architecture reference · June 2026
     </footer>
   </body>
 </html>

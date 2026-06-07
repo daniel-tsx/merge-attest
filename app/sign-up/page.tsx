@@ -148,7 +148,7 @@ export default function SignUpPage() {
           <ArrowRight aria-hidden="true" />
         </Button>
         <p className="text-center text-xs text-subtle-foreground">
-          By creating an account you agree to Auteur&apos;s terms and privacy
+          By creating an account you agree to MergeAttest&apos;s terms and privacy
           policy.
         </p>
       </form>

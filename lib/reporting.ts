@@ -535,7 +535,7 @@ export function serializeIncidentReviewPacket(input: {
 }) {
   const { pullRequest, timeline } = input
   const lines = [
-    `# Auteur Review Packet: ${pullRequest.repositoryName} #${pullRequest.number}`,
+    `# MergeAttest Review Packet: ${pullRequest.repositoryName} #${pullRequest.number}`,
     '',
     `Title: ${pullRequest.title}`,
     `Status: ${pullRequest.status}`,

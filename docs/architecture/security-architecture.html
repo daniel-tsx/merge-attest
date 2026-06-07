@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — Security Architecture</title>
+    <title>MergeAttest — Security Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -255,7 +255,7 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — Security Architecture</h1>
+      <h1>MergeAttest — Security Architecture</h1>
       <p>
         Holistic security beyond authentication: tenant isolation, edge
         protections, webhook verification, secrets at rest, production
@@ -293,7 +293,7 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur security is layered: edge middleware (<code>proxy.ts</code>)
+          MergeAttest security is layered: edge middleware (<code>proxy.ts</code>)
           applies rate limits, CSRF-style origin checks, and response headers;
           application code enforces session auth, RBAC, and plan entitlements;
           external callers use HMAC webhooks or Bearer job tokens. Sensitive
@@ -379,7 +379,7 @@
       <section id="tenant">
         <h2>3. Tenant Isolation</h2>
         <p>
-          Auteur is multi-tenant at the <strong>organization</strong> level.
+          MergeAttest is multi-tenant at the <strong>organization</strong> level.
           After session resolution,
           <code>ensureCurrentUserOrganization()</code> binds the request to one
           organization and role. Normal product data — repositories, pull
@@ -971,6 +971,6 @@ GITHUB_APP_ID, GITHUB_APP_SLUG, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET</c
       </section>
     </main>
 
-    <footer>Auteur security architecture reference · June 2026</footer>
+    <footer>MergeAttest security architecture reference · June 2026</footer>
   </body>
 </html>

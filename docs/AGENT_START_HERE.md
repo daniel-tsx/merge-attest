@@ -25,7 +25,7 @@ Do **not** treat `archive/` docs as current product state unless the task is exp
 
 ## Current Product Truth
 
-Auteur is a **GitHub-native SaaS control center** for teams shipping AI-assisted code. It monitors pull requests, scores risk, detects test gaps, evaluates repository rules, records approvals, meters plan usage, exports audit evidence, and queues advisory AI reviews.
+MergeAttest is a **GitHub-native SaaS control center** for teams shipping AI-assisted code. It monitors pull requests, scores risk, detects test gaps, evaluates repository rules, records approvals, meters plan usage, exports audit evidence, and queues advisory AI reviews.
 
 **Launch posture (early access):** shipping free-only to grow adoption. The `free` plan in `lib/entitlements.ts` has **all feature flags enabled** and is capped only by numeric limits (3 repos, 200 PR checks/mo, 7-day audit retention). Public pricing and the in-app upgrade UI are removed. `/settings/billing` is a launch plan/limits page, and paid checkout/portal routes are disabled unless `ENABLE_PAID_BILLING=true`. Billing infrastructure (Lemon Squeezy helpers/webhooks, paid-tier entitlements, billing columns) remains dormant for later monetization — re-gate the `free` flags and re-enable paid billing when paid plans return.
 

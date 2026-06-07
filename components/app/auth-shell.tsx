@@ -51,7 +51,7 @@ export function AuthShell({
             <span className="flex size-8 items-center justify-center rounded-control bg-brand-surface-foreground/10 text-brand-surface-foreground ring-1 ring-brand-surface-foreground/15">
               <LogoMark className="size-4" />
             </span>
-            Auteur
+            MergeAttest
           </Link>
         </div>
         <div className="relative max-w-md space-y-6">
@@ -99,7 +99,7 @@ export function AuthShell({
             <span className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
               <LogoMark className="size-4" />
             </span>
-            <span className="text-sm font-semibold tracking-tight">Auteur</span>
+            <span className="text-sm font-semibold tracking-tight">MergeAttest</span>
           </div>
           <div className="mb-8">
             <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">

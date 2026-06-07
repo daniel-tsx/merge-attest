@@ -18,12 +18,12 @@ describe('environment safety', () => {
     expect(() =>
       validateProductionEnv({
         NODE_ENV: 'production',
-        DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/auteur',
+        DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/mergeattest',
         BETTER_AUTH_SECRET: 'secret',
         BETTER_AUTH_URL: 'https://app.example.test',
         BETTER_AUTH_API_KEY: 'better-auth-infra',
         GITHUB_APP_ID: '12345',
-        GITHUB_APP_SLUG: 'auteur',
+        GITHUB_APP_SLUG: 'mergeattest',
         GITHUB_APP_PRIVATE_KEY: 'private-key',
         GITHUB_WEBHOOK_SECRET: 'webhook',
       }),

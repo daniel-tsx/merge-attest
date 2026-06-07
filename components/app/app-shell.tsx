@@ -311,7 +311,7 @@ export function AppShell({
             <LogoMark className="size-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold tracking-tight">Auteur</div>
+            <div className="text-sm font-semibold tracking-tight">MergeAttest</div>
             <div className="-mt-0.5 text-[11px] text-subtle-foreground">
               Pull request control
             </div>
@@ -353,7 +353,7 @@ export function AppShell({
                       <LogoMark className="size-4" />
                     </div>
                     <div className="min-w-0">
-                      <SheetTitle>Auteur</SheetTitle>
+                      <SheetTitle>MergeAttest</SheetTitle>
                       <SheetDescription className="truncate">
                         {organizationName}
                       </SheetDescription>

@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Auteur',
+  title: 'MergeAttest',
   description: 'Control center for AI-generated pull requests.',
 }
 
@@ -74,7 +74,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const pathname = (await headers()).get('x-auteur-pathname')
+  const pathname = (await headers()).get('x-mergeattest-pathname')
   const isPublicRoute =
     !pathname ||
     pathname === '/' ||
@@ -103,7 +103,7 @@ export default async function RootLayout({
           <TooltipProvider>
             <NuqsAdapter>
               <RootShell
-                organizationName={organization?.name ?? 'Auteur'}
+                organizationName={organization?.name ?? 'MergeAttest'}
                 planKey={organization?.planKey ?? 'free'}
                 dataMode={organization?.dataMode ?? 'live'}
                 isAdmin={adminContext?.isAdmin ?? false}

@@ -42,9 +42,9 @@ export const ruleTemplates: RuleTemplate[] = [
   },
   {
     key: 'migration-check',
-    name: 'Database migrations publish Auteur check',
+    name: 'Database migrations publish MergeAttest check',
     description:
-      'Database migration changes publish an explicit Auteur check run.',
+      'Database migration changes publish an explicit MergeAttest check run.',
     triggerType: 'database_migration',
     actionType: 'publish_github_check',
     severity: 'high',

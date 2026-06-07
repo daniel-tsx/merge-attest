@@ -13,7 +13,7 @@ import { plans } from '../lib/plans'
 const adapter = new PrismaPg({
   connectionString:
     process.env.DATABASE_URL ??
-    'postgresql://postgres:postgres@localhost:5432/auteur',
+    'postgresql://postgres:postgres@localhost:5432/mergeattest',
 })
 const prisma = new PrismaClient({ adapter })
 

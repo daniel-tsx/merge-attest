@@ -12,7 +12,7 @@ import {
   listGitHubPullRequestFiles,
   listGitHubPullRequests,
   listInstallationRepositories,
-  publishAuteurCheckRun,
+  publishMergeAttestCheckRun,
 } from '@/lib/github'
 import { canConsume, getPlanEntitlements } from '@/lib/entitlements'
 import { getPrismaClient } from '@/lib/prisma'
@@ -513,7 +513,7 @@ async function syncGitHubPullRequestRecord(input: {
   await prisma.auditEvent.create({
     data: {
       eventType: existing ? 'risk_score_calculated' : 'pr_synced',
-      actor: 'Auteur',
+      actor: 'MergeAttest',
       summary: existing
         ? `GitHub pull request #${input.pullRequest.number} resynced`
         : `Imported GitHub pull request #${input.pullRequest.number}`,
@@ -559,13 +559,13 @@ async function syncGitHubPullRequestRecord(input: {
   }
 
   try {
-    const checkRun = await publishAuteurCheckRun({
+    const checkRun = await publishMergeAttestCheckRun({
       number: input.pullRequest.number,
       repositoryName: input.name,
       owner: input.owner,
       installationId: input.installationId,
       headSha: input.pullRequest.head.sha,
-      checkRunId: savedPullRequest.githubAuteurCheckRunId,
+      checkRunId: savedPullRequest.githubMergeAttestCheckRunId,
       riskScore: risk.score,
       riskLevel: risk.level,
       testGapStatus: testGap.status,
@@ -574,18 +574,18 @@ async function syncGitHubPullRequestRecord(input: {
     })
 
     if (checkRun.mode === 'live') {
-      if (checkRun.checkRunId !== savedPullRequest.githubAuteurCheckRunId) {
+      if (checkRun.checkRunId !== savedPullRequest.githubMergeAttestCheckRunId) {
         await prisma.pullRequest.update({
           where: { id: savedPullRequest.id },
-          data: { githubAuteurCheckRunId: checkRun.checkRunId },
+          data: { githubMergeAttestCheckRunId: checkRun.checkRunId },
         })
       }
 
       await prisma.auditEvent.create({
         data: {
           eventType: 'github_check_run_published',
-          actor: 'Auteur',
-          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} Auteur check run for #${input.pullRequest.number}`,
+          actor: 'MergeAttest',
+          summary: `${checkRun.action === 'updated' ? 'Updated' : 'Created'} MergeAttest check run for #${input.pullRequest.number}`,
           metadata: {
             action: checkRun.action,
             checkRunId: checkRun.checkRunId,
@@ -598,7 +598,7 @@ async function syncGitHubPullRequestRecord(input: {
       })
     }
   } catch (error) {
-    console.warn('Pull request synced but Auteur check run failed.', error)
+    console.warn('Pull request synced but MergeAttest check run failed.', error)
   }
 
   return true

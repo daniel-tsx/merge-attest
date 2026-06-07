@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Auteur — GitHub Integration Architecture</title>
+    <title>MergeAttest — GitHub Integration Architecture</title>
     <style>
       :root {
         --bg: #fafafa;
@@ -255,9 +255,9 @@
   </head>
   <body>
     <header>
-      <h1>Auteur — GitHub Integration Architecture</h1>
+      <h1>MergeAttest — GitHub Integration Architecture</h1>
       <p>
-        How Auteur connects to GitHub as a GitHub App: installation,
+        How MergeAttest connects to GitHub as a GitHub App: installation,
         repository and pull request sync, webhook ingestion with durable
         queueing, CI status updates, and publishing check runs and comments back
         to GitHub. Verified against code as of June 2026.
@@ -290,14 +290,14 @@
       <section id="overview">
         <h2>1. Overview</h2>
         <p>
-          Auteur integrates with GitHub through a
+          MergeAttest integrates with GitHub through a
           <strong>GitHub App</strong> using <code>@octokit/auth-app</code> and
           <code>octokit</code>. Each workspace (<code>Organization</code>)
           stores a single <code>githubInstallationId</code> after the owner or
           admin completes the App install flow. Sync and webhook handlers use
           installation tokens to read repositories and pull requests, compute
           risk and rule violations, persist domain rows in PostgreSQL, and
-          optionally publish Auteur check runs and AI review output back to
+          optionally publish MergeAttest check runs and AI review output back to
           GitHub.
         </p>
         <p>The integration has four major paths:</p>
@@ -352,7 +352,7 @@
               <td>
                 GitHub App client factory, install URL, repository/PR API
                 helpers, webhook signature verification,
-                <code>publishAuteurCheckRun</code>,
+                <code>publishMergeAttestCheckRun</code>,
                 <code>postPullRequestComment</code>,
                 <code>postPullRequestReview</code>,
                 <code>publishAiReviewCheckRun</code>, demo/live mode detection
@@ -628,7 +628,7 @@
           <li>
             <strong>Side effects</strong> — audit event,
             <code>enqueueAiReviewJob</code>, <code>recordPrChecks</code>,
-            optional <code>publishAuteurCheckRun</code>
+            optional <code>publishMergeAttestCheckRun</code>
           </li>
         </ol>
 
@@ -775,7 +775,7 @@
               <td><code>processPullRequestReviewWebhook</code></td>
               <td>
                 Maps GitHub review <code>approved</code> /
-                <code>changes_requested</code> to Auteur approval status;
+                <code>changes_requested</code> to MergeAttest approval status;
                 creates <code>Approval</code> and audit/activity rows
               </td>
             </tr>
@@ -865,13 +865,13 @@
         <h3>7.2 Status mapping</h3>
         <p>
           <code>mapGitHubCiStatus</code> converts GitHub check/workflow status
-          to Auteur <code>CiStatus</code>:
+          to MergeAttest <code>CiStatus</code>:
         </p>
         <table>
           <thead>
             <tr>
               <th>GitHub</th>
-              <th>Auteur</th>
+              <th>MergeAttest</th>
             </tr>
           </thead>
           <tbody>
@@ -916,15 +916,15 @@
       <section id="output">
         <h2>8. GitHub Output</h2>
         <p>
-          Auteur publishes back to GitHub in two layers: governance check
+          MergeAttest publishes back to GitHub in two layers: governance check
           runs during PR sync, and AI review output after job completion.
         </p>
 
-        <h3>8.1 Auteur check run (<code>lib/github.ts</code>)</h3>
+        <h3>8.1 MergeAttest check run (<code>lib/github.ts</code>)</h3>
         <p>
-          <code>publishAuteurCheckRun</code> creates or updates a check run
-          named <strong>Auteur</strong> on the PR head SHA. Conclusion comes
-          from <code>getAuteurCheckConclusion</code>:
+          <code>publishMergeAttestCheckRun</code> creates or updates a check run
+          named <strong>MergeAttest</strong> on the PR head SHA. Conclusion comes
+          from <code>getMergeAttestCheckConclusion</code>:
         </p>
         <table>
           <thead>
@@ -962,7 +962,7 @@
           </tbody>
         </table>
         <p>
-          Existing <code>githubAuteurCheckRunId</code> on the PR is used for
+          Existing <code>githubMergeAttestCheckRunId</code> on the PR is used for
           update; 404 falls back to create. Check run ID is persisted on the PR
           row after live publish.
         </p>
@@ -989,13 +989,13 @@
           <li>
             <strong>AI review check run</strong> —
             <code>publishAiReviewCheckRun</code> named
-            <strong>Auteur AI Review</strong>
+            <strong>MergeAttest AI Review</strong>
           </li>
         </ul>
         <p>
           Markdown is sanitized (<code>sanitizeGitHubMarkdownText</code>):
           strips control chars, neutralizes <code>@</code>, and truncates long
-          bodies. Managed comments include an "Open in Auteur" link.
+          bodies. Managed comments include an "Open in MergeAttest" link.
         </p>
 
         <h3>8.3 Plan gating</h3>
@@ -1164,7 +1164,7 @@
               <td>Check run publish failures</td>
               <td>
                 Sync succeeds even if
-                <code>publishAuteurCheckRun</code> throws; failure is logged
+                <code>publishMergeAttestCheckRun</code> throws; failure is logged
                 with <code>console.warn</code>.
               </td>
             </tr>
@@ -1304,7 +1304,7 @@
     </main>
 
     <footer>
-      Auteur GitHub integration architecture reference · June 2026
+      MergeAttest GitHub integration architecture reference · June 2026
     </footer>
   </body>
 </html>

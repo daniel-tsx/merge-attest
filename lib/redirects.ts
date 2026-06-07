@@ -21,7 +21,7 @@ export function safeRelativeRedirect(
   }
 
   try {
-    const parsed = new URL(trimmed, 'https://auteur.local')
+    const parsed = new URL(trimmed, 'https://mergeattest.local')
     return `${parsed.pathname}${parsed.search}${parsed.hash}`
   } catch {
     return fallback

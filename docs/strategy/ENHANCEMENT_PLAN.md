@@ -1,4 +1,4 @@
-# Auteur Enhancement Plan
+# MergeAttest Enhancement Plan
 
 **Status:** `current` (planning)
 **Location:** `docs/strategy/ENHANCEMENT_PLAN.md`
@@ -7,7 +7,7 @@ Last reviewed: 2026-05-02
 
 ## 1. Product Goal
 
-Auteur should become a GitHub-native operating layer for teams that ship AI-assisted code. The product should help a team connect repositories, detect risky AI-generated or AI-assisted pull requests, request the right review, record decisions, and prove what happened later through audit and reporting.
+MergeAttest should become a GitHub-native operating layer for teams that ship AI-assisted code. The product should help a team connect repositories, detect risky AI-generated or AI-assisted pull requests, request the right review, record decisions, and prove what happened later through audit and reporting.
 
 The current project is past a pure MVP. It already has real application foundations: authenticated workspaces, organization-scoped data access, Prisma-backed models, GitHub App boundaries, webhook handling, approval persistence, plan entitlements, usage metering, Lemon Squeezy checkout/webhook boundaries, onboarding states, and audit export. The next phase should focus on replacing the remaining demo surfaces, making GitHub processing production-grade, and adding collaboration features that make the product feel like a real business workflow rather than a dashboard demo.
 
@@ -45,7 +45,7 @@ Remaining product gaps:
 ## 3. Product Principles
 
 - Keep signals explainable. Every risk score, test gap, and rule decision should show why it fired.
-- Make GitHub the center of gravity. Developers should get value in PR comments/checks without needing to open Auteur for every change.
+- Make GitHub the center of gravity. Developers should get value in PR comments/checks without needing to open MergeAttest for every change.
 - Treat audit history as a product feature, not just logs. Customers should be able to answer who approved what, why, and when.
 - Build multi-tenant and role-aware features by default. No server mutation should rely on client-provided organization context alone.
 - Prefer advisory workflows before hard merge blocking. Start with comments, approvals, and audit records; add blocking once customers trust the signals.
@@ -56,9 +56,9 @@ Remaining product gaps:
 The first business-ready version should support this end-to-end flow:
 
 1. A user signs up, gets a workspace, and installs the GitHub App.
-2. Auteur syncs selected repositories and open pull requests.
+2. MergeAttest syncs selected repositories and open pull requests.
 3. New or updated pull requests trigger risk, test-gap, and rule evaluation.
-4. Risky changes create clear GitHub feedback and appear in an Auteur review queue.
+4. Risky changes create clear GitHub feedback and appear in a MergeAttest review queue.
 5. Authorized teammates approve, reject, request tests, or accept risk.
 6. Decisions are recorded in pull request state, audit history, and optional GitHub comments/checks.
 7. Usage, limits, and billing state are visible and enforced.
@@ -100,14 +100,14 @@ Deliverables:
 - Expand event coverage for `pull_request`, `pull_request_review`, `check_suite`, `check_run`, `workflow_run`, `installation`, and `installation_repositories`.
 - Capture CI/check status and update `ciStatus` from real GitHub state.
 - Add periodic backfill for missed events and stale repositories.
-- Make GitHub comments idempotent by storing and updating the managed Auteur comment id.
-- Add optional GitHub check runs that summarize Auteur status.
+- Make GitHub comments idempotent by storing and updating the managed MergeAttest comment id.
+- Add optional GitHub check runs that summarize MergeAttest status.
 - Add a sync diagnostics panel for last sync, last webhook, failures, and next retry.
 
 Verification:
 
 - Duplicate webhook deliveries do not duplicate PRs, events, usage, or comments.
-- A PR update reaches Auteur through a background job, not a slow webhook response path.
+- A PR update reaches MergeAttest through a background job, not a slow webhook response path.
 - CI status and close/merge state update correctly after GitHub events.
 - Failed jobs are visible and retryable.
 
@@ -138,7 +138,7 @@ Verification:
 
 Goal:
 
-Make Auteur useful for teams instead of single-user demos.
+Make MergeAttest useful for teams instead of single-user demos.
 
 Deliverables:
 
@@ -221,7 +221,7 @@ Verification:
 - Support can tell whether a repository is connected, syncing, failing, or over plan limits.
 - Enterprise features are tied to real customer need rather than speculative scope.
 
-## 6. Feature Ideas That Make Auteur Feel More Powerful
+## 6. Feature Ideas That Make MergeAttest Feel More Powerful
 
 Prioritized product upgrades:
 
