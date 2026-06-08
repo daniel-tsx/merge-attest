@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { headers } from 'next/headers'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
@@ -114,6 +115,7 @@ export default async function RootLayout({
           </TooltipProvider>
           <Toaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   )
