@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react'
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
@@ -22,13 +21,17 @@ import { LogoMark } from '@/components/app/logo'
 import { ThemeToggle } from '@/components/app/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { getServerSession } from '@/lib/auth/session'
+import { JsonLd } from '@/lib/seo/json-ld'
+import { createHomeJsonLd } from '@/lib/seo/home-json-ld'
+import { createPageMetadata } from '@/lib/seo/metadata'
 import { cn } from '@/lib/utils'
 
-export const metadata: Metadata = {
-  title: 'MergeAttest — AI Pull Request Governance',
+export const metadata = createPageMetadata({
+  title: 'AI Pull Request Governance for GitHub Teams',
   description:
     'MergeAttest attributes every pull request to the AI agent that wrote it, scores risk, tracks per-agent trust, and exports AI-authorship evidence for EU AI Act and SOC2 reviews — with approvals and an audit trail.',
-}
+  path: '/',
+})
 
 const introStyle = (index: number): CSSProperties =>
   ({ '--intro-index': index }) as CSSProperties
@@ -278,6 +281,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <JsonLd data={createHomeJsonLd()} />
       <header className="sticky top-0 z-50 border-b border-border bg-surface/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -865,13 +869,34 @@ export default async function Home() {
               MergeAttest
             </span>
           </div>
-          <nav className="flex items-center gap-6 text-xs font-medium text-muted-foreground">
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center justify-center gap-5 text-xs font-medium text-muted-foreground sm:justify-end"
+          >
             <a
               href="#features"
               className="transition-colors hover:text-foreground"
             >
               Features
             </a>
+            <a
+              href="#how-it-works"
+              className="transition-colors hover:text-foreground"
+            >
+              How it works
+            </a>
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              Terms
+            </Link>
             <Link
               href="/sign-in"
               className="transition-colors hover:text-foreground"

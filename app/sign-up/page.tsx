@@ -148,8 +148,21 @@ export default function SignUpPage() {
           <ArrowRight aria-hidden="true" />
         </Button>
         <p className="text-center text-xs text-subtle-foreground">
-          By creating an account you agree to MergeAttest&apos;s terms and privacy
-          policy.
+          By creating an account you agree to MergeAttest&apos;s{' '}
+          <Link
+            href="/terms"
+            className="text-foreground underline underline-offset-4"
+          >
+            terms
+          </Link>{' '}
+          and{' '}
+          <Link
+            href="/privacy"
+            className="text-foreground underline underline-offset-4"
+          >
+            privacy policy
+          </Link>
+          .
         </p>
       </form>
     </AuthShell>

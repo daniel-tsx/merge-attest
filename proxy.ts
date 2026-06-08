@@ -12,14 +12,7 @@ import {
   isMutationMethod,
   isTrustedMutationOrigin,
 } from '@/lib/security'
-
-const publicPaths = [
-  '/',
-  '/sign-in',
-  '/sign-up',
-  '/forgot-password',
-  '/reset-password',
-]
+import { publicAppPaths } from '@/lib/site'
 
 function requestIp(request: NextRequest) {
   return (
@@ -86,7 +79,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (
-    publicPaths.some(
+    publicAppPaths.some(
       (path) => pathname === path || pathname.startsWith(`${path}/`),
     )
   ) {

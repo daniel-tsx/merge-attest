@@ -1,4 +1,3 @@
-import type { Metadata } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { headers } from 'next/headers'
@@ -9,6 +8,8 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { getPlatformAdminContext } from '@/lib/admin/access'
 import { getCurrentOrganization } from '@/lib/data/app-data'
+import { publicAppPaths } from '@/lib/site'
+import { createRootMetadata } from '@/lib/seo/metadata'
 import './globals.css'
 
 const geistSans = Geist({
@@ -21,10 +22,7 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 })
 
-export const metadata: Metadata = {
-  title: 'MergeAttest',
-  description: 'Control center for AI-generated pull requests.',
-}
+export const metadata = createRootMetadata()
 
 // Native <select> popup theming. Injected raw because Tailwind v4's Lightning
 // CSS processor strips the experimental customizable-select syntax
@@ -78,11 +76,9 @@ export default async function RootLayout({
   const pathname = (await headers()).get('x-mergeattest-pathname')
   const isPublicRoute =
     !pathname ||
-    pathname === '/' ||
-    pathname === '/sign-in' ||
-    pathname === '/sign-up' ||
-    pathname === '/forgot-password' ||
-    pathname === '/reset-password'
+    publicAppPaths.some(
+      (path) => pathname === path || pathname.startsWith(`${path}/`),
+    )
   const [organization, adminContext] = isPublicRoute
     ? ([null, null] as const)
     : await Promise.all([getCurrentOrganization(), getPlatformAdminContext()])

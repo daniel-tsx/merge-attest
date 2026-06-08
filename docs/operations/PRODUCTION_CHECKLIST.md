@@ -9,7 +9,8 @@ Use this checklist before running MergeAttest for customer work.
 
 - `DATABASE_URL` points at a managed PostgreSQL database with backups.
 - `BETTER_AUTH_SECRET` is unique, strong, and not shared with local development.
-- `BETTER_AUTH_URL` matches the production application URL.
+- `BETTER_AUTH_URL` matches the production application URL (`https://www.mergeattest.com`).
+- `NEXT_PUBLIC_SITE_URL` is set to the canonical public URL (`https://www.mergeattest.com`) for SEO metadata, sitemap, and social previews.
 - `AI_PROVIDER_ENCRYPTION_KEY` is stable and secret before storing customer OpenRouter keys. If omitted, MergeAttest derives encryption from `BETTER_AUTH_SECRET`.
 - `GITHUB_APP_ID`, `GITHUB_APP_SLUG`, and `GITHUB_APP_PRIVATE_KEY` are configured for the production GitHub App.
 - `GITHUB_WEBHOOK_SECRET` is configured in both MergeAttest and the GitHub App.

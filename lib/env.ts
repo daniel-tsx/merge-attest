@@ -16,6 +16,13 @@ export function getBetterAuthUrl(env: Env = process.env) {
   return readEnv('BETTER_AUTH_URL', env) ?? 'http://localhost:3000'
 }
 
+/** Canonical public site URL for SEO, auth callbacks, and absolute links. */
+export function getSiteUrl(env: Env = process.env) {
+  const url =
+    readEnv('NEXT_PUBLIC_SITE_URL', env) ?? readEnv('BETTER_AUTH_URL', env)
+  return (url ?? 'http://localhost:3000').replace(/\/$/, '')
+}
+
 export function getBetterAuthSecret(env: Env = process.env) {
   const secret = readEnv('BETTER_AUTH_SECRET', env)
   if (secret) return secret

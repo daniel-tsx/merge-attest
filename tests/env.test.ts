@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { getBetterAuthSecret, validateProductionEnv } from '../lib/env'
+import {
+  getBetterAuthSecret,
+  getSiteUrl,
+  validateProductionEnv,
+} from '../lib/env'
 
 describe('environment safety', () => {
   it('uses a local auth secret only outside production', () => {
@@ -34,5 +38,14 @@ describe('environment safety', () => {
     expect(() => validateProductionEnv({ NODE_ENV: 'production' })).toThrow(
       'DATABASE_URL, BETTER_AUTH_SECRET, BETTER_AUTH_URL, BETTER_AUTH_API_KEY, GITHUB_APP_ID, GITHUB_APP_SLUG, GITHUB_APP_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET',
     )
+  })
+
+  it('prefers NEXT_PUBLIC_SITE_URL for the canonical site URL', () => {
+    expect(
+      getSiteUrl({
+        NEXT_PUBLIC_SITE_URL: 'https://www.mergeattest.com/',
+        BETTER_AUTH_URL: 'https://legacy.example.test',
+      }),
+    ).toBe('https://www.mergeattest.com')
   })
 })

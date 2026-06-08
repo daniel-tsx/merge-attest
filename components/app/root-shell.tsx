@@ -2,15 +2,10 @@
 
 import { usePathname } from 'next/navigation'
 import { AppShell } from '@/components/app/app-shell'
+import { publicAppPaths } from '@/lib/site'
 import type { PlanKey } from '@/lib/types'
 
-const publicRoutes = new Set([
-  '/',
-  '/sign-in',
-  '/sign-up',
-  '/forgot-password',
-  '/reset-password',
-])
+const publicRoutes = new Set<string>(publicAppPaths)
 
 export function RootShell({
   children,
