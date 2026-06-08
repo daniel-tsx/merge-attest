@@ -17,6 +17,8 @@ export function AnimatedNumber({
 }) {
   const [display, setDisplay] = React.useState(value)
 
+  const getValue = React.useEffectEvent(() => value)
+
   React.useEffect(() => {
     let raf = 0
     let startTime = 0
@@ -26,14 +28,15 @@ export function AnimatedNumber({
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const tick = (now: number) => {
+      const target = getValue()
       if (reduced) {
-        setDisplay(value)
+        setDisplay(target)
         return
       }
       if (!startTime) startTime = now
       const progress = Math.min(1, (now - startTime) / duration)
       const eased = 1 - Math.pow(1 - progress, 3)
-      setDisplay(Math.round(value * eased))
+      setDisplay(Math.round(target * eased))
       if (progress < 1) raf = requestAnimationFrame(tick)
     }
 

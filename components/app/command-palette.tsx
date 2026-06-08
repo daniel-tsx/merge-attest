@@ -45,11 +45,15 @@ export function CommandPalette() {
   const router = useRouter()
   const { setTheme } = useTheme()
 
+  const onToggleOpen = React.useEffectEvent(() => {
+    setOpen((value) => !value)
+  })
+
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()
-        setOpen((value) => !value)
+        onToggleOpen()
       }
     }
     document.addEventListener('keydown', onKeyDown)

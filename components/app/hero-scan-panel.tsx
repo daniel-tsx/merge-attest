@@ -77,22 +77,18 @@ export function HeroScanPanel() {
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const startRef = React.useRef(0)
 
-  React.useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
+  const stopAnimation = React.useEffectEvent(() => {
+    if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+    if (timerRef.current != null) clearTimeout(timerRef.current)
+    rafRef.current = null
+    timerRef.current = null
+  })
 
-    const reduced = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches
+  const startScan = React.useEffectEvent(() => {
+    setPhase('scanning')
+    startRef.current = performance.now()
 
-    const stop = () => {
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
-      if (timerRef.current != null) clearTimeout(timerRef.current)
-      rafRef.current = null
-      timerRef.current = null
-    }
-
-    const tick = () => {
+    const tickFrame = () => {
       const elapsed = performance.now() - startRef.current
       if (elapsed >= SCAN_END) {
         setClock(SCAN_END)
@@ -101,39 +97,45 @@ export function HeroScanPanel() {
         return
       }
       setClock(elapsed)
-      rafRef.current = requestAnimationFrame(tick)
+      rafRef.current = requestAnimationFrame(tickFrame)
     }
 
-    const run = () => {
-      setPhase('scanning')
-      startRef.current = performance.now()
-      rafRef.current = requestAnimationFrame(tick)
+    rafRef.current = requestAnimationFrame(tickFrame)
+  })
+
+  const onViewportChange = React.useEffectEvent((isIntersecting: boolean) => {
+    stopAnimation()
+    if (!isIntersecting) {
+      setPhase('idle')
+      setClock(0)
+      return
     }
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+    if (reduced) {
+      setPhase('done')
+      setClock(SCAN_END)
+      return
+    }
+    setPhase('idle')
+    setClock(0)
+    timerRef.current = setTimeout(startScan, LEAD_IN)
+  })
+
+  React.useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        stop()
-        if (!entry.isIntersecting) {
-          setPhase('idle')
-          setClock(0)
-          return
-        }
-        if (reduced) {
-          setPhase('done')
-          setClock(SCAN_END)
-          return
-        }
-        setPhase('idle')
-        setClock(0)
-        timerRef.current = setTimeout(run, LEAD_IN)
-      },
+      ([entry]) => onViewportChange(entry.isIntersecting),
       { threshold: 0.45 },
     )
     observer.observe(root)
 
     return () => {
       observer.disconnect()
-      stop()
+      stopAnimation()
     }
   }, [])
 
