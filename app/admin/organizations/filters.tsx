@@ -8,7 +8,7 @@ export function AdminOrganizationFilters() {
   return (
     <UrlFilterForm
       parsers={adminOrganizationSearchParams}
-      className="md:grid-cols-[minmax(220px,1fr)_180px_180px_auto]"
+      className="md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
       resetKeys={['after', 'before']}
       fields={[
         {

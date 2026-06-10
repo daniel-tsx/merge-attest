@@ -81,22 +81,23 @@ async function AuditLogContent({ searchParams }: PageProps) {
 
   return (
     <>
-      <div className="flex justify-end">
-        {entitlements.features.auditExport ? (
-          <Button asChild variant="secondary">
-            <a href={exportHref}>
-              <Download aria-hidden="true" />
-              Export CSV
-            </a>
-          </Button>
-        ) : (
-          <Button variant="secondary" disabled>
-            <Download aria-hidden="true" />
-            Export unavailable
-          </Button>
-        )}
-      </div>
       <Card>
+        <CardHeader className="flex-row items-center justify-between gap-3">
+          <CardTitle>Audit events</CardTitle>
+          {entitlements.features.auditExport ? (
+            <Button asChild variant="secondary" size="sm">
+              <a href={exportHref}>
+                <Download aria-hidden="true" />
+                Export CSV
+              </a>
+            </Button>
+          ) : (
+            <Button variant="secondary" size="sm" disabled>
+              <Download aria-hidden="true" />
+              Export unavailable
+            </Button>
+          )}
+        </CardHeader>
         <CardContent className="space-y-5">
           <AuditLogFilters repositories={repositories} />
           <ResultSummary

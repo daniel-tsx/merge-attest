@@ -7,7 +7,7 @@ export function PullRequestFilters() {
   return (
     <UrlFilterForm
       parsers={pullRequestSearchParams}
-      className="md:grid-cols-[minmax(220px,1fr)_160px_160px_180px_auto]"
+      className="md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
       fields={[
         {
           name: 'query',

@@ -16,7 +16,7 @@ export function AuditLogFilters({
   return (
     <UrlFilterForm
       parsers={auditLogSearchParams}
-      className="md:grid-cols-[minmax(220px,1fr)_180px_180px_140px] lg:grid-cols-[minmax(220px,1fr)_180px_180px_140px_140px_140px_140px_140px_auto]"
+      className="md:grid-cols-2 lg:grid-cols-4"
       fields={[
         {
           name: 'query',

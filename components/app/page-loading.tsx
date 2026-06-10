@@ -1,5 +1,5 @@
 import { GateScan } from '@/components/app/gate-scan'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export type PageLoadingVariant =
@@ -190,11 +190,15 @@ export function ListSkeleton() {
 export function LogSkeleton() {
   return (
     <Card>
+      <CardHeader className="flex-row items-center justify-between gap-3">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-8 w-32" />
+      </CardHeader>
       <CardContent className="space-y-4 p-4">
         <FilterBarSkeleton />
         <div className="flex items-center justify-between border-b border-border pb-3">
           <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-4 w-32" />
         </div>
         <TableRowsSkeleton rows={12} />
       </CardContent>
