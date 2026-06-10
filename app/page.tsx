@@ -252,7 +252,7 @@ function SectionIndex({
       <span
         className={cn(
           'font-mono text-xs font-semibold',
-          dark ? 'text-primary-foreground' : 'text-accent',
+          dark ? 'text-brand-surface-foreground' : 'text-accent',
         )}
       >
         {index}
@@ -260,13 +260,13 @@ function SectionIndex({
       <span
         className={cn(
           'h-px w-8',
-          dark ? 'bg-primary-foreground/25' : 'bg-border-strong',
+          dark ? 'bg-brand-surface-foreground/25' : 'bg-border-strong',
         )}
       />
       <span
         className={cn(
           'font-mono text-[11px] uppercase tracking-[0.2em]',
-          dark ? 'text-primary-foreground/55' : 'text-subtle-foreground',
+          dark ? 'text-brand-surface-foreground/55' : 'text-subtle-foreground',
         )}
       >
         {label}
@@ -340,18 +340,32 @@ export default async function Home() {
           <div className="bg-dot-grid pointer-events-none absolute inset-0 opacity-60" />
           <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-14 lg:py-28">
             <div className="flex flex-col">
-              <h1
+              <p
                 data-intro
                 style={introStyle(0)}
-                className="text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-5xl"
+                className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-subtle-foreground"
               >
-                Govern every AI pull request
-                <br className="hidden sm:block" /> before it merges.
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-accent"
+                />
+                GitHub-native · early access
+              </p>
+              <h1
+                data-intro
+                style={introStyle(1)}
+                className="mt-5 text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl"
+              >
+                <span className="block">Govern every</span>
+                <span className="block">AI pull request</span>
+                <span className="block text-muted-foreground">
+                  before it merges.
+                </span>
               </h1>
               <p
                 data-intro
-                style={introStyle(1)}
-                className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+                style={introStyle(2)}
+                className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
               >
                 MergeAttest is the control layer around AI coding agents:
                 deterministic risk scoring, missing-test detection, repository
@@ -360,7 +374,7 @@ export default async function Home() {
               </p>
               <div
                 data-intro
-                style={introStyle(2)}
+                style={introStyle(3)}
                 className="mt-8 flex flex-col gap-3 sm:flex-row"
               >
                 <Button asChild variant="accent" size="lg" className="group">
@@ -378,7 +392,7 @@ export default async function Home() {
               </div>
               <p
                 data-intro
-                style={introStyle(3)}
+                style={introStyle(4)}
                 className="mt-5 font-mono text-[11px] text-subtle-foreground"
               >
                 free plan available · no credit card required
@@ -404,7 +418,7 @@ export default async function Home() {
                 {inspectionSignals.map((signal) => (
                   <span
                     key={signal}
-                    className="rounded-pill border border-border bg-background px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-surface-subtle hover:text-foreground"
+                    className="rounded-pill border border-border bg-background px-2.5 py-1 font-mono text-[11px] text-muted-foreground"
                   >
                     {signal}
                   </span>
@@ -419,7 +433,7 @@ export default async function Home() {
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-16">
               <div data-reveal>
                 <SectionIndex index="01" label="The problem" />
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   Review can&apos;t keep up with AI
                 </h2>
                 <p className="mt-4 text-base leading-relaxed text-muted-foreground">
@@ -457,7 +471,7 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
               <SectionIndex index="02" label="Features" />
-              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 The parts AI reviewers leave around the edges
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
@@ -598,14 +612,14 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
               <SectionIndex index="03" label="AI authorship" />
-              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Know which AI agent wrote your code — and prove it
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Coding-agent adoption is near-universal; trust is not. MergeAttest
-                attributes every pull request to the agent behind it, tracks
-                each agent&apos;s track record, and turns it into audit-ready
-                evidence — the white space no AI reviewer owns.
+                Coding-agent adoption is near-universal; trust is not.
+                MergeAttest attributes every pull request to the agent behind
+                it, tracks each agent&apos;s track record, and turns it into
+                audit-ready evidence — the white space no AI reviewer owns.
               </p>
             </div>
 
@@ -666,14 +680,14 @@ export default async function Home() {
               <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-end lg:gap-14">
                 <div>
                   <SectionIndex index="04" label="Why MergeAttest" />
-                  <h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                  <h2 className="mt-4 max-w-xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                     Built for governance, not another comment stream
                   </h2>
                   <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
                     CodeRabbit, Copilot, Qodo, and Graphite help teams review
-                    code faster. MergeAttest answers the next question: should this
-                    AI-assisted change be allowed to merge, who accepted the
-                    risk, and where is the evidence?
+                    code faster. MergeAttest answers the next question: should
+                    this AI-assisted change be allowed to merge, who accepted
+                    the risk, and where is the evidence?
                   </p>
                 </div>
                 <div className="mt-7 flex flex-wrap gap-2">
@@ -774,9 +788,9 @@ export default async function Home() {
                 </div>
               </div>
               <p className="mt-4 text-xs leading-relaxed text-subtle-foreground">
-                MergeAttest is launching free to learn from real repository usage.
-                Paid plans are planned later for teams that need higher usage
-                limits.
+                MergeAttest is launching free to learn from real repository
+                usage. Paid plans are planned later for teams that need higher
+                usage limits.
               </p>
             </div>
           </div>
@@ -789,12 +803,12 @@ export default async function Home() {
           <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
             <div data-reveal>
               <SectionIndex index="05" label="How it works" />
-              <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Live in minutes, governed from day one
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Connect a repository and MergeAttest starts scoring pull requests
-                immediately — no pipeline changes required.
+                Connect a repository and MergeAttest starts scoring pull
+                requests immediately — no pipeline changes required.
               </p>
             </div>
 
@@ -822,44 +836,54 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
+        <section className="relative overflow-hidden bg-brand-surface">
+          <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-40" />
+          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
+            <div data-reveal>
+              <SectionIndex index="06" label="Get started" dark />
+            </div>
             <div
               data-reveal
-              className="rounded-card border border-border bg-surface-elevated px-6 py-14 text-center shadow-card sm:px-12"
+              className="mx-auto mt-12 flex max-w-xl flex-col items-center text-center"
             >
-              <div className="mx-auto max-w-xl">
-                <span className="mx-auto flex size-12 items-center justify-center rounded-control bg-primary text-primary-foreground">
-                  <LogoMark className="size-6" />
-                </span>
-                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                  Ship AI code with confidence
-                </h2>
-                <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                  Connect your first repository and see risk scores on your open
-                  pull requests in minutes.
-                </p>
-                <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild variant="accent" size="lg" className="group">
-                    <Link href="/sign-up">
-                      Start for free
-                      <ArrowRight
-                        aria-hidden="true"
-                        className="transition-transform duration-200 group-hover:translate-x-0.5"
-                      />
-                    </Link>
-                  </Button>
-                  <Button asChild variant="secondary" size="lg">
-                    <Link href="/sign-in">Sign in</Link>
-                  </Button>
-                </div>
+              <span className="flex size-12 items-center justify-center rounded-control bg-brand-surface-foreground/10 text-brand-surface-foreground ring-1 ring-brand-surface-foreground/15">
+                <LogoMark className="size-6" />
+              </span>
+              <h2 className="mt-6 text-balance text-3xl font-semibold tracking-tight text-brand-surface-foreground sm:text-4xl">
+                Ship AI code with confidence
+              </h2>
+              <p className="mt-3 text-pretty text-base leading-relaxed text-brand-surface-foreground/70">
+                Connect your first repository and see risk scores on your open
+                pull requests in minutes.
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button asChild variant="accent" size="lg" className="group">
+                  <Link href="/sign-up">
+                    Start for free
+                    <ArrowRight
+                      aria-hidden="true"
+                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                    />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="border-brand-surface-foreground/25 text-brand-surface-foreground hover:border-brand-surface-foreground/45 hover:bg-brand-surface-foreground/10 hover:text-brand-surface-foreground"
+                >
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
               </div>
+              <p className="mt-6 font-mono text-[11px] text-brand-surface-foreground/45">
+                free plan available · no credit card required
+              </p>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="bg-surface">
+      <footer className="border-t border-border bg-surface">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2">
             <span className="flex size-7 items-center justify-center rounded-control bg-primary text-primary-foreground">
