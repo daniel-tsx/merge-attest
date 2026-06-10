@@ -1,7 +1,7 @@
 # MergeAttest Documentation
 
 **Status:** `current` — documentation index
-**Last verified:** 2026-05-31
+**Last verified:** 2026-06-10
 
 MergeAttest is a SaaS control center for engineering teams using AI coding agents. It monitors AI-assisted pull requests, scores risky changes, detects missing tests, evaluates repository rules, records approvals, and keeps an audit trail before code reaches production.
 
@@ -79,9 +79,10 @@ Do not implement from these without re-verifying against code.
 
 ### UI plans
 
-| Doc                                                                            | Status                   | Notes                                                      |
-| ------------------------------------------------------------------------------ | ------------------------ | ---------------------------------------------------------- |
-| [`archive/ui/UI_UX_IMPROVEMENT_PLAN.md`](archive/ui/UI_UX_IMPROVEMENT_PLAN.md) | `shipped` / `historical` | UI modernization plan; many phases landed in design system |
+| Doc                                                                            | Status                   | Notes                                                         |
+| ------------------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------- |
+| [`archive/ui/UI_UX_IMPROVEMENT_PLAN.md`](archive/ui/UI_UX_IMPROVEMENT_PLAN.md) | `shipped` / `historical` | UI modernization plan; many phases landed in design system    |
+| [`archive/ui/UI_REVAMP_PLAN.md`](archive/ui/UI_REVAMP_PLAN.md)                 | `shipped` / `historical` | Dark mode, ⌘K palette, toasts, dashboard polish — all shipped |
 
 ## Maintenance Rules
 

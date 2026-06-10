@@ -2,6 +2,7 @@
 
 **Status:** `current`
 **Location:** `docs/operations/OPERATIONS_RUNBOOK.md`
+**Last verified:** 2026-06-10
 
 ## CI Gate
 

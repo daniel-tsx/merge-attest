@@ -3,13 +3,21 @@
 **Status:** `current` (planning)
 **Location:** `docs/strategy/ENHANCEMENT_PLAN.md`
 
-Last reviewed: 2026-05-02
+Last reviewed: 2026-06-10 (phase statuses re-verified against code)
+
+> **Status update (2026-06-10):** Phases 1–2 are shipped; Phases 3–5 and 7 are
+> largely shipped; Phase 6 is built but dormant during the free early-access
+> launch. The AI-authorship governance suite (attribution, registry, scorecards,
+> ledger, attestation — see `../features/AI_GOVERNANCE.md`) shipped after this
+> plan was written and is now the product differentiator. Section 2 below lists
+> the gaps that actually remain; treat phase deliverable lists as historical
+> scope, not open work.
 
 ## 1. Product Goal
 
 MergeAttest should become a GitHub-native operating layer for teams that ship AI-assisted code. The product should help a team connect repositories, detect risky AI-generated or AI-assisted pull requests, request the right review, record decisions, and prove what happened later through audit and reporting.
 
-The current project is past a pure MVP. It already has real application foundations: authenticated workspaces, organization-scoped data access, Prisma-backed models, GitHub App boundaries, webhook handling, approval persistence, plan entitlements, usage metering, Lemon Squeezy checkout/webhook boundaries, onboarding states, and audit export. The next phase should focus on replacing the remaining demo surfaces, making GitHub processing production-grade, and adding collaboration features that make the product feel like a real business workflow rather than a dashboard demo.
+The current project is past a pure MVP. It already has real application foundations: authenticated workspaces, organization-scoped data access, Prisma-backed models, GitHub App boundaries, durable webhook processing, approval persistence with attestations, team invites and roles, plan entitlements, usage metering, Lemon Squeezy boundaries (dormant), reporting, compliance export, and audit export. The next phase should close the remaining signal gaps (CI status ingestion, AI review execution) and deepen team workflow (queues, notifications) — see section 2 for the verified gap list.
 
 ## 2. Current Baseline
 
@@ -29,18 +37,17 @@ Implemented strengths:
 - Dashboard onboarding checklist, repository empty states, billing/usage/settings pages, and audit CSV export.
 - Focused Vitest coverage for at least audit export behavior, with existing test scaffolding for domain logic.
 
-Remaining product gaps:
+Remaining product gaps (re-verified 2026-06-10):
 
-- Some user-facing pages still read from `lib/demo-data.ts` directly, especially activity, dashboard trends/recent activity, approvals, settings, and team.
-- Filtering inputs are mostly presentational and do not yet drive query state or server-side filtering.
-- Rules are visible and evaluated, but customer-owned rule CRUD and policy templates are not yet a full workflow.
-- Team management is not a real invite, role, seat, or access-control product yet.
-- GitHub webhook processing is synchronous and narrow; it does not yet have a durable job queue, retry UI, check-run/status support, or broad event coverage.
-- AI attribution is heuristic and based on author/title/branch naming rather than configurable identities, labels, commit trailers, or bot mappings.
-- GitHub feedback is comment-oriented and not yet idempotent around updating a single managed comment or publishing check runs.
-- Billing exists as a boundary, but lacks full customer portal, cancellation, invoice, trial, downgrade, overage, and plan-change UX.
-- Observability, support diagnostics, admin tooling, and production incident workflows are not yet productized.
-- Test coverage needs to expand from deterministic units into route, integration, and end-to-end workflows.
+- CI/check status ingestion: `ciStatus` is always `unknown` — `check_suite`, `check_run`, and `workflow_run` webhook events are not yet processed into real CI state.
+- AI review model execution is intentionally disabled; the durable queue, guardrails, and output boundaries are in place but jobs skip instead of calling OpenRouter.
+- Notification delivery (email, Slack, webhook destinations) does not exist beyond auth/transactional email.
+- Approval queues by assignee, severity, or SLA are not built; reviewer assignment exists, queue views do not.
+- CODEOWNERS awareness is a `codeOwnerHint` string on rule templates, not real CODEOWNERS parsing or reviewer suggestions.
+- App list pages filter in memory after a single org-scoped fetch; DB-level filtering/pagination exists only on the admin lists.
+- Paid billing UX (upgrade prompts, trials, plan changes) is removed for the free launch; checkout/portal routes stay disabled unless `ENABLE_PAID_BILLING=true`.
+- Error tracking SaaS is absent (structured logs + Vercel Analytics only).
+- Test coverage is unit-focused (198 Vitest tests); route, integration, and end-to-end workflows are untested.
 
 ## 3. Product Principles
 
@@ -66,7 +73,7 @@ The first business-ready version should support this end-to-end flow:
 
 ## 5. Roadmap
 
-### Phase 1: Finish Live Data Surfaces
+### Phase 1: Finish Live Data Surfaces — ✅ shipped
 
 Goal:
 
@@ -87,7 +94,7 @@ Verification:
 - With no database in local development, the app still clearly identifies demo fallback behavior.
 - Activity, approvals, and dashboard trend pages no longer import `lib/demo-data.ts` directly.
 
-### Phase 2: Production-Grade GitHub Pipeline
+### Phase 2: Production-Grade GitHub Pipeline — ✅ shipped (CI/check status ingestion still open)
 
 Goal:
 
@@ -111,7 +118,7 @@ Verification:
 - CI status and close/merge state update correctly after GitHub events.
 - Failed jobs are visible and retryable.
 
-### Phase 3: Policy And Rules Product
+### Phase 3: Policy And Rules Product — largely shipped (CODEOWNERS awareness still hint-only)
 
 Goal:
 
@@ -134,7 +141,7 @@ Verification:
 - Pull request approval status is derived from current rules and decisions.
 - False positives can be reduced through configuration without hiding important signals.
 
-### Phase 4: Team Workflow And Collaboration
+### Phase 4: Team Workflow And Collaboration — partially shipped (queues + notifications open)
 
 Goal:
 
@@ -156,7 +163,7 @@ Verification:
 - Viewers cannot mutate settings or approval decisions.
 - Review queues help users find work without relying on raw pull request lists.
 
-### Phase 5: Reporting, Audit, And Compliance
+### Phase 5: Reporting, Audit, And Compliance — largely shipped (saved exports open)
 
 Goal:
 
@@ -177,7 +184,7 @@ Verification:
 - Audit export respects plan retention limits.
 - Trend charts are generated from persisted data, not static demo arrays.
 
-### Phase 6: Self-Serve Billing And Growth
+### Phase 6: Self-Serve Billing And Growth — built, dormant during free early access
 
 Goal:
 
@@ -199,7 +206,7 @@ Verification:
 - Users see clear upgrade paths when limits block an action.
 - Billing state is never purely mock-mode in production.
 
-### Phase 7: Trust, Operations, And Enterprise Later
+### Phase 7: Trust, Operations, And Enterprise Later — largely shipped (error tracking SaaS open)
 
 Goal:
 
@@ -227,35 +234,32 @@ Prioritized product upgrades:
 
 - Agent identity registry: let admins map GitHub users, bot accounts, labels, branch prefixes, and commit trailers to Cursor, Codex, Claude Code, Copilot, Devin, or custom agents. **(shipped — see `features/AI_GOVERNANCE.md`; explainable attribution engine + per-org registry)**
 - PR risk timeline: show how risk changed across pushes, tests, comments, approvals, and merges.
-- Managed GitHub check: publish pass/warn/fail status with links back to risk details and required approvals.
-- Review packet: summarize risky files, missing tests, policy hits, reviewer notes, and recommended next action.
-- Rule templates: one-click policies for startups, security-sensitive apps, billing systems, database-heavy repos, and infrastructure repos.
-- Policy simulator: test a new rule against recent PRs before enabling it.
+- Managed GitHub check: publish pass/warn/fail status with links back to risk details and required approvals. **(shipped — advisory check runs in `lib/github/output.ts`, entitlement-gated)**
+- Review packet: summarize risky files, missing tests, policy hits, reviewer notes, and recommended next action. **(shipped — `GET /api/pull-requests/:id/review-packet`)**
+- Rule templates: one-click policies for startups, security-sensitive apps, billing systems, database-heavy repos, and infrastructure repos. **(shipped — `lib/rule-templates.ts`)**
+- Policy simulator: test a new rule against recent PRs before enabling it. **(shipped as the policy-preview card on the repository rules page)**
 - Test recommendation workflow: convert detected test gaps into concrete requested tests and track whether later commits resolve them.
 - Approval SLA: show aging approvals, owner, reviewer, and escalation status.
 - Compliance export: package audit events for a date range or PR into a CSV/JSON bundle. **(AI-authorship evidence bundle shipped — `GET /api/compliance/authorship/export`; see `features/AI_GOVERNANCE.md`)**
 - Executive summary dashboard: weekly AI-assisted PRs, high-risk rate, approval latency, test-gap rate, and avoided-risk stories.
 - Developer feedback loop: let reviewers mark risk signals as useful/noisy to tune rules over time.
-- Support diagnostics: a workspace-level page showing connected app, last webhook, last sync, plan, usage, and recent failures.
+- Support diagnostics: a workspace-level page showing connected app, last webhook, last sync, plan, usage, and recent failures. **(shipped — `/api/diagnostics` + the `/admin/system` console)**
 
 ## 7. Suggested Implementation Order
 
-Start with the work that makes the current product feel real immediately:
+Of the original ten-step order, only one item remains open: **CI/check status
+ingestion** (everything else — live data surfaces, filters, invites, rule CRUD,
+durable jobs, managed comments/check runs, billing portal boundary, reporting —
+shipped). Work the remaining gaps in this order:
 
-1. Replace remaining direct demo imports on core pages with organization-scoped data.
-2. Add real activity and dashboard trend queries.
-3. Wire filters on pull requests, activity, audit, approvals, and repositories.
-4. Add team invites and role management.
-5. Add rule CRUD and templates.
-6. Add durable GitHub jobs and sync diagnostics.
-7. Add managed GitHub comments/check runs.
-8. Add CI/check status ingestion.
-9. Add billing portal and in-product limit upgrade prompts.
-10. Add reporting and compliance polish.
+1. CI/check status ingestion (`check_suite` / `check_run` / `workflow_run` → real `ciStatus`).
+2. Enable AI review model execution behind the existing guardrails when ready.
+3. Approval queue views (by assignee, severity, age) on top of existing assignment data.
+4. Notification delivery (start with email on approval-required and rule-violation events).
+5. DB-level filtering/pagination for app list pages as data volume grows.
 
-Recommended first implementation milestone:
-
-> A signed-in workspace owner can connect GitHub, sync real repositories, view real activity/trends, invite a teammate, configure a repository rule, review a risky PR, record an approval, and see the full timeline in audit history.
+The original first milestone — connect GitHub, sync, invite, configure a rule,
+review a risky PR, record an approval, see the audit timeline — **is achieved**.
 
 ## 8. Definition Of Done
 
@@ -272,12 +276,13 @@ For each productization feature:
 
 ## 9. Next Sprint Proposal
 
-The next sprint should be Phase 1:
+The original Phase 1 sprint (live data surfaces, filters, isolation tests) shipped.
+The next high-leverage sprint is **CI/check status ingestion**:
 
-- Add Prisma-backed activity queries.
-- Convert dashboard recent activity and trends from demo arrays to database-derived data.
-- Convert approvals and team/settings pages away from demo imports.
-- Wire query filters on pull requests, activity, audit log, and repositories.
-- Add regression tests for the new data access paths and cross-organization isolation.
+- Process `check_suite`, `check_run`, and `workflow_run` webhook events through the existing durable delivery queue.
+- Map check conclusions to `ciStatus` on pull requests instead of the current constant `unknown`.
+- Re-evaluate risk when CI state changes (risk scoring already accepts `ciStatus` as an input).
+- Add webhook fixture tests alongside `tests/github-webhook.test.ts`.
 
-This is the shortest path from "strong MVP" to "real product surface" because users will stop seeing static/demo sections while the existing GitHub, approval, audit, billing, and entitlement foundations remain intact.
+This closes the last Phase 2 gap, makes the existing `CiBadge` honest, and strengthens
+the deterministic risk signal — all without new product surface area.

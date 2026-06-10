@@ -1,7 +1,7 @@
 # System Design
 
 **Status:** `current`
-**Last verified:** 2026-05-31 (architecture and UI layers verified against code)
+**Last verified:** 2026-06-10 (architecture and UI layers verified against code)
 
 MergeAttest is a multi-tenant Next.js application that ingests GitHub pull request activity, runs deterministic governance signals, enforces plan entitlements, persists audit evidence, and exposes an operational UI for engineering teams.
 
@@ -83,7 +83,7 @@ flowchart TB
 
 | Layer         | Location                        | Responsibility                                                                                                                   |
 | ------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-mergeattest-pathname` header                               |
+| Edge gate     | `proxy.ts`                      | Session redirect, rate limits, security headers, CSRF on API mutations, `x-mergeattest-pathname` header                          |
 | Root layout   | `app/layout.tsx`                | Fonts, `ThemeProvider` (next-themes), `TooltipProvider`, `Toaster` (Sonner), `NuqsAdapter`, org context for shell, `globals.css` |
 | Shell routing | `components/app/root-shell.tsx` | Public routes vs authenticated `AppShell`                                                                                        |
 | App shell     | `components/app/app-shell.tsx`  | Sidebar, mobile drawer, plan/data-mode badges, skip link                                                                         |
@@ -153,9 +153,9 @@ These signals drive badges, dashboards, and approval requirements — not LLM ou
 
 ### 3. Approvals and audit
 
-Approval actions on PR detail pages call server paths guarded by role + plan entitlements (`lib/entitlements.ts`). Decisions update PR status, write `AuditEvent` rows, and optionally post GitHub comments/check runs when entitled.
+Approval decisions, reviewer assignment, and review notes are **server actions** in `app/pull-requests/actions.ts`, guarded by role (`lib/collaboration.ts`) + plan entitlements (`lib/entitlements.ts`). Decisions update PR status, write `AuditEvent` rows, and optionally post GitHub comments/check runs when entitled. AI-authored PRs under a `require_human_attestation` rule additionally record an immutable `Attestation` (`lib/attestation.ts`) when a reviewer signs off.
 
-Audit CSV export: `/api/audit-log/export` gated by `auditExport` entitlement and retention window (`lib/audit-export.ts`).
+Audit CSV export: `/api/audit-log/export` gated by `auditExport` entitlement and retention window (`lib/audit-export.ts`). AI-authorship ledger and compliance evidence export: `/api/compliance/authorship/export` (`lib/reporting.ts`, `lib/compliance-export.ts`), surfaced at `/reports`.
 
 ### 4. Billing and entitlements
 
@@ -230,7 +230,7 @@ Primitive rules:
 
 - Prefer a `components/ui/*` primitive over inline Radix or ad-hoc markup. The mobile nav drawer uses `Sheet`, not a raw `@radix-ui/react-dialog`.
 - Keep native `<select>` (`Select`) for uncontrolled forms that submit via `FormData`. A richer Radix Select is intentionally **deferred** to avoid empty-value and form-bubble regressions in core mutation flows.
-- `Toast` and `Tooltip` are **not built yet** (no `@radix-ui/react-tooltip` dependency); add them as tokened primitives when a real need lands.
+- Use the existing `Tooltip` and `Toaster` primitives for hover labels and mutation feedback — do not add a second toast or tooltip system.
 
 ### Shell and route classes
 
@@ -357,21 +357,24 @@ Job idempotency uses deterministic ids (`lib/jobs/queue.ts`). See [`operations/O
 
 ## Observability
 
-Structured JSON logs only (`lib/observability.ts`). Release context from `VERCEL_GIT_COMMIT_SHA` or `APP_VERSION`. No Sentry/PostHog integration in app code today.
+Structured JSON logs (`lib/observability.ts`) with release context from `VERCEL_GIT_COMMIT_SHA` or `APP_VERSION`, plus Vercel Analytics page analytics (`@vercel/analytics` mounted in `app/layout.tsx`). No Sentry-style error tracking or product analytics beyond that today.
 
 ## Key Module Index
 
-| Concern    | Primary modules                                                   |
-| ---------- | ----------------------------------------------------------------- |
-| Auth       | `lib/auth.ts`, `lib/auth/session.ts`, `lib/auth-client.ts`        |
-| Org data   | `lib/data/app-data.ts`                                            |
-| GitHub     | `lib/github.ts`, `lib/github-sync.ts`, `lib/github-webhooks.ts`   |
-| Governance | `lib/risk.ts`, `lib/test-gap.ts`, `lib/rules.ts`                  |
-| Approvals  | `lib/approvals.ts`                                                |
-| Billing    | `lib/billing.ts`, `lib/lemon-squeezy-webhooks.ts`, `lib/plans.ts` |
-| AI         | `lib/ai/*`, `lib/jobs/pr-review-*.ts`                             |
-| Email      | `lib/email.ts`                                                    |
-| Onboarding | `lib/onboarding.ts`                                               |
+| Concern      | Primary modules                                                       |
+| ------------ | --------------------------------------------------------------------- |
+| Auth         | `lib/auth.ts`, `lib/auth/session.ts`, `lib/auth-client.ts`            |
+| Org data     | `lib/data/app-data.ts`                                                |
+| GitHub       | `lib/github.ts`, `lib/github-sync.ts`, `lib/github-webhooks.ts`       |
+| Governance   | `lib/risk.ts`, `lib/test-gap.ts`, `lib/rules.ts`                      |
+| Attribution  | `lib/agents/attribution.ts`, `lib/agents/scorecard.ts`                |
+| Approvals    | `lib/approvals.ts`, `lib/attestation.ts`                              |
+| Team & roles | `lib/collaboration.ts`                                                |
+| Reporting    | `lib/reporting.ts`, `lib/compliance-export.ts`, `lib/audit-export.ts` |
+| Billing      | `lib/billing.ts`, `lib/lemon-squeezy-webhooks.ts`, `lib/plans.ts`     |
+| AI           | `lib/ai/*`, `lib/jobs/pr-review-*.ts`                                 |
+| Email        | `lib/email.ts`                                                        |
+| Onboarding   | `lib/onboarding.ts`                                                   |
 
 Full route and env reference: [`operations/SETUP.md`](operations/SETUP.md). HTTP API surface: [`features/API.md`](features/API.md).
 

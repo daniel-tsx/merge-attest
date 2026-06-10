@@ -1,7 +1,7 @@
 # Agent Start Here
 
 **Status:** `current`
-**Last verified:** 2026-05-31 (code, config, and test commands checked against repo)
+**Last verified:** 2026-06-10 (code, config, and test commands checked against repo)
 
 Read this file at the start of every non-trivial session, then follow the read order below.
 
@@ -40,29 +40,32 @@ MergeAttest is a **GitHub-native SaaS control center** for teams shipping AI-ass
 - OpenRouter BYOK storage, repository AI settings, durable PR review queue — **model execution intentionally not enabled yet**
 - Deterministic risk, test-gap, and rule evaluation (not LLM-based)
 - Explainable agent attribution (commit trailers, bot accounts, emails, branches) with a per-org identity registry (see `features/AI_GOVERNANCE.md`)
+- Reports at `/reports`: per-agent trust scorecards, AI-authorship ledger, compliance evidence export, and the human-attestation gate (`lib/attestation.ts`)
+- Team management: invites with expiration (`/settings/team` actions + `/api/team/invites/accept`), role checks in `lib/collaboration.ts`, reviewer assignment, and review notes
+- Rule CRUD with templates (`lib/rule-templates.ts`) and a policy-preview card on the repository rules page
 
-**Not implemented:** product analytics (PostHog/etc.), error tracking SaaS (Sentry/etc.), non-GitHub SCM, enterprise SSO/SCIM (see `strategy/ENTERPRISE_PLACEHOLDERS.md`).
+**Not implemented:** error tracking SaaS (Sentry/etc.), product analytics beyond Vercel Analytics (`@vercel/analytics` in `app/layout.tsx`), notification delivery (email/Slack alerts), non-GitHub SCM, enterprise SSO/SCIM (see `strategy/ENTERPRISE_PLACEHOLDERS.md`).
 
 ## Current Stack Truth
 
 Verified from `package.json`, `prisma/schema.prisma`, and integration modules:
 
-| Layer         | Choice                                                                             |
-| ------------- | ---------------------------------------------------------------------------------- |
-| App           | Next.js 16 App Router, React 19, TypeScript                                        |
-| Styling       | Tailwind CSS v4, local shadcn-style primitives in `components/ui/`                 |
-| URL state     | `nuqs` on filterable list pages                                                    |
-| Database      | PostgreSQL + Prisma 7 (`lib/generated/prisma`)                                     |
-| Auth          | Better Auth + `@better-auth/infra` dash plugin + Prisma adapter                    |
-| GitHub        | Octokit GitHub App (`lib/github.ts`, sync/webhook modules)                         |
-| Billing       | Lemon Squeezy (`lib/billing.ts`, `lib/lemon-squeezy-webhooks.ts`)                  |
-| Email         | Resend (`lib/email.ts`)                                                            |
-| AI            | OpenRouter BYOK (`lib/ai/openrouter.ts`) — advisory layer only                     |
-| Charts        | Recharts (client island)                                                           |
-| Tests         | Vitest (`tests/`, 198 tests)                                                       |
-| Auth gate     | `proxy.ts` (session cookie + rate limits + CSRF on mutations)                      |
-| Hosting       | Vercel-friendly (`VERCEL_GIT_COMMIT_SHA` in logs); no provider lock-in in app code |
-| Observability | Structured JSON logs in `lib/observability.ts` only                                |
+| Layer         | Choice                                                                              |
+| ------------- | ----------------------------------------------------------------------------------- |
+| App           | Next.js 16 App Router, React 19, TypeScript                                         |
+| Styling       | Tailwind CSS v4, local shadcn-style primitives in `components/ui/`                  |
+| URL state     | `nuqs` on filterable list pages                                                     |
+| Database      | PostgreSQL + Prisma 7 (`lib/generated/prisma`)                                      |
+| Auth          | Better Auth + `@better-auth/infra` dash plugin + Prisma adapter                     |
+| GitHub        | Octokit GitHub App (`lib/github.ts`, sync/webhook modules)                          |
+| Billing       | Lemon Squeezy (`lib/billing.ts`, `lib/lemon-squeezy-webhooks.ts`)                   |
+| Email         | Resend (`lib/email.ts`)                                                             |
+| AI            | OpenRouter BYOK (`lib/ai/openrouter.ts`) — advisory layer only                      |
+| Charts        | Recharts (client island)                                                            |
+| Tests         | Vitest (`tests/`, 198 tests)                                                        |
+| Auth gate     | `proxy.ts` (session cookie + rate limits + CSRF on mutations)                       |
+| Hosting       | Vercel-friendly (`VERCEL_GIT_COMMIT_SHA` in logs); no provider lock-in in app code  |
+| Observability | Structured JSON logs (`lib/observability.ts`) + Vercel Analytics (`app/layout.tsx`) |
 
 Package manager: **pnpm** (`packageManager` field in `package.json`).
 
@@ -73,8 +76,9 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 | Product maturity | Real auth, Prisma, webhooks, billing boundaries                     | `archive/implementation/PRODUCTIZATION_PLAN.md` describes demo-only MVP | Historical only                                 |
 | Launch blockers  | Many P0 fixes may be landed since review                            | `archive/reviews/LAUNCH_READINESS_REVIEW.md` (2026-05-02)               | Re-verify security claims in code before citing |
 | AI reviews       | Worker skips after guardrails: "model execution is not enabled yet" | Some ops docs imply live AI output                                      | Check `lib/jobs/pr-review-worker.ts`            |
-| Test command     | `pnpm exec vitest run tests` passes                                 | `pnpm test` also runs stale Paddle tests under `.claude/worktrees/`     | Prefer scoped test run until worktrees excluded |
 | Production auth  | `validateProductionEnv()` requires `BETTER_AUTH_API_KEY`            | `.env.example` lists it without "required in prod" emphasis             | Required in production per `lib/env.ts`         |
+
+Resolved 2026-06-10: `pnpm test` no longer picks up stale worktree tests — `vitest.config.ts` excludes `**/.claude/**`, so `pnpm test` and `pnpm exec vitest run tests` are equivalent.
 
 ## Source-of-Truth Map
 
@@ -87,7 +91,9 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 | Test gaps            | `lib/test-gap.ts`                                                                                                         | `architecture/governance-architecture.html`                            | `tests/test-gap.test.ts`                                                            |
 | Rules                | `lib/rules.ts`, `lib/rule-templates.ts`                                                                                   | `architecture/governance-architecture.html`                            | `tests/rules.test.ts`                                                               |
 | Agent attribution    | `lib/agents/attribution.ts`, `app/settings/agents/**`, wired in `lib/github-sync.ts`                                      | `features/AI_GOVERNANCE.md`                                            | `tests/attribution.test.ts`; `AgentIdentityRule` + PR `attribution*` fields         |
-| Approvals            | `lib/approvals.ts`, `app/api/pull-requests/[id]/approval/`                                                                | `features/API.md`                                                      | `tests/approvals.test.ts`                                                           |
+| Approvals            | `lib/approvals.ts`, server actions in `app/pull-requests/actions.ts`                                                      | `features/API.md`                                                      | `tests/approvals.test.ts`; attestation gate via `lib/attestation.ts`                |
+| Team & collaboration | `lib/collaboration.ts`, `app/settings/team/actions.ts`, `app/api/team/invites/accept/`                                    | `features/API.md`                                                      | `tests/collaboration.test.ts`; invites, roles, reviewer assignment, notes           |
+| Reports & compliance | `lib/reporting.ts`, `lib/agents/scorecard.ts`, `lib/compliance-export.ts`, `app/reports/**`                               | `features/AI_GOVERNANCE.md`                                            | `tests/reporting.test.ts`, `tests/scorecard.test.ts`, `tests/authorship.test.ts`    |
 | GitHub integration   | `lib/github.ts`, `lib/github-sync.ts`, `lib/github-webhooks.ts`, `app/api/github/**`                                      | `architecture/github-integration-architecture.html`                    | Webhook + job runner pattern                                                        |
 | Billing              | `lib/billing.ts`, `lib/plans.ts`, `lib/lemon-squeezy-webhooks.ts`, `app/api/billing/**`, `app/api/lemon-squeezy/webhook/` | `architecture/billing-and-entitlements-architecture.html`              | Paddle fully removed from schema                                                    |
 | Entitlements & usage | `lib/entitlements.ts`, `lib/usage.ts`                                                                                     | `architecture/billing-and-entitlements-architecture.html`              | Enforced server-side                                                                |
@@ -168,6 +174,7 @@ Source: `.env.example` + `lib/env.ts` + module readers. `✓` = required in prod
 | `DATABASE_URL` ✓                            | PostgreSQL connection                                  |
 | `BETTER_AUTH_SECRET` ✓                      | Auth signing secret                                    |
 | `BETTER_AUTH_URL` ✓                         | Public app URL for auth                                |
+| `NEXT_PUBLIC_SITE_URL`                      | Canonical URL for SEO/sitemap (falls back to auth URL) |
 | `BETTER_AUTH_API_KEY` ✓                     | Better Auth Infra dash plugin                          |
 | `BETTER_AUTH_API_URL`                       | Better Auth Infra override                             |
 | `BETTER_AUTH_KV_URL`                        | Better Auth Infra KV                                   |

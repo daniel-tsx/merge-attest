@@ -1,15 +1,16 @@
 # MergeAttest UI Revamp Plan
 
-**Status:** `shipped` — phases 1–9 delivered on the `ui-revamp` branch; Phase 6b
-(table scan interactions) and React `<ViewTransition>` deferred (see notes).
-**Location:** `docs/strategy/UI_REVAMP_PLAN.md`
-**Created:** 2026-05-31
+**Status:** `shipped` / `historical` — phases 1–9 delivered (Phase 6b landed on the
+pull request monitor); remaining deferrals are tracked in
+`docs/features/DESIGN_SYSTEM.md` → "Deferred on purpose".
+**Location:** `docs/archive/ui/UI_REVAMP_PLAN.md`
+**Created:** 2026-05-31 · **Archived:** 2026-06-10
 
 ## Goal
 
 Elevate MergeAttest from a polished operational UI to a premium, enterprise-grade
 control center — without breaking the disciplined, flat, Linear-influenced
-design DNA documented in [`../features/DESIGN_SYSTEM.md`](../features/DESIGN_SYSTEM.md).
+design DNA documented in [`../../features/DESIGN_SYSTEM.md`](../../features/DESIGN_SYSTEM.md).
 
 ## Direction decisions (confirmed with owner)
 

@@ -2,6 +2,7 @@
 
 **Status:** `current`
 **Location:** `docs/features/ADMIN.md`
+**Last verified:** 2026-06-10
 
 A cross-tenant operator console at `/admin` for the SaaS operator. It is distinct from the per-organization `OrganizationRole.admin` (admin _within one workspace_): the platform admin sees data across **every** organization.
 

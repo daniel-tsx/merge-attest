@@ -2,8 +2,9 @@
 
 **Status:** `current`
 **Location:** `docs/features/API.md`
+**Last verified:** 2026-06-10
 
-MergeAttest exposes a small set of operational and integration endpoints.
+MergeAttest exposes a small set of operational and integration endpoints. In-app mutations (approvals, reviewer assignment, review notes, team and invite management, rule CRUD, agent registry, AI settings) are **server actions** colocated with their routes — they are not part of this HTTP surface.
 
 ## Health And Diagnostics
 
@@ -14,10 +15,25 @@ MergeAttest exposes a small set of operational and integration endpoints.
 - `POST /api/jobs/pr-reviews`: bearer-authenticated job runner for queued AI pull request reviews. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 - `POST /api/jobs/retention`: bearer-authenticated retention cleanup runner. Requires `Authorization: Bearer $JOB_RUNNER_SECRET`.
 
+## GitHub Integration
+
+- `GET /api/github/installation`: GitHub App setup callback; verifies the signed `state` parameter and installation metadata, stores `installation_id` on the current organization, and redirects to GitHub settings.
+- `POST /api/github/sync/repositories`: owner/admin manual repository sync for the current installation.
+- `POST /api/github/sync/repositories/:id`: owner/admin pull request sync for one repository.
+- `POST /api/github/backfill`: owner/admin backfill for stale repositories that missed webhook events.
+- `POST /api/github/webhook/retry`: owner/admin retry of queued/failed webhook deliveries for the current organization.
+- `POST /api/github/comment`: demo-only comment helper; returns a stub response without live credentials.
+
 ## Webhooks
 
 - `POST /api/github/webhook`: GitHub webhook receiver. Requires a valid GitHub signature in production.
 - `POST /api/lemon-squeezy/webhook`: Lemon Squeezy webhook receiver. Requires Lemon Squeezy webhook verification.
+
+## Team And Onboarding
+
+- `GET /api/team/invites/accept?token=…`: invite acceptance landing; validates the single-use invite token.
+- `POST /api/team/invites/accept`: accepts the invite for the signed-in user and adds the membership.
+- `POST /api/onboarding/organization`: ensures the signed-in user has an organization and returns it.
 
 ## Billing
 

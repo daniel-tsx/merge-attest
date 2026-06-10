@@ -1,7 +1,7 @@
 # Setup and Architecture
 
 **Status:** `current`
-**Last verified:** 2026-05-31
+**Last verified:** 2026-06-10
 
 Agent onboarding entry: `docs/AGENT_START_HERE.md`
 
@@ -15,7 +15,7 @@ Agent onboarding entry: `docs/AGENT_START_HERE.md`
 - Octokit GitHub App service boundary
 - OpenRouter BYOK AI review provider boundary
 - Lemon Squeezy billing service boundary (dormant during free early access)
-- React Hook Form and Zod for validated forms
+- Zod-validated server actions with uncontrolled `FormData` forms
 - Recharts dashboards
 - Vitest unit tests
 
@@ -40,7 +40,7 @@ GitHub App setup uses `GITHUB_APP_SLUG` to link to the installation screen. Conf
 
 The GitHub webhook endpoint at `/api/github/webhook` verifies signatures, records delivery ids for idempotency, resolves the organization from `installation.id`, and processes pull request plus installation repository events through the sync pipeline.
 
-Approval decisions on pull request detail pages are persisted through `/api/pull-requests/[id]/approval`, update the pull request approval status, write audit events, and post GitHub comments/check runs when live installation credentials and plan entitlements are available.
+Approval decisions on pull request detail pages are persisted through the `recordApprovalDecision` server action in `app/pull-requests/actions.ts`, update the pull request approval status, write audit events, record human attestations when required by rule, and post GitHub comments/check runs when live installation credentials and plan entitlements are available. Reviewer assignment and review notes are server actions in the same module.
 
 Plan entitlements are defined in `lib/entitlements.ts` and enforced in server paths. During free early access, the `free` plan enables all feature flags and is capped by numeric limits only: 3 connected repositories, 200 PR checks/month, and 7-day audit retention. GitHub sync records monthly `pr_checks` usage, stops processing new checks or repositories when the current plan limit is reached, and only publishes GitHub check runs for plans with GitHub output enabled.
 
@@ -82,9 +82,9 @@ pnpm build
 
 ## Key Routes
 
+- `/` (public landing; `/privacy` and `/terms` legal pages)
+- `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`
 - `/dashboard`
-- `/forgot-password`
-- `/reset-password`
 - `/repositories`
 - `/repositories/[id]`
 - `/repositories/[id]/ai`
@@ -94,9 +94,11 @@ pnpm build
 - `/activity`
 - `/approvals`
 - `/audit-log`
+- `/reports` (agent trust scorecards + AI-authorship ledger)
 - `/settings`
 - `/settings/team`
 - `/settings/github`
+- `/settings/agents` (agent identity registry)
 - `/settings/ai`
 - `/settings/billing` (plan and launch limits)
 - `/settings/usage`
@@ -123,6 +125,10 @@ pnpm build
 - `lib/ai/credentials.ts`, `lib/ai/openrouter.ts`, `lib/ai/settings.ts`, and `lib/ai/review.ts`: encrypted OpenRouter BYOK storage, key verification, repository AI review settings, and AI response validation.
 - `lib/github/diff.ts` and `lib/github/output.ts`: PR diff filtering, changed-line validation support, managed AI review comments, inline review publishing, and advisory check-run output.
 - `lib/approvals.ts`: approval decision validation and status/audit mapping.
+- `lib/attestation.ts`: human-accountability gate for AI-authored pull requests (rule-driven attestation requirements).
+- `lib/collaboration.ts`: organization role permissions, invite lifecycle, reviewer assignment, and review note validation.
+- `lib/agents/attribution.ts` and `lib/agents/scorecard.ts`: explainable agent attribution and per-agent trust scorecards.
+- `lib/reporting.ts` and `lib/compliance-export.ts`: AI-authorship ledger, signal trends, and compliance evidence bundles.
 - `lib/admin/access.ts`, `lib/admin/admin-data.ts`, `lib/admin/metrics.ts`: platform admin gating (`ADMIN_EMAILS`), the only cross-tenant data module, and pure analytics helpers (see `features/ADMIN.md`).
 - `lib/billing.ts` and `lib/plans.ts`: paid billing enablement, Lemon Squeezy checkout/customer portal boundary, and plan metadata.
 - `lib/entitlements.ts` and `lib/usage.ts`: numeric plan limits and monthly PR check metering.

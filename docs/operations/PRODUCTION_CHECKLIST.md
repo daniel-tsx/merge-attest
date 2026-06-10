@@ -2,6 +2,7 @@
 
 **Status:** `current`
 **Location:** `docs/operations/PRODUCTION_CHECKLIST.md`
+**Last verified:** 2026-06-10
 
 Use this checklist before running MergeAttest for customer work.
 

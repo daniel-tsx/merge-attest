@@ -2,6 +2,7 @@
 
 **Status:** `current`
 **Location:** `docs/operations/PRIVACY_RETENTION_SUPPORT.md`
+**Last verified:** 2026-06-10
 
 ## Customer Data
 

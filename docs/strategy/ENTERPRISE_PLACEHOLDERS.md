@@ -2,6 +2,7 @@
 
 **Status:** `current` (planning)
 **Location:** `docs/strategy/ENTERPRISE_PLACEHOLDERS.md`
+**Last verified:** 2026-06-10
 
 These capabilities are intentionally deferred until there is clear customer demand.
 

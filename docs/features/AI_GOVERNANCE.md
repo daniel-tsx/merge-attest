@@ -1,7 +1,7 @@
 # AI Authorship Governance
 
 **Status:** `current`
-**Last verified:** 2026-06-04 (code verified against repo)
+**Last verified:** 2026-06-10 (code verified against repo)
 
 MergeAttest's differentiator is being the **system of record for AI authorship** — answering
 _which AI agent wrote this change, how confident are we, and what is the evidence_. This doc
