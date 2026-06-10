@@ -224,4 +224,4 @@ Phase 1 first (gating). Then: **1 → 3 → 2 → 5 → 4 → 6 → 7 → 8 → 
 
 - Theming: `next-themes` or a minimal custom provider.
 - `@radix-ui/react-tooltip`, `sonner` (or `@radix-ui/react-toast`), `cmdk`.
-- Note: `@tanstack/react-query` is installed but unused — out of scope here.
+- Note: `@tanstack/react-query` was removed (2026-06-10, unused) — out of scope here.

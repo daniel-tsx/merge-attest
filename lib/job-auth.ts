@@ -1,4 +1,14 @@
+import { timingSafeEqual } from 'node:crypto'
 import { isProduction } from '@/lib/env'
+
+function safeEqual(left: string, right: string) {
+  const leftBuffer = Buffer.from(left, 'utf8')
+  const rightBuffer = Buffer.from(right, 'utf8')
+  return (
+    leftBuffer.length === rightBuffer.length &&
+    timingSafeEqual(leftBuffer, rightBuffer)
+  )
+}
 
 export function authorizeJobRequest(request: Request) {
   const secret = process.env.JOB_RUNNER_SECRET?.trim()
@@ -17,7 +27,7 @@ export function authorizeJobRequest(request: Request) {
     ? authorization.slice('Bearer '.length)
     : null
 
-  return token === secret
+  return token !== null && safeEqual(token, secret)
     ? { ok: true as const }
     : { ok: false as const, status: 401, message: 'Invalid job runner token.' }
 }

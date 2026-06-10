@@ -1048,6 +1048,13 @@ export function mapGitHubWebhookDiagnostic(
   }
 }
 
+// Pull requests, activity, and audit rows accumulate for the life of an
+// organization, so every org-scoped list read is bounded: lists, dashboard
+// metrics, and exports cover the most recent rows, never the whole table.
+const PR_LIST_LIMIT = 1000
+const REPOSITORY_PR_DETAIL_LIMIT = 100
+const IN_MEMORY_FILTER_SCAN_LIMIT = 1000
+
 // Relations every PR list consumer renders (tables, dashboards, exports).
 // Files, risk signals, test-gap details, and comments are detail-only — see
 // `pullRequestDetailInclude` — so org-wide list queries stay lean.
@@ -1296,6 +1303,7 @@ export async function listPullRequests(
         },
         include: pullRequestListInclude,
         orderBy: { updatedAt: 'desc' },
+        take: PR_LIST_LIMIT,
       })
       return applyPullRequestFilters(rows.map(mapPullRequest), filters)
     },
@@ -1316,6 +1324,7 @@ export async function getRepositoryPullRequests(
         where: { organizationId, repositoryId },
         include: pullRequestDetailInclude,
         orderBy: { updatedAt: 'desc' },
+        take: REPOSITORY_PR_DETAIL_LIMIT,
       })
       return rows.map(mapPullRequest)
     },
@@ -1358,9 +1367,11 @@ export async function listActivityEvents(
         },
         include: { repository: true, pullRequest: true },
         orderBy: { timestamp: 'desc' },
-        // The free-text query still filters in memory, so the row limit can
-        // only be pushed down when it is absent.
-        take: normalizeFilter(filters.query) ? undefined : filters.take,
+        // The free-text query still filters in memory, so it scans a bounded
+        // window of the most recent rows instead of the whole table.
+        take: normalizeFilter(filters.query)
+          ? Math.max(filters.take ?? 0, IN_MEMORY_FILTER_SCAN_LIMIT)
+          : (filters.take ?? IN_MEMORY_FILTER_SCAN_LIMIT),
       })
       return applyActivityFilters(rows.map(mapActivityEvent), filters)
     },
@@ -1399,7 +1410,8 @@ export async function listAuditEvents(
           : (filters.from ?? filters.since)
       const actor = dbFilterValue(filters.actor)
       // Free-text query, PR number, and metadata severity still filter in
-      // memory, so the row limit can only be pushed down when they are absent.
+      // memory, so they scan a bounded window of the most recent rows; the
+      // requested limit is pushed down when they are absent.
       const limitInDatabase =
         !normalizeFilter(filters.query) &&
         !dbFilterValue(filters.pullRequestNumber) &&
@@ -1420,7 +1432,9 @@ export async function listAuditEvents(
         },
         include: { repository: true, pullRequest: true },
         orderBy: { createdAt: 'desc' },
-        take: limitInDatabase ? filters.take : undefined,
+        take: limitInDatabase
+          ? (filters.take ?? IN_MEMORY_FILTER_SCAN_LIMIT)
+          : Math.max(filters.take ?? 0, IN_MEMORY_FILTER_SCAN_LIMIT),
       })
       return applyAuditEventFilters(rows.map(mapAuditEvent), filters)
     },

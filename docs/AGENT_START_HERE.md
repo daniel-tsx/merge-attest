@@ -68,14 +68,13 @@ Package manager: **pnpm** (`packageManager` field in `package.json`).
 
 ## Known Documentation Drift
 
-| Topic            | Code truth                                                          | Stale doc claim                                                         | Action                                                |
-| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------- |
-| Product maturity | Real auth, Prisma, webhooks, billing boundaries                     | `archive/implementation/PRODUCTIZATION_PLAN.md` describes demo-only MVP | Historical only                                       |
-| Launch blockers  | Many P0 fixes may be landed since review                            | `archive/reviews/LAUNCH_READINESS_REVIEW.md` (2026-05-02)               | Re-verify security claims in code before citing       |
-| AI reviews       | Worker skips after guardrails: "model execution is not enabled yet" | Some ops docs imply live AI output                                      | Check `lib/jobs/pr-review-worker.ts`                  |
-| Test command     | `pnpm exec vitest run tests` passes                                 | `pnpm test` also runs stale Paddle tests under `.claude/worktrees/`     | Prefer scoped test run until worktrees excluded       |
-| Production auth  | `validateProductionEnv()` requires `BETTER_AUTH_API_KEY`            | `.env.example` lists it without "required in prod" emphasis             | Required in production per `lib/env.ts`               |
-| React Query      | `@tanstack/react-query` in dependencies                             | `features/DESIGN_SYSTEM.md` says unused                                 | Unused in app code; dependency may be removable later |
+| Topic            | Code truth                                                          | Stale doc claim                                                         | Action                                          |
+| ---------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------- |
+| Product maturity | Real auth, Prisma, webhooks, billing boundaries                     | `archive/implementation/PRODUCTIZATION_PLAN.md` describes demo-only MVP | Historical only                                 |
+| Launch blockers  | Many P0 fixes may be landed since review                            | `archive/reviews/LAUNCH_READINESS_REVIEW.md` (2026-05-02)               | Re-verify security claims in code before citing |
+| AI reviews       | Worker skips after guardrails: "model execution is not enabled yet" | Some ops docs imply live AI output                                      | Check `lib/jobs/pr-review-worker.ts`            |
+| Test command     | `pnpm exec vitest run tests` passes                                 | `pnpm test` also runs stale Paddle tests under `.claude/worktrees/`     | Prefer scoped test run until worktrees excluded |
+| Production auth  | `validateProductionEnv()` requires `BETTER_AUTH_API_KEY`            | `.env.example` lists it without "required in prod" emphasis             | Required in production per `lib/env.ts`         |
 
 ## Source-of-Truth Map
 

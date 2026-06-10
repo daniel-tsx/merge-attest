@@ -173,7 +173,7 @@ Phase 6 adds a few code-level performance rules:
 - Dashboard trend data should be derived from the already-loaded pull request list instead of issuing a second equivalent pull request query.
 - Loading skeletons should reserve roughly the same structure as the final page; dashboard loading uses eight metric placeholders to match the dashboard grid.
 - Keep Recharts isolated behind the dynamic chart client island unless a future profiling pass proves a different chart strategy is needed.
-- `@tanstack/react-query` remains unused; remove it only after confirming no near-term client data-fetching provider is planned.
+- `@tanstack/react-query` was removed (2026-06-10) after confirming no client data-fetching provider is in use; reintroduce it only with a concrete need.
 
 ## Accessibility And Quality Patterns
 
