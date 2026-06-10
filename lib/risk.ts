@@ -12,13 +12,14 @@ export type RiskInput = {
 }
 
 const TEST_FILE_PATTERN =
-  /(^|\/)(tests?|__tests__|e2e|specs?)\/|(\.|-)(test|spec|e2e)\.[tj]sx?$/i
-const AUTH_PATTERN = /(auth|session|permission|policy|acl|rbac|middleware)/i
+  /(^|\/)(tests?|__tests__|e2e|specs?)\/|\.tests?\/|(\.|-)(test|spec|e2e)\.[tj]sx?$|_(test|spec)\.(go|py|rb)$|(^|\/)test_[^/]+\.py$/i
+const AUTH_PATTERN =
+  /(auth(?!or(s|ship)?\b|or[_-])|session|permission|policy|acl|rbac|middleware)/i
 const BILLING_PATTERN =
   /(billing|invoice|subscription|stripe|lemonsqueezy|lemon-squeezy|payment|checkout)/i
 const MIGRATION_PATTERN = /(prisma\/migrations|migrations\/|schema\.prisma)/i
 const INFRA_PATTERN =
-  /(^|\/)(Dockerfile|docker-compose|\.github\/workflows|terraform|infra|k8s|helm|vercel\.json|next\.config|env)/i
+  /(^|\/)(Dockerfile|docker-compose|\.github\/workflows|terraform|infra|k8s|helm|vercel\.json|next\.config|\.?env(\.|\/|$))/i
 const DEP_PATTERN =
   /(^|\/)(package\.json|pnpm-lock\.yaml|yarn\.lock|package-lock\.json|requirements\.txt|go\.mod|Cargo\.toml)$/i
 const API_PATTERN =
@@ -71,13 +72,14 @@ export function calculateRisk(input: RiskInput) {
   const dependencyFiles = pathsMatching(files, DEP_PATTERN)
   const infraFiles = pathsMatching(files, INFRA_PATTERN)
   const apiFiles = pathsMatching(files, API_PATTERN)
-  const securityPackageFiles = dependencyFiles.filter((path) => {
-    const file = files.find((item) => item.path === path)
-    return file
-      ? SECURITY_PACKAGE_PATTERN.test(file.path) ||
-          file.additions + file.deletions > 20
-      : false
-  })
+  const securityPackageFiles = files
+    .filter(
+      (file) =>
+        DEP_PATTERN.test(file.path) &&
+        (SECURITY_PACKAGE_PATTERN.test(file.path) ||
+          file.additions + file.deletions > 20),
+    )
+    .map((file) => file.path)
 
   if (input.aiAssisted)
     signals.push(signal('ai_assisted', 'AI-assisted pull request', 10))

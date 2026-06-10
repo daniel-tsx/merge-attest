@@ -186,35 +186,6 @@ export async function listGitHubPullRequestCommits(repository: {
   return response.data
 }
 
-export async function syncPullRequests(repository: {
-  owner: string
-  name: string
-  installationId?: string
-}) {
-  const octokit = getInstallationOctokit(repository.installationId)
-  if (!octokit) {
-    return {
-      mode: 'demo' as const,
-      message:
-        'GitHub credentials are missing; using seeded demo pull requests.',
-      pullRequests: [],
-    }
-  }
-
-  const response = await octokit.rest.pulls.list({
-    owner: repository.owner,
-    repo: repository.name,
-    state: 'all',
-    per_page: 50,
-  })
-
-  return {
-    mode: 'live' as const,
-    message: `Synced ${response.data.length} pull requests from GitHub.`,
-    pullRequests: response.data,
-  }
-}
-
 export async function postPullRequestComment(
   pr: Pick<PullRequest, 'number' | 'repositoryName'> & {
     owner?: string

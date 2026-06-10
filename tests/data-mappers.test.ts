@@ -166,6 +166,47 @@ describe('Prisma data mappers', () => {
     expect(result.aiReviewJobs[0].status).toBe('blocked')
   })
 
+  it('maps trimmed list rows without detail-only relations', () => {
+    const date = new Date('2026-05-01T00:00:00.000Z')
+    const result = mapPullRequest({
+      id: 'pr-2',
+      repositoryId: 'repo-1',
+      repository: { name: 'mergeattest' },
+      number: 13,
+      title: 'Tidy reporting',
+      author: 'maya',
+      headSha: null,
+      branch: 'chore/reporting',
+      baseBranch: 'main',
+      status: 'open',
+      aiAssisted: false,
+      agentSource: 'manual',
+      attributionConfidence: 0,
+      attributionEvidence: [],
+      riskScore: 10,
+      riskLevel: 'low',
+      testGapStatus: 'none',
+      ciStatus: 'passing',
+      approvalStatus: 'not_required',
+      filesChangedCount: 2,
+      linesAdded: 8,
+      linesDeleted: 1,
+      assignedReviewerId: null,
+      reviewDueAt: null,
+      createdAt: date,
+      updatedAt: date,
+      assignedReviewer: null,
+      ruleViolations: [],
+      approvals: [],
+    })
+
+    expect(result.files).toEqual([])
+    expect(result.riskSignals).toEqual([])
+    expect(result.comments).toEqual([])
+    expect(result.aiReviewJobs).toEqual([])
+    expect(result.testGapAnalysis.status).toBe('none')
+  })
+
   it('maps webhook delivery diagnostics for GitHub settings', () => {
     const date = new Date('2026-05-01T00:00:00.000Z')
     const result = mapGitHubWebhookDiagnostic({

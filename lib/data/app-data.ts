@@ -3,7 +3,6 @@ import { organization as demoOrganization } from '@/lib/demo-data'
 import {
   activityEvents as demoActivityEvents,
   auditEvents as demoAuditEvents,
-  trendData as demoTrendData,
   getPullRequest as getDemoPullRequest,
   getRepository as getDemoRepository,
   getRepositoryPullRequests as getDemoRepositoryPullRequests,
@@ -185,20 +184,20 @@ type PullRequestRow = {
   createdAt: Date
   updatedAt: Date
   assignedReviewer: { id: string; name: string; email: string } | null
-  files: Array<{
+  files?: Array<{
     path: string
     additions: number
     deletions: number
     changeType: string
   }>
-  riskSignals: Array<{
+  riskSignals?: Array<{
     key: string
     label: string
     score: number
     level: string
     filePaths: unknown
   }>
-  testGapAnalysis: {
+  testGapAnalysis?: {
     status: string
     summary: string
     affectedFiles: unknown
@@ -224,7 +223,7 @@ type PullRequestRow = {
     createdAt: Date
     reviewer: { name: string; email: string } | null
   }>
-  comments: Array<{
+  comments?: Array<{
     id: string
     body: string
     createdAt: Date
@@ -422,6 +421,18 @@ function recordFromJson(
 function normalizeFilter(value: string | undefined) {
   const trimmed = value?.trim().toLowerCase()
   return trimmed || undefined
+}
+
+/**
+ * Filter value for a Prisma `where` clause. Page filters use `''`/`'all'` as
+ * "no filter", which must become `undefined` before reaching the database —
+ * enum columns reject `'all'` outright and string columns would match nothing.
+ * Preserves the original casing for id-valued filters.
+ */
+function dbFilterValue(value: string | undefined) {
+  const trimmed = value?.trim()
+  if (!trimmed || trimmed.toLowerCase() === 'all') return undefined
+  return trimmed
 }
 
 function includesQuery(
@@ -904,7 +915,7 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
       : undefined,
     reviewDueAt: row.reviewDueAt ? toIso(row.reviewDueAt) : undefined,
     reviewSlaStatus: getReviewSlaStatus(row.reviewDueAt),
-    files: row.files.map(
+    files: (row.files ?? []).map(
       (file): PullRequestFileInput => ({
         path: file.path,
         additions: file.additions,
@@ -912,7 +923,7 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
         changeType: file.changeType as PullRequestFileInput['changeType'],
       }),
     ),
-    riskSignals: row.riskSignals.map(
+    riskSignals: (row.riskSignals ?? []).map(
       (signal): RiskSignal => ({
         key: signal.key,
         label: signal.label,
@@ -948,7 +959,7 @@ export function mapPullRequest(row: PullRequestRow): PullRequest {
       note: approval.note ?? '',
       createdAt: toIso(approval.createdAt),
     })),
-    comments: row.comments.map((comment) => ({
+    comments: (row.comments ?? []).map((comment) => ({
       id: comment.id,
       author:
         comment.author?.name ?? comment.author?.email ?? 'Unknown teammate',
@@ -1037,22 +1048,14 @@ export function mapGitHubWebhookDiagnostic(
   }
 }
 
-const pullRequestBaseInclude = {
+// Relations every PR list consumer renders (tables, dashboards, exports).
+// Files, risk signals, test-gap details, and comments are detail-only — see
+// `pullRequestDetailInclude` — so org-wide list queries stay lean.
+const pullRequestListInclude = {
   repository: true,
   assignedReviewer: true,
-  files: true,
-  riskSignals: true,
-  testGapAnalysis: { include: { suggestions: true } },
   ruleViolations: { include: { rule: true } },
   approvals: { include: { reviewer: true } },
-  comments: {
-    include: { author: true },
-    orderBy: { createdAt: 'desc' as const },
-  },
-}
-
-const pullRequestListInclude = {
-  ...pullRequestBaseInclude,
   aiReviewJobs: {
     orderBy: { createdAt: 'desc' as const },
     take: 1,
@@ -1060,7 +1063,14 @@ const pullRequestListInclude = {
 }
 
 const pullRequestDetailInclude = {
-  ...pullRequestBaseInclude,
+  ...pullRequestListInclude,
+  files: true,
+  riskSignals: true,
+  testGapAnalysis: { include: { suggestions: true } },
+  comments: {
+    include: { author: true },
+    orderBy: { createdAt: 'desc' as const },
+  },
   aiReviewJobs: {
     orderBy: { createdAt: 'desc' as const },
     take: 5,
@@ -1268,8 +1278,22 @@ export async function listPullRequests(
 ) {
   return queryWithDemoFallback(
     async (client) => {
+      const assigneeId = dbFilterValue(filters.assigneeId)
       const rows = await client.pullRequest.findMany({
-        where: { organizationId },
+        where: {
+          organizationId,
+          repositoryId: dbFilterValue(filters.repositoryId),
+          riskLevel: dbFilterValue(filters.riskLevel) as
+            | PullRequest['riskLevel']
+            | undefined,
+          agentSource: dbFilterValue(filters.agentSource) as
+            | PullRequest['agentSource']
+            | undefined,
+          approvalStatus: dbFilterValue(filters.approvalStatus) as
+            | PullRequest['approvalStatus']
+            | undefined,
+          assignedReviewerId: assigneeId === 'unassigned' ? null : assigneeId,
+        },
         include: pullRequestListInclude,
         orderBy: { updatedAt: 'desc' },
       })
@@ -1280,6 +1304,8 @@ export async function listPullRequests(
   )
 }
 
+// Repository-scoped reads keep the detail relations: the rules page previews
+// rule matches against recent PR files and risk signals.
 export async function getRepositoryPullRequests(
   organizationId: string,
   repositoryId: string,
@@ -1288,7 +1314,7 @@ export async function getRepositoryPullRequests(
     async (client) => {
       const rows = await client.pullRequest.findMany({
         where: { organizationId, repositoryId },
-        include: pullRequestListInclude,
+        include: pullRequestDetailInclude,
         orderBy: { updatedAt: 'desc' },
       })
       return rows.map(mapPullRequest)
@@ -1321,32 +1347,25 @@ export async function listActivityEvents(
       const rows = await client.agentActivity.findMany({
         where: {
           organizationId,
-          repositoryId: filters.repositoryId,
-          pullRequestId: filters.pullRequestId,
+          repositoryId: dbFilterValue(filters.repositoryId),
+          pullRequestId: dbFilterValue(filters.pullRequestId),
+          agentSource: dbFilterValue(filters.agentSource) as
+            | ActivityEvent['agentSource']
+            | undefined,
+          eventType: dbFilterValue(filters.eventType) as
+            | ActivityEvent['eventType']
+            | undefined,
         },
         include: { repository: true, pullRequest: true },
         orderBy: { timestamp: 'desc' },
+        // The free-text query still filters in memory, so the row limit can
+        // only be pushed down when it is absent.
+        take: normalizeFilter(filters.query) ? undefined : filters.take,
       })
       return applyActivityFilters(rows.map(mapActivityEvent), filters)
     },
     () => applyActivityFilters(demoActivityEvents, filters),
     'activity events',
-  )
-}
-
-export async function getDashboardTrendData(organizationId: string) {
-  return queryWithDemoFallback(
-    async (client) => {
-      const rows = await client.pullRequest.findMany({
-        where: { organizationId },
-        include: pullRequestListInclude,
-        orderBy: { updatedAt: 'desc' },
-      })
-      const pullRequests = rows.map(mapPullRequest)
-      return pullRequests.length ? buildTrendData(pullRequests) : []
-    },
-    () => demoTrendData,
-    'dashboard trend data',
   )
 }
 
@@ -1378,13 +1397,22 @@ export async function listAuditEvents(
         filters.from && filters.since
           ? new Date(Math.max(filters.from.getTime(), filters.since.getTime()))
           : (filters.from ?? filters.since)
+      const actor = dbFilterValue(filters.actor)
+      // Free-text query, PR number, and metadata severity still filter in
+      // memory, so the row limit can only be pushed down when they are absent.
+      const limitInDatabase =
+        !normalizeFilter(filters.query) &&
+        !dbFilterValue(filters.pullRequestNumber) &&
+        !dbFilterValue(filters.severity)
       const rows = await client.auditEvent.findMany({
         where: {
           organizationId,
-          repositoryId: filters.repositoryId,
-          pullRequestId: filters.pullRequestId,
-          eventType: filters.eventType as AuditEvent['eventType'] | undefined,
-          actor: filters.actor,
+          repositoryId: dbFilterValue(filters.repositoryId),
+          pullRequestId: dbFilterValue(filters.pullRequestId),
+          eventType: dbFilterValue(filters.eventType) as
+            | AuditEvent['eventType']
+            | undefined,
+          actor: actor ? { equals: actor, mode: 'insensitive' } : undefined,
           createdAt:
             lowerBound || filters.to
               ? { gte: lowerBound, lte: filters.to }
@@ -1392,13 +1420,7 @@ export async function listAuditEvents(
         },
         include: { repository: true, pullRequest: true },
         orderBy: { createdAt: 'desc' },
-        take:
-          filters.query ||
-          filters.pullRequestNumber ||
-          filters.severity ||
-          filters.eventType
-            ? undefined
-            : filters.take,
+        take: limitInDatabase ? filters.take : undefined,
       })
       return applyAuditEventFilters(rows.map(mapAuditEvent), filters)
     },

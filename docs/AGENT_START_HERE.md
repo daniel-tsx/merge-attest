@@ -59,7 +59,7 @@ Verified from `package.json`, `prisma/schema.prisma`, and integration modules:
 | Email         | Resend (`lib/email.ts`)                                                            |
 | AI            | OpenRouter BYOK (`lib/ai/openrouter.ts`) — advisory layer only                     |
 | Charts        | Recharts (client island)                                                           |
-| Tests         | Vitest (`tests/`, 219 tests)                                                       |
+| Tests         | Vitest (`tests/`, 198 tests)                                                       |
 | Auth gate     | `proxy.ts` (session cookie + rate limits + CSRF on mutations)                      |
 | Hosting       | Vercel-friendly (`VERCEL_GIT_COMMIT_SHA` in logs); no provider lock-in in app code |
 | Observability | Structured JSON logs in `lib/observability.ts` only                                |

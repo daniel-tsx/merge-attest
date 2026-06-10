@@ -10,6 +10,17 @@ type Bucket = {
 
 const buckets = new Map<string, Bucket>()
 
+// Unique ip:method:path keys accumulate on long-lived servers; sweep expired
+// buckets once the map grows past this bound instead of on every request.
+const SWEEP_THRESHOLD = 10_000
+
+function sweepExpiredBuckets(now: number) {
+  if (buckets.size < SWEEP_THRESHOLD) return
+  for (const [key, bucket] of buckets) {
+    if (bucket.resetAt <= now) buckets.delete(key)
+  }
+}
+
 export const rateLimitRules = {
   public: { limit: 120, windowMs: 60_000 },
   auth: { limit: 30, windowMs: 60_000 },
@@ -25,6 +36,7 @@ export function checkRateLimit(
   const existing = buckets.get(key)
 
   if (!existing || existing.resetAt <= now) {
+    sweepExpiredBuckets(now)
     const bucket = { count: 1, resetAt: now + rule.windowMs }
     buckets.set(key, bucket)
     return {

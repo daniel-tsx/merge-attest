@@ -121,7 +121,7 @@ const KNOWN_AGENTS: AgentMatchers[] = [
 /** Generic "this is a bot/agent but we don't know which" signals. */
 const GENERIC_BOT_BRANCH = /(^|\/)agent\//i
 const GENERIC_BOT_TITLE = /\[ai\]/i
-const GENERIC_BOT_LOGIN = /\[bot\]|-bot$|bot$/i
+const GENERIC_BOT_LOGIN = /\[bot\]|[-_.]bot$|^bot$/i
 
 function nonEmpty(values: Array<string | null | undefined>): string[] {
   return values.filter((value): value is string =>

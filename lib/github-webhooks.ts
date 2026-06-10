@@ -695,8 +695,10 @@ export async function processGitHubWebhookDelivery(input: {
   const nextAttemptCount = delivery.attemptCount + 1
   const attemptStartedAt = new Date()
 
-  await prisma.gitHubWebhookDelivery.update({
-    where: { id: delivery.id },
+  // Claim the delivery atomically so the inline post-webhook processor and the
+  // scheduled job runner cannot process the same delivery twice.
+  const claimed = await prisma.gitHubWebhookDelivery.updateMany({
+    where: { id: delivery.id, status: { in: ['queued', 'failed'] } },
     data: {
       status: 'processing',
       attemptCount: { increment: 1 },
@@ -705,6 +707,17 @@ export async function processGitHubWebhookDelivery(input: {
       lastError: null,
     },
   })
+  if (claimed.count === 0) {
+    return {
+      mode: 'live',
+      received: true,
+      event: input.event,
+      action,
+      duplicate: true,
+      processed: false,
+      message: `GitHub webhook delivery is already ${delivery.status}.`,
+    }
+  }
 
   if (!installationId || !organization) {
     await prisma.gitHubWebhookDelivery.update({

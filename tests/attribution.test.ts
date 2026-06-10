@@ -88,6 +88,30 @@ describe('attributeAgent', () => {
     expect(result.aiAssisted).toBe(true)
   })
 
+  it('does not treat human logins that merely end in bot as bots', () => {
+    const result = attributeAgent({
+      author: 'talbot',
+      title: 'Fix typo',
+      branch: 'fix/typo',
+    })
+
+    expect(result.agentSource).toBe('manual')
+    expect(result.aiAssisted).toBe(false)
+  })
+
+  it('still flags separator and bracket bot logins as generic bots', () => {
+    for (const author of ['renovate-bot', 'github-actions[bot]']) {
+      const result = attributeAgent({
+        author,
+        title: 'Update dependencies',
+        branch: 'chore/deps',
+      })
+
+      expect(result.agentSource).toBe('unknown')
+      expect(result.aiAssisted).toBe(true)
+    }
+  })
+
   it('prefers a named agent over a generic bot signal', () => {
     const result = attributeAgent({
       author: 'devin-ai-integration[bot]',

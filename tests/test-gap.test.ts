@@ -37,6 +37,28 @@ describe('test gap detector', () => {
     ).toBe(true)
   })
 
+  it('returns none when Go tests accompany Go source changes', () => {
+    const result = detectTestGap({
+      title: 'Speed up parser',
+      files: [
+        {
+          path: 'pkg/parser/parser.go',
+          additions: 30,
+          deletions: 5,
+          changeType: 'modified',
+        },
+        {
+          path: 'pkg/parser/parser_test.go',
+          additions: 12,
+          deletions: 0,
+          changeType: 'modified',
+        },
+      ],
+    })
+
+    expect(result.status).toBe('none')
+  })
+
   it('returns none when tests changed', () => {
     const result = detectTestGap({
       title: 'Add usage chart',

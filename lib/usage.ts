@@ -38,40 +38,24 @@ export async function getPrCheckUsageHistory(organizationId: string, take = 6) {
   const prisma = getPrismaClient()
   if (!prisma) return []
 
-  const records = await prisma.usageRecord.findMany({
+  // Aggregate in the database: each PR check is its own row, so summing a
+  // fixed window of recent rows would undercount busy months.
+  const buckets = await prisma.usageRecord.groupBy({
+    by: ['periodStart', 'periodEnd'],
     where: {
       organizationId,
       metric: PR_CHECKS_METRIC,
     },
+    _sum: { quantity: true },
     orderBy: { periodStart: 'desc' },
-    take: take * 20,
+    take,
   })
-  const buckets = new Map<
-    string,
-    { periodStart: Date; periodEnd: Date; quantity: number }
-  >()
 
-  for (const record of records) {
-    const key = record.periodStart.toISOString()
-    const bucket = buckets.get(key) ?? {
-      periodStart: record.periodStart,
-      periodEnd: record.periodEnd,
-      quantity: 0,
-    }
-    bucket.quantity += record.quantity
-    buckets.set(key, bucket)
-  }
-
-  return Array.from(buckets.values())
-    .sort(
-      (left, right) => right.periodStart.getTime() - left.periodStart.getTime(),
-    )
-    .slice(0, take)
-    .map((bucket) => ({
-      periodStart: bucket.periodStart.toISOString(),
-      periodEnd: bucket.periodEnd.toISOString(),
-      quantity: bucket.quantity,
-    }))
+  return buckets.map((bucket) => ({
+    periodStart: bucket.periodStart.toISOString(),
+    periodEnd: bucket.periodEnd.toISOString(),
+    quantity: bucket._sum.quantity ?? 0,
+  }))
 }
 
 export async function recordPrChecks(
@@ -84,29 +68,44 @@ export async function recordPrChecks(
   if (!prisma || quantity <= 0) return false
 
   const { periodStart, periodEnd } = getCurrentUsagePeriod(now)
-  if (sourceKey) {
-    const existing = await prisma.usageRecord.findUnique({
-      where: {
+  const sourceKeyWhere = sourceKey
+    ? {
         organizationId_metric_periodStart_sourceKey: {
           organizationId,
           metric: PR_CHECKS_METRIC,
           periodStart,
           sourceKey,
         },
-      },
+      }
+    : null
+  if (sourceKeyWhere) {
+    const existing = await prisma.usageRecord.findUnique({
+      where: sourceKeyWhere,
     })
     if (existing) return false
   }
 
-  await prisma.usageRecord.create({
-    data: {
-      organizationId,
-      metric: PR_CHECKS_METRIC,
-      quantity,
-      sourceKey,
-      periodStart,
-      periodEnd,
-    },
-  })
+  try {
+    await prisma.usageRecord.create({
+      data: {
+        organizationId,
+        metric: PR_CHECKS_METRIC,
+        quantity,
+        sourceKey,
+        periodStart,
+        periodEnd,
+      },
+    })
+  } catch (error) {
+    // Concurrent deliveries can race past the lookup; the unique constraint
+    // makes the duplicate insert lose, which simply means "already recorded".
+    if (sourceKeyWhere) {
+      const duplicate = await prisma.usageRecord.findUnique({
+        where: sourceKeyWhere,
+      })
+      if (duplicate) return false
+    }
+    throw error
+  }
   return true
 }

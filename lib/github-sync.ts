@@ -379,149 +379,158 @@ async function syncGitHubPullRequestRecord(input: {
     fallbackReviewDueAt: defaultReviewDueAt(risk.level),
   })
 
-  const savedPullRequest = await prisma.pullRequest.upsert({
-    where: {
-      repositoryId_number: {
-        repositoryId: input.repositoryId,
+  // One transaction so a failed sync cannot leave the pull request stripped
+  // of its files, signals, violations, or test-gap analysis.
+  const savedPullRequest = await prisma.$transaction(async (tx) => {
+    const saved = await tx.pullRequest.upsert({
+      where: {
+        repositoryId_number: {
+          repositoryId: input.repositoryId,
+          number: input.pullRequest.number,
+        },
+      },
+      create: {
         number: input.pullRequest.number,
+        title: input.pullRequest.title,
+        author,
+        githubPullRequestId: String(input.pullRequest.id),
+        githubNodeId: input.pullRequest.node_id,
+        url: input.pullRequest.html_url,
+        headSha: input.pullRequest.head.sha,
+        branch: input.pullRequest.head.ref,
+        baseBranch: input.pullRequest.base.ref,
+        status: mapPullRequestStatus(input.pullRequest),
+        aiAssisted,
+        agentSource,
+        attributionConfidence: attribution.confidence,
+        attributionEvidence: attribution.evidence,
+        riskScore: risk.score,
+        riskLevel: risk.level,
+        testGapStatus: testGap.status,
+        ciStatus: 'unknown',
+        approvalStatus: nextApprovalState.approvalStatus,
+        reviewDueAt: nextApprovalState.reviewDueAt,
+        filesChangedCount: files.length,
+        linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
+        linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
+        repositoryId: input.repositoryId,
+        organizationId: input.organizationId,
       },
-    },
-    create: {
-      number: input.pullRequest.number,
-      title: input.pullRequest.title,
-      author,
-      githubPullRequestId: String(input.pullRequest.id),
-      githubNodeId: input.pullRequest.node_id,
-      url: input.pullRequest.html_url,
-      headSha: input.pullRequest.head.sha,
-      branch: input.pullRequest.head.ref,
-      baseBranch: input.pullRequest.base.ref,
-      status: mapPullRequestStatus(input.pullRequest),
-      aiAssisted,
-      agentSource,
-      attributionConfidence: attribution.confidence,
-      attributionEvidence: attribution.evidence,
-      riskScore: risk.score,
-      riskLevel: risk.level,
-      testGapStatus: testGap.status,
-      ciStatus: 'unknown',
-      approvalStatus: nextApprovalState.approvalStatus,
-      reviewDueAt: nextApprovalState.reviewDueAt,
-      filesChangedCount: files.length,
-      linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
-      linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
-      repositoryId: input.repositoryId,
-      organizationId: input.organizationId,
-    },
-    update: {
-      title: input.pullRequest.title,
-      author,
-      githubPullRequestId: String(input.pullRequest.id),
-      githubNodeId: input.pullRequest.node_id,
-      url: input.pullRequest.html_url,
-      headSha: input.pullRequest.head.sha,
-      branch: input.pullRequest.head.ref,
-      baseBranch: input.pullRequest.base.ref,
-      status: mapPullRequestStatus(input.pullRequest),
-      aiAssisted,
-      agentSource,
-      attributionConfidence: attribution.confidence,
-      attributionEvidence: attribution.evidence,
-      riskScore: risk.score,
-      riskLevel: risk.level,
-      testGapStatus: testGap.status,
-      ciStatus: 'unknown',
-      approvalStatus: nextApprovalState.approvalStatus,
-      reviewDueAt: nextApprovalState.reviewDueAt,
-      filesChangedCount: files.length,
-      linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
-      linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
-    },
-  })
-
-  await prisma.pullRequestFile.deleteMany({
-    where: { pullRequestId: savedPullRequest.id },
-  })
-  await prisma.riskSignal.deleteMany({
-    where: { pullRequestId: savedPullRequest.id },
-  })
-  await prisma.ruleViolation.deleteMany({
-    where: { pullRequestId: savedPullRequest.id },
-  })
-  await prisma.testGapAnalysis.deleteMany({
-    where: { pullRequestId: savedPullRequest.id },
-  })
-
-  if (files.length) {
-    await prisma.pullRequestFile.createMany({
-      data: files.map((file) => ({
-        path: file.path,
-        additions: file.additions,
-        deletions: file.deletions,
-        changeType: file.changeType,
-        pullRequestId: savedPullRequest.id,
-      })),
+      update: {
+        title: input.pullRequest.title,
+        author,
+        githubPullRequestId: String(input.pullRequest.id),
+        githubNodeId: input.pullRequest.node_id,
+        url: input.pullRequest.html_url,
+        headSha: input.pullRequest.head.sha,
+        branch: input.pullRequest.head.ref,
+        baseBranch: input.pullRequest.base.ref,
+        status: mapPullRequestStatus(input.pullRequest),
+        aiAssisted,
+        agentSource,
+        attributionConfidence: attribution.confidence,
+        attributionEvidence: attribution.evidence,
+        riskScore: risk.score,
+        riskLevel: risk.level,
+        testGapStatus: testGap.status,
+        ciStatus: 'unknown',
+        approvalStatus: nextApprovalState.approvalStatus,
+        reviewDueAt: nextApprovalState.reviewDueAt,
+        filesChangedCount: files.length,
+        linesAdded: files.reduce((sum, file) => sum + file.additions, 0),
+        linesDeleted: files.reduce((sum, file) => sum + file.deletions, 0),
+      },
     })
-  }
 
-  if (risk.signals.length) {
-    await prisma.riskSignal.createMany({
-      data: risk.signals.map((signal) => ({
-        key: signal.key,
-        label: signal.label,
-        score: signal.score,
-        level: signal.level,
-        filePaths: signal.filePaths,
-        pullRequestId: savedPullRequest.id,
-      })),
+    await tx.pullRequestFile.deleteMany({
+      where: { pullRequestId: saved.id },
     })
-  }
+    await tx.riskSignal.deleteMany({
+      where: { pullRequestId: saved.id },
+    })
+    await tx.ruleViolation.deleteMany({
+      where: { pullRequestId: saved.id },
+    })
+    await tx.testGapAnalysis.deleteMany({
+      where: { pullRequestId: saved.id },
+    })
 
-  await prisma.testGapAnalysis.create({
-    data: {
-      status: testGap.status,
-      summary: testGap.summary,
-      affectedFiles: testGap.affectedFiles,
-      confidence: testGap.confidence,
-      pullRequestId: savedPullRequest.id,
-      suggestions: {
-        create: testGap.suggestedTestFiles.map((testFile, index) => ({
-          testFile,
-          testCase:
-            testGap.suggestedTestCases[index] ??
-            testGap.suggestedTestCases[0] ??
-            'Add focused coverage.',
+    if (files.length) {
+      await tx.pullRequestFile.createMany({
+        data: files.map((file) => ({
+          path: file.path,
+          additions: file.additions,
+          deletions: file.deletions,
+          changeType: file.changeType,
+          pullRequestId: saved.id,
         })),
-      },
-    },
-  })
+      })
+    }
 
-  for (const violation of violations) {
-    const rule = rules.find((item) => `violation-${item.id}` === violation.id)
-    if (!rule) continue
+    if (risk.signals.length) {
+      await tx.riskSignal.createMany({
+        data: risk.signals.map((signal) => ({
+          key: signal.key,
+          label: signal.label,
+          score: signal.score,
+          level: signal.level,
+          filePaths: signal.filePaths,
+          pullRequestId: saved.id,
+        })),
+      })
+    }
 
-    await prisma.ruleViolation.create({
+    await tx.testGapAnalysis.create({
       data: {
-        summary: violation.summary,
-        resolved: false,
-        ruleId: rule.id,
-        pullRequestId: savedPullRequest.id,
+        status: testGap.status,
+        summary: testGap.summary,
+        affectedFiles: testGap.affectedFiles,
+        confidence: testGap.confidence,
+        pullRequestId: saved.id,
+        suggestions: {
+          create: testGap.suggestedTestFiles.map((testFile, index) => ({
+            testFile,
+            testCase:
+              testGap.suggestedTestCases[index] ??
+              testGap.suggestedTestCases[0] ??
+              'Add focused coverage.',
+          })),
+        },
       },
     })
-  }
 
-  await prisma.auditEvent.create({
-    data: {
-      eventType: existing ? 'risk_score_calculated' : 'pr_synced',
-      actor: 'MergeAttest',
-      summary: existing
-        ? `GitHub pull request #${input.pullRequest.number} resynced`
-        : `Imported GitHub pull request #${input.pullRequest.number}`,
-      metadata: { riskScore: risk.score, riskLevel: risk.level },
-      organizationId: input.organizationId,
-      repositoryId: input.repositoryId,
-      pullRequestId: savedPullRequest.id,
-    },
+    const violationRows = violations.flatMap((violation) => {
+      const rule = rules.find((item) => `violation-${item.id}` === violation.id)
+      return rule
+        ? [
+            {
+              summary: violation.summary,
+              resolved: false,
+              ruleId: rule.id,
+              pullRequestId: saved.id,
+            },
+          ]
+        : []
+    })
+    if (violationRows.length) {
+      await tx.ruleViolation.createMany({ data: violationRows })
+    }
+
+    await tx.auditEvent.create({
+      data: {
+        eventType: existing ? 'risk_score_calculated' : 'pr_synced',
+        actor: 'MergeAttest',
+        summary: existing
+          ? `GitHub pull request #${input.pullRequest.number} resynced`
+          : `Imported GitHub pull request #${input.pullRequest.number}`,
+        metadata: { riskScore: risk.score, riskLevel: risk.level },
+        organizationId: input.organizationId,
+        repositoryId: input.repositoryId,
+        pullRequestId: saved.id,
+      },
+    })
+
+    return saved
   })
 
   await enqueueAiReviewJob({
@@ -574,7 +583,9 @@ async function syncGitHubPullRequestRecord(input: {
     })
 
     if (checkRun.mode === 'live') {
-      if (checkRun.checkRunId !== savedPullRequest.githubMergeAttestCheckRunId) {
+      if (
+        checkRun.checkRunId !== savedPullRequest.githubMergeAttestCheckRunId
+      ) {
         await prisma.pullRequest.update({
           where: { id: savedPullRequest.id },
           data: { githubMergeAttestCheckRunId: checkRun.checkRunId },

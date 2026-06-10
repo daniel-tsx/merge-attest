@@ -70,7 +70,9 @@ export default function SignInPage() {
         </>
       }
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      {/* method="post" keeps credentials out of the URL if the form submits
+          natively before hydration. */}
+      <form className="space-y-5" method="post" onSubmit={handleSubmit}>
         <div className="space-y-1.5">
           <label
             className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"

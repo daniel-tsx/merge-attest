@@ -413,7 +413,7 @@ model PullRequest {
 
   @@unique([repositoryId, number])
   @@unique([repositoryId, githubPullRequestId])
-  @@index([organizationId])
+  @@index([organizationId, updatedAt])
   @@index([assignedReviewerId])
   @@index([reviewDueAt])
 }
@@ -427,6 +427,8 @@ model PullRequestFile {
   pullRequestId String
 
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
 }
 
 model RiskSignal {
@@ -440,6 +442,8 @@ model RiskSignal {
   createdAt     DateTime  @default(now())
 
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
 }
 
 model TestGapAnalysis {
@@ -463,6 +467,8 @@ model TestGapSuggestion {
   testGapAnalysisId String
 
   analysis TestGapAnalysis @relation(fields: [testGapAnalysisId], references: [id], onDelete: Cascade)
+
+  @@index([testGapAnalysisId])
 }
 
 model RepoRule {
@@ -488,6 +494,7 @@ model RepoRule {
   violations RuleViolation[]
 
   @@index([organizationId])
+  @@index([repositoryId])
 }
 
 model RuleViolation {
@@ -500,6 +507,9 @@ model RuleViolation {
 
   rule        RepoRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
+  @@index([ruleId])
 }
 
 model AgentIdentityRule {
@@ -547,6 +557,8 @@ model Approval {
 
   reviewer    User?       @relation(fields: [reviewerId], references: [id], onDelete: SetNull)
   pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
 }
 
 model PullRequestComment {
@@ -654,6 +666,10 @@ model AgentActivity {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository   Repository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   pullRequest  PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, timestamp])
+  @@index([repositoryId])
+  @@index([pullRequestId])
 }
 
 model AuditEvent {
@@ -670,6 +686,10 @@ model AuditEvent {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   repository   Repository?  @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
   pullRequest  PullRequest? @relation(fields: [pullRequestId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([repositoryId])
+  @@index([pullRequestId])
 }
 
 model AuditExport {

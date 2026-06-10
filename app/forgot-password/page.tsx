@@ -69,7 +69,7 @@ export default function ForgotPasswordPage() {
           </Button>
         </div>
       ) : (
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-5" method="post" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <label
               className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"

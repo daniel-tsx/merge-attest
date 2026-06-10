@@ -64,7 +64,9 @@ export default function ResetPasswordPage() {
         </>
       }
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      {/* method="post" keeps the new password out of the URL if the form
+          submits natively before hydration. */}
+      <form className="space-y-5" method="post" onSubmit={handleSubmit}>
         <div className="space-y-1.5">
           <label
             className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
