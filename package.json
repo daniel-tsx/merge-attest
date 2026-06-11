@@ -18,9 +18,9 @@
     "db:seed": "prisma generate && prisma db seed"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.11",
-    "@better-auth/prisma-adapter": "^1.6.14",
-    "@better-auth/sso": "1.6.14",
+    "@better-auth/infra": "^0.2.14",
+    "@better-auth/prisma-adapter": "^1.6.16",
+    "@better-auth/sso": "1.6.16",
     "@octokit/auth-app": "^8.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -37,7 +37,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@vercel/analytics": "^2.0.1",
-    "better-auth": "^1.6.14",
+    "better-auth": "^1.6.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
