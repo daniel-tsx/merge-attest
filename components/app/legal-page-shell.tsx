@@ -69,9 +69,24 @@ export function LegalPageShell({
               Terms
             </Link>
           </nav>
-          <p className="font-mono text-[11px] text-subtle-foreground">
-            © {new Date().getFullYear()} MergeAttest
-          </p>
+          <div className="flex flex-col items-center gap-1 sm:items-end">
+            <p className="font-mono text-[11px] text-subtle-foreground">
+              © {new Date().getFullYear()} MergeAttest
+            </p>
+            <p className="font-mono text-[11px] text-subtle-foreground">
+              From the{' '}
+              <a
+                href="https://eastbase.studio"
+                target="_blank"
+                rel="noopener"
+                aria-label="Eastbase studio"
+                className="rounded-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+              >
+                Eastbase
+              </a>{' '}
+              studio
+            </p>
+          </div>
         </div>
       </footer>
     </div>
