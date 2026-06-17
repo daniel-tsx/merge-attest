@@ -1,30 +1,20 @@
-import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { Fraunces } from 'next/font/google'
+import { ArrowRight } from 'lucide-react'
 import {
-  AlertTriangle,
-  ArrowRight,
-  BadgeCheck,
-  ChartNoAxesColumn,
-  Check,
-  FileText,
-  Fingerprint,
-  GitPullRequest,
-  ListChecks,
-  ScrollText,
-  ShieldAlert,
-  TestTube2,
-  Users,
-} from 'lucide-react'
-import { HeroScanPanel } from '@/components/app/hero-scan-panel'
-import { LogoMark } from '@/components/app/logo'
-import { ThemeToggle } from '@/components/app/theme-toggle'
-import { Button } from '@/components/ui/button'
+  agents,
+  authorship,
+  features,
+  heroLede,
+  samplePr,
+  stats,
+  steps,
+} from '@/components/marketing/content'
 import { getServerSession } from '@/lib/auth/session'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { createHomeJsonLd } from '@/lib/seo/home-json-ld'
 import { createPageMetadata } from '@/lib/seo/metadata'
-import { cn } from '@/lib/utils'
 
 export const metadata = createPageMetadata({
   title: 'AI Pull Request Governance for GitHub Teams',
@@ -33,245 +23,105 @@ export const metadata = createPageMetadata({
   path: '/',
 })
 
-const introStyle = (index: number): CSSProperties =>
-  ({ '--intro-index': index }) as CSSProperties
+// Editorial "Audit Ledger" landing identity. A self-contained, fixed-theme
+// presentation that fuses the product's thesis (merge + attest = "on the
+// record") with a premium legal/financial editorial aesthetic. Scoped to the
+// `.mkt` class so it does not touch the token-driven product UI.
+const display = Fraunces({
+  weight: ['400', '500', '600'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  variable: '--font-mkt-display',
+})
 
-const inspectionSignals = [
-  'diff size',
-  'sensitive paths',
-  'test coverage',
-  'dependency changes',
-  'migration files',
-  'secret patterns',
-  'API surface',
-  'lockfile drift',
-]
+const styles = `
+.mkt {
+  --paper: #f5f1e8;
+  --paper-2: #faf7f0;
+  --card: #fffdf8;
+  --ink: #1c1813;
+  --ink-2: #463f34;
+  --ink-dim: #837a6b;
+  --ink-faint: #a89e8c;
+  --rule: #ddd5c5;
+  --rule-strong: #c6bca7;
+  --oxblood: #9a3324;
+  --forest: #2f5d49;
+  --gold: #9a6b1f;
+  color: var(--ink);
+  background: var(--paper);
+  font-feature-settings: 'ss01' 1;
+}
+.mkt-display {
+  font-family: var(--font-mkt-display), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+}
+.mkt-mono { font-family: var(--font-geist-mono), ui-monospace, monospace; }
+.mkt-paper {
+  background-image: radial-gradient(circle at 1px 1px, rgba(28,24,19,0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+.mkt a:focus-visible,
+.mkt button:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.mkt-link { transition: color 0.18s ease; }
+.mkt-link:hover { color: var(--oxblood); }
+.mkt-cta {
+  background: var(--ink);
+  color: var(--paper-2);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.mkt-cta:hover {
+  background: var(--oxblood);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px -18px rgba(154,51,36,0.7);
+}
+.mkt-ghost { border: 1px solid var(--rule-strong); transition: border-color 0.2s ease, background 0.2s ease; }
+.mkt-ghost:hover { border-color: var(--ink); background: var(--paper-2); }
+.mkt-feature { transition: background 0.2s ease; }
+.mkt-feature:hover { background: var(--paper-2); }
+.mkt-seal {
+  background:
+    radial-gradient(circle, var(--card) 58%, transparent 59%),
+    repeating-conic-gradient(var(--oxblood) 0deg 10deg, transparent 10deg 20deg);
+}
+`
 
-const problemPoints = [
-  {
-    tag: 'velocity',
-    text: 'AI agents open pull requests faster than any team can carefully review them.',
-  },
-  {
-    tag: 'blind spots',
-    text: 'Risky changes and missing tests slip through when review relies on reviewer attention alone.',
-  },
-  {
-    tag: 'no record',
-    text: 'After an incident, there is no clear record of who approved what, or why.',
-  },
-]
+const numberLabel = (n: number) => String(n).padStart(2, '0')
 
-const riskFactors = [
-  { label: 'Sensitive paths touched', value: 28, pct: '80%', bar: 'bg-danger' },
-  {
-    label: 'Missing test coverage',
-    value: 24,
-    pct: '64%',
-    bar: 'bg-attention',
-  },
-  { label: 'Diff size & spread', value: 20, pct: '52%', bar: 'bg-warning' },
-]
-
-const auditTrail = [
-  { label: 'PR #482 flagged high', time: '09:24' },
-  { label: 'Approved by @dana', time: '09:31' },
-  { label: 'Merged to main', time: '09:33' },
-]
-
-const compactFeatures = [
-  {
-    icon: TestTube2,
-    title: 'Test-gap detection',
-    description:
-      'Surface code paths shipped without coverage, with path-based suggestions for the tests that are missing.',
-  },
-  {
-    icon: BadgeCheck,
-    title: 'Approval workflow',
-    description:
-      'Route risky changes to the right reviewers and record every approval decision the moment it happens.',
-  },
-  {
-    icon: ListChecks,
-    title: 'Custom repository rules',
-    description:
-      'Define policies for sensitive files and high-risk patterns, then evaluate them on every PR.',
-  },
-  {
-    icon: GitPullRequest,
-    title: 'GitHub-native',
-    description:
-      'Risk, checks, and review context surface as comments and check runs where engineers already work.',
-  },
-]
-
-const authorshipFeatures = [
-  {
-    icon: Fingerprint,
-    title: 'Agent attribution with evidence',
-    description:
-      'Every pull request is fingerprinted to Cursor, Copilot, Claude Code, Codex, or Devin from commit trailers, bot accounts, and emails — with a confidence score and the evidence behind it.',
-  },
-  {
-    icon: Users,
-    title: 'Agent identity registry',
-    description:
-      'Built-in detection works out of the box. Map your own bot accounts, branch prefixes, labels, and commit trailers when your team has its own conventions.',
-  },
-  {
-    icon: ChartNoAxesColumn,
-    title: 'Per-agent trust scorecard',
-    description:
-      'See which agent ships the riskiest code: high-risk rate, test gaps, rule hits, reverts, and merges without human sign-off — every deduction shown.',
-  },
-  {
-    icon: ScrollText,
-    title: 'Authorship ledger & evidence export',
-    description:
-      'Track what share of your code AI wrote and how much carried a human sign-off. Export an evidence bundle supporting EU AI Act human-oversight and SOC2 reviews — not a certification, but the record auditors ask for.',
-  },
-]
-
-const attributionSamples = [
-  { agent: 'claude code', confidence: '95%' },
-  { agent: 'copilot', confidence: '92%' },
-  { agent: 'codex', confidence: '90%' },
-  { agent: 'cursor', confidence: '88%' },
-]
-
-const governancePillars = [
-  'Per-agent AI attribution',
-  'AI authorship ledger',
-  'Deterministic risk scoring',
-  'Missing-test detection',
-  'Repository policy rules',
-  'Human approval records',
-  'Audit-ready review packets',
-  'Optional BYOK AI review',
-]
-
-const comparisonRows = [
-  {
-    capability: 'Primary job',
-    mergeattest: 'Govern AI-assisted pull requests before merge',
-    coderabbit: 'Generate AI review comments and developer follow-ups',
-    copilot: 'Assist coding and run GitHub-hosted code review',
-    others: 'Accelerate PR review, stacking, or code quality workflows',
-  },
-  {
-    capability: 'Trust model',
-    mergeattest: 'Deterministic signals first, advisory AI second',
-    coderabbit: 'AI reviewer output is the main product surface',
-    copilot: 'Model-selected review output inside GitHub',
-    others: 'AI review and workflow automation vary by product',
-  },
-  {
-    capability: 'Governance controls',
-    mergeattest: 'Rules, approvals, risk status, and audit trail together',
-    coderabbit: 'Enterprise audit logging and RBAC on higher tiers',
-    copilot: 'Uses GitHub platform permissions and billing controls',
-    others: 'Team controls depend on plan and platform focus',
-  },
-  {
-    capability: 'AI authorship',
-    mergeattest:
-      'Attributes each PR to a specific agent with confidence and evidence, then exports authorship evidence',
-    coderabbit: 'No per-agent authorship attribution or reporting',
-    copilot: 'No cross-agent authorship attribution',
-    others:
-      'Focused on review quality or PR workflow, not authorship governance',
-  },
-  {
-    capability: 'Test and policy gaps',
-    mergeattest: 'Flags missing tests and sensitive repository changes',
-    coderabbit: 'Focuses on review, fixes, linters, and SAST integrations',
-    copilot: 'Focuses on code review assistance',
-    others: 'Usually focused on review quality or PR workflow speed',
-  },
-  {
-    capability: 'AI provider control',
-    mergeattest: 'OpenRouter BYOK boundary for organization-owned keys',
-    coderabbit: 'Vendor-managed AI review service',
-    copilot: 'GitHub-managed model routing',
-    others: 'Vendor-managed model access, with enterprise options',
-  },
-  {
-    capability: 'Launch access',
-    mergeattest:
-      'Free early access with usage limits; paid expansion planned after launch',
-    coderabbit: 'Commercial AI review plans with seat-based pricing',
-    copilot: 'Bundled into GitHub paid plans and usage policies',
-    others: 'Commercial review tools commonly price by team or developer seat',
-  },
-]
-
-const steps = [
-  {
-    title: 'Connect GitHub',
-    description:
-      'Install the MergeAttest GitHub App and sync the repositories you want to govern.',
-  },
-  {
-    title: 'Score every AI PR',
-    description:
-      'New and updated pull requests are scored for risk and scanned for missing test coverage.',
-  },
-  {
-    title: 'Review and approve',
-    description:
-      'Reviewers work a prioritized queue, applying repository rules and recording decisions.',
-  },
-  {
-    title: 'Keep an audit trail',
-    description:
-      'Every decision is logged and retained, ready to export the moment compliance asks.',
-  },
-]
-
-// Hover lift via shadow + border only — NOT transform. These cards also carry
-// `data-reveal` (a scroll-timeline animation on `transform`); animating
-// `transform` on hover too makes the two fight and the hover flickers.
-const cardHover =
-  'transition-[box-shadow,border-color] duration-200 ease-out hover:border-border-strong hover:shadow-card-hover'
-
-const featureIconBox =
-  'flex size-10 shrink-0 items-center justify-center rounded-control bg-accent-soft text-accent ring-1 ring-accent-ring transition-colors duration-200 group-hover:bg-accent group-hover:text-accent-foreground'
-
-function SectionIndex({
-  index,
-  label,
-  dark = false,
-}: {
-  index: string
-  label: string
-  dark?: boolean
-}) {
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <span
-        className={cn(
-          'font-mono text-xs font-semibold',
-          dark ? 'text-brand-surface-foreground' : 'text-accent',
-        )}
-      >
-        {index}
-      </span>
-      <span
-        className={cn(
-          'h-px w-8',
-          dark ? 'bg-brand-surface-foreground/25' : 'bg-border-strong',
-        )}
+    <span className="mkt-mono text-[11px] uppercase tracking-[0.28em] text-[var(--oxblood)]">
+      {children}
+    </span>
+  )
+}
+
+function Mark({ size = 26 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      width={size}
+      height={size}
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d="M6.5 25 V7.5 L16 18.5 L25.5 7.5 V25"
+        stroke="var(--ink)"
+        strokeWidth="2.6"
       />
-      <span
-        className={cn(
-          'font-mono text-[11px] uppercase tracking-[0.2em]',
-          dark ? 'text-brand-surface-foreground/55' : 'text-subtle-foreground',
-        )}
-      >
-        {label}
-      </span>
-    </div>
+      <path
+        d="M10 21 L14.3 25 L23 15.25"
+        stroke="var(--oxblood)"
+        strokeWidth="2.6"
+      />
+    </svg>
   )
 }
 
@@ -280,674 +130,424 @@ export default async function Home() {
   if (session) redirect('/dashboard')
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`mkt ${display.variable}`}>
       <JsonLd data={createHomeJsonLd()} />
-      <header className="sticky top-0 z-50 border-b border-border bg-surface/85 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
-              <LogoMark className="size-4" />
-            </span>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              MergeAttest
-            </span>
-          </Link>
-          <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
-            <a
-              href="#features"
-              className="transition-colors hover:text-foreground"
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+      <div className="mkt-paper flex min-h-screen flex-col">
+        {/* Nav */}
+        <header className="sticky top-0 z-50 border-b border-[var(--rule)] bg-[var(--paper)]/85 backdrop-blur">
+          <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between px-5 sm:px-8">
+            <Link href="/" className="flex items-center gap-2.5">
+              <Mark />
+              <span className="mkt-display text-[20px] font-medium tracking-tight">
+                MergeAttest
+              </span>
+            </Link>
+            <nav
+              aria-label="Primary"
+              className="hidden items-center gap-9 text-[13px] text-[var(--ink-2)] md:flex"
             >
-              Features
-            </a>
-            <a
-              href="#authorship"
-              className="transition-colors hover:text-foreground"
-            >
-              AI authorship
-            </a>
-            <a
-              href="#comparison"
-              className="transition-colors hover:text-foreground"
-            >
-              Compare
-            </a>
-            <a
-              href="#how-it-works"
-              className="transition-colors hover:text-foreground"
-            >
-              How it works
-            </a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-            >
-              <Link href="/sign-in">Sign in</Link>
-            </Button>
-            <Button asChild variant="accent" size="sm">
-              <Link href="/sign-up">Get started</Link>
-            </Button>
+              <a className="mkt-link" href="#capabilities">
+                Capabilities
+              </a>
+              <a className="mkt-link" href="#authorship">
+                AI authorship
+              </a>
+              <a className="mkt-link" href="#how-it-works">
+                How it works
+              </a>
+            </nav>
+            <div className="flex items-center gap-4 text-[13px]">
+              <Link
+                className="mkt-link hidden text-[var(--ink-2)] sm:inline"
+                href="/sign-in"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="mkt-cta rounded-full px-4 py-2 font-medium"
+              >
+                Start free
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border">
-          <div className="bg-dot-grid pointer-events-none absolute inset-0 opacity-60" />
-          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-14 lg:py-28">
-            <div className="flex flex-col">
-              <p
-                data-intro
-                style={introStyle(0)}
-                className="flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-subtle-foreground"
-              >
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-accent"
-                />
-                GitHub-native · early access
-              </p>
-              <h1
-                data-intro
-                style={introStyle(1)}
-                className="mt-5 text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-foreground sm:text-5xl lg:text-6xl"
-              >
-                <span className="block">Govern every</span>
-                <span className="block">AI pull request</span>
-                <span className="block text-muted-foreground">
-                  before it merges.
-                </span>
-              </h1>
-              <p
-                data-intro
-                style={introStyle(2)}
-                className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg"
-              >
-                MergeAttest is the control layer around AI coding agents:
-                deterministic risk scoring, missing-test detection, repository
-                rules, human approvals, and audit evidence in one GitHub-native
-                workflow.
-              </p>
-              <div
-                data-intro
-                style={introStyle(3)}
-                className="mt-8 flex flex-col gap-3 sm:flex-row"
-              >
-                <Button asChild variant="accent" size="lg" className="group">
-                  <Link href="/sign-up">
+        <main className="flex-1">
+          {/* Hero */}
+          <section className="border-b border-[var(--rule)]">
+            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+              <div data-intro>
+                <Eyebrow>GitHub-native · free early access</Eyebrow>
+                <h1 className="mkt-display mt-6 text-[3.1rem] font-medium leading-[1.02] tracking-[-0.02em] text-[var(--ink)] sm:text-[4.1rem] lg:text-[4.5rem]">
+                  Govern every AI pull request{' '}
+                  <span className="italic text-[var(--oxblood)]">
+                    before it merges.
+                  </span>
+                </h1>
+                <p className="mt-7 max-w-xl text-[15px] leading-[1.7] text-[var(--ink-2)] sm:text-[16px]">
+                  {heroLede}
+                </p>
+                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    href="/sign-up"
+                    className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
+                  >
                     Start for free
                     <ArrowRight
                       aria-hidden="true"
-                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
                     />
                   </Link>
-                </Button>
-                <Button asChild variant="secondary" size="lg">
-                  <a href="#how-it-works">See how it works</a>
-                </Button>
-              </div>
-              <p
-                data-intro
-                style={introStyle(4)}
-                className="mt-5 font-mono text-[11px] text-subtle-foreground"
-              >
-                free plan available · no credit card required
-              </p>
-            </div>
-
-            <div data-intro style={introStyle(3)}>
-              <HeroScanPanel />
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-border bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
-            <div
-              data-reveal
-              className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5"
-            >
-              <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle-foreground">
-                Signals inspected / diff
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {inspectionSignals.map((signal) => (
-                  <span
-                    key={signal}
-                    className="rounded-pill border border-border bg-background px-2.5 py-1 font-mono text-[11px] text-muted-foreground"
+                  <a
+                    href="#how-it-works"
+                    className="mkt-ghost inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium text-[var(--ink-2)]"
                   >
-                    {signal}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-16">
-              <div data-reveal>
-                <SectionIndex index="01" label="The problem" />
-                <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                  Review can&apos;t keep up with AI
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                  Coding agents ship pull requests around the clock. Manual
-                  review was never designed for this volume — and the gaps are
-                  where production incidents start.
+                    See how it works
+                  </a>
+                </div>
+                <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--ink-faint)]">
+                  free plan available · no credit card required
                 </p>
               </div>
-              <div className="flex flex-col">
-                {problemPoints.map((point) => (
-                  <div
-                    key={point.tag}
-                    data-reveal
-                    className="flex items-start gap-4 border-t border-border py-5 first:border-t-0 first:pt-0"
-                  >
-                    <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-control bg-attention-soft text-attention ring-1 ring-attention-border">
-                      <AlertTriangle className="size-4" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <span className="font-mono text-[11px] uppercase tracking-wider text-subtle-foreground">
-                        {point.tag}
-                      </span>
-                      <p className="mt-1 text-[15px] leading-relaxed text-foreground">
-                        {point.text}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+
+              <div data-intro className="lg:pt-4">
+                <AttestationRecord />
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section id="features" className="border-b border-border bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <SectionIndex index="02" label="Features" />
-              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                The parts AI reviewers leave around the edges
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Comments are useful. Governance needs a full record: risk,
-                tests, policies, reviewers, approvals, and what changed after
-                the decision.
-              </p>
-            </div>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-              <div
-                data-reveal
-                className={cn(
-                  'group flex flex-col rounded-card border border-border bg-background p-6 shadow-card sm:col-span-2 sm:p-7 lg:col-span-4',
-                  cardHover,
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <span className={featureIconBox}>
-                    <ShieldAlert className="size-5" aria-hidden="true" />
-                  </span>
-                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                    Deterministic risk scoring
-                  </h3>
-                </div>
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  Every pull request gets a transparent risk score, so reviewers
-                  know exactly why a change is flagged. Advisory AI comments can
-                  add context, but they do not replace the control.
-                </p>
-                <div className="mt-5 rounded-control border border-border bg-surface p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] uppercase tracking-wider text-subtle-foreground">
-                      risk breakdown
-                    </span>
-                    <span className="font-mono text-xs text-subtle-foreground">
-                      <span className="font-semibold text-foreground">72</span>{' '}
-                      / 100
-                    </span>
-                  </div>
-                  <div className="mt-3 space-y-3">
-                    {riskFactors.map((factor) => (
-                      <div key={factor.label}>
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-muted-foreground">
-                            {factor.label}
-                          </span>
-                          <span className="font-mono tabular-nums text-subtle-foreground">
-                            +{factor.value}
-                          </span>
-                        </div>
-                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-pill bg-surface-subtle">
-                          <div
-                            className={cn('h-full rounded-pill', factor.bar)}
-                            style={{ width: factor.pct }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                data-reveal
-                className={cn(
-                  'group flex flex-col rounded-card border border-border bg-background p-6 shadow-card sm:col-span-2 lg:col-span-2',
-                  cardHover,
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <span className={featureIconBox}>
-                    <FileText className="size-5" aria-hidden="true" />
-                  </span>
-                  <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                    Audit-ready trail
-                  </h3>
-                </div>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  Approvals, syncs, and policy changes are captured
-                  automatically and exportable for compliance reviews.
-                </p>
-                <ul className="relative mt-auto space-y-3 pt-6 pl-4">
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-7 bottom-1 left-[3px] w-px bg-border"
-                  />
-                  {auditTrail.map((entry) => (
-                    <li
-                      key={entry.label}
-                      className="relative flex items-center justify-between gap-2"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="absolute -left-4 size-1.5 rounded-full bg-accent ring-2 ring-background"
-                      />
-                      <span className="text-[11px] text-muted-foreground">
-                        {entry.label}
-                      </span>
-                      <span className="font-mono text-[10px] text-subtle-foreground">
-                        {entry.time}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {compactFeatures.map((feature) => {
-                const Icon = feature.icon
-                return (
-                  <div
-                    key={feature.title}
-                    data-reveal
-                    className={cn(
-                      'group flex items-start gap-4 rounded-card border border-border bg-background p-6 shadow-card lg:col-span-3',
-                      cardHover,
-                    )}
-                  >
-                    <span className={featureIconBox}>
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section id="authorship" className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <SectionIndex index="03" label="AI authorship" />
-              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Know which AI agent wrote your code — and prove it
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Coding-agent adoption is near-universal; trust is not.
-                MergeAttest attributes every pull request to the agent behind
-                it, tracks each agent&apos;s track record, and turns it into
-                audit-ready evidence — the white space no AI reviewer owns.
-              </p>
-            </div>
-
-            <div data-reveal className="mt-8 flex flex-wrap items-center gap-2">
-              <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.18em] text-subtle-foreground">
-                Attributed with confidence
-              </span>
-              {attributionSamples.map((sample) => (
-                <span
-                  key={sample.agent}
-                  className="inline-flex items-center gap-1.5 rounded-pill border border-info-border bg-info-soft px-2.5 py-1 text-[11px] font-medium capitalize text-info"
+          {/* Ledger stats */}
+          <section
+            aria-label="Key figures"
+            className="border-b border-[var(--rule)] bg-[var(--paper-2)]"
+          >
+            <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px bg-[var(--rule)] px-5 sm:px-8 lg:grid-cols-4">
+              {stats.map((s) => (
+                <div
+                  key={s.label}
+                  className="bg-[var(--paper-2)] px-2 py-8 sm:px-5"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="size-1.5 rounded-full bg-info"
-                  />
-                  {sample.agent}
-                  <span className="font-mono text-info/80">
-                    {sample.confidence}
-                  </span>
-                </span>
+                  <div className="mkt-display text-[2.6rem] leading-none text-[var(--ink)]">
+                    {s.value}
+                  </div>
+                  <div className="mt-2 text-[12px] leading-snug text-[var(--ink-dim)]">
+                    {s.label}
+                  </div>
+                </div>
               ))}
             </div>
+          </section>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {authorshipFeatures.map((feature) => {
-                const Icon = feature.icon
-                return (
-                  <div
-                    key={feature.title}
-                    data-reveal
-                    className={cn(
-                      'group flex items-start gap-4 rounded-card border border-border bg-surface p-6 shadow-card',
-                      cardHover,
-                    )}
-                  >
-                    <span className={featureIconBox}>
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                        {feature.title}
-                      </h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section id="comparison" className="border-b border-border">
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-end lg:gap-14">
+          {/* Capabilities — editorial numbered ledger */}
+          <section id="capabilities" className="border-b border-[var(--rule)]">
+            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
+              <div
+                data-reveal
+                className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end"
+              >
                 <div>
-                  <SectionIndex index="04" label="Why MergeAttest" />
-                  <h2 className="mt-4 max-w-xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                    Built for governance, not another comment stream
+                  <Eyebrow>The capabilities</Eyebrow>
+                  <h2 className="mkt-display mt-5 text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
+                    The full record, not another comment stream
                   </h2>
-                  <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                    CodeRabbit, Copilot, Qodo, and Graphite help teams review
-                    code faster. MergeAttest answers the next question: should
-                    this AI-assisted change be allowed to merge, who accepted
-                    the risk, and where is the evidence?
-                  </p>
                 </div>
-                <div className="mt-7 flex flex-wrap gap-2">
-                  {governancePillars.map((pillar) => (
-                    <span
-                      key={pillar}
-                      className="rounded-pill border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted-foreground"
-                    >
-                      {pillar}
-                    </span>
-                  ))}
-                </div>
+                <p className="text-[15px] leading-[1.7] text-[var(--ink-2)] lg:pb-2">
+                  CodeRabbit, Copilot, and Qodo help teams review faster.
+                  MergeAttest answers the next question: should this AI-assisted
+                  change be allowed to merge, who accepted the risk, and where
+                  is the evidence?
+                </p>
               </div>
-            </div>
 
-            <div data-reveal className="mt-10 min-w-0">
-              <div className="overflow-hidden rounded-card border border-border bg-surface shadow-card">
-                <div className="border-b border-border bg-surface-muted/60 px-4 py-3">
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                    <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                      Competitive frame
+              <div className="mt-14 border-t border-[var(--rule)]">
+                {features.map((f, i) => (
+                  <div
+                    key={f.id}
+                    data-reveal
+                    className="mkt-feature grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-[var(--rule)] px-2 py-8 sm:grid-cols-[5rem_1fr_1.2fr] sm:gap-x-10 sm:px-4"
+                  >
+                    <div className="mkt-display text-[2.4rem] leading-none text-[var(--ink-faint)]">
+                      {numberLabel(i + 1)}
+                    </div>
+                    <h3 className="mkt-display self-center text-[1.5rem] font-medium leading-tight tracking-tight text-[var(--ink)]">
+                      {f.title}
                     </h3>
-                    <p className="font-mono text-[10px] text-subtle-foreground">
-                      Free early-access launch
-                    </p>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[880px] text-left text-xs">
-                    <caption className="sr-only">
-                      Comparison between MergeAttest and AI code review tools.
-                    </caption>
-                    <thead className="bg-background text-[11px] uppercase tracking-wider text-subtle-foreground">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="w-[150px] px-4 py-3 font-medium"
-                        >
-                          Capability
-                        </th>
-                        <th
-                          scope="col"
-                          className="w-[210px] px-4 py-3 font-medium text-foreground"
-                        >
-                          MergeAttest
-                        </th>
-                        <th
-                          scope="col"
-                          className="w-[190px] px-4 py-3 font-medium"
-                        >
-                          CodeRabbit
-                        </th>
-                        <th
-                          scope="col"
-                          className="w-[190px] px-4 py-3 font-medium"
-                        >
-                          Copilot Review
-                        </th>
-                        <th
-                          scope="col"
-                          className="w-[190px] px-4 py-3 font-medium"
-                        >
-                          Qodo / Graphite
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {comparisonRows.map((row) => (
-                        <tr key={row.capability} className="align-top">
-                          <th
-                            scope="row"
-                            className="bg-background px-4 py-3 font-medium text-foreground"
-                          >
-                            {row.capability}
-                          </th>
-                          <td className="px-4 py-3 text-foreground">
-                            <div className="flex gap-2">
-                              <Check
-                                className="mt-0.5 size-3.5 shrink-0 text-success"
-                                aria-hidden="true"
-                              />
-                              <span>{row.mergeattest}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {row.coderabbit}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {row.copilot}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">
-                            {row.others}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <p className="mt-4 text-xs leading-relaxed text-subtle-foreground">
-                MergeAttest is launching free to learn from real repository
-                usage. Paid plans are planned later for teams that need higher
-                usage limits.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="how-it-works"
-          className="border-b border-border bg-surface"
-        >
-          <div className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <SectionIndex index="05" label="How it works" />
-              <h2 className="mt-4 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Live in minutes, governed from day one
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                Connect a repository and MergeAttest starts scoring pull
-                requests immediately — no pipeline changes required.
-              </p>
-            </div>
-
-            <div className="relative mt-14">
-              <span
-                aria-hidden="true"
-                className="absolute top-5 right-0 left-0 hidden h-px bg-border lg:block"
-              />
-              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
-                {steps.map((step, index) => (
-                  <div key={step.title} data-reveal className="relative">
-                    <span className="relative z-10 flex size-10 items-center justify-center rounded-full border border-border bg-surface-elevated font-mono text-sm font-semibold text-foreground shadow-card">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <h3 className="mt-4 text-sm font-semibold tracking-tight text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                      {step.description}
+                    <p className="col-span-2 text-[14px] leading-[1.7] text-[var(--ink-2)] sm:col-span-1 sm:self-center">
+                      {f.description}
                     </p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="relative overflow-hidden bg-brand-surface">
-          <div className="bg-dot-grid-on-dark pointer-events-none absolute inset-0 opacity-40" />
-          <div className="relative mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 sm:py-24">
-            <div data-reveal>
-              <SectionIndex index="06" label="Get started" dark />
+          {/* AI authorship */}
+          <section
+            id="authorship"
+            className="border-b border-[var(--rule)] bg-[var(--paper-2)]"
+          >
+            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
+              <div data-reveal>
+                <Eyebrow>AI authorship</Eyebrow>
+                <h2 className="mkt-display mt-5 text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
+                  Know which agent wrote it —{' '}
+                  <span className="italic text-[var(--oxblood)]">
+                    and prove it.
+                  </span>
+                </h2>
+                <p className="mt-5 max-w-md text-[15px] leading-[1.7] text-[var(--ink-2)]">
+                  Coding-agent adoption is near-universal; trust is not.
+                  MergeAttest attributes every PR to the agent behind it and
+                  turns its track record into audit-ready evidence — the white
+                  space no AI reviewer owns.
+                </p>
+                <div className="mt-8 overflow-hidden rounded-xl border border-[var(--rule-strong)] bg-[var(--card)]">
+                  <div className="border-b border-[var(--rule)] px-4 py-2.5">
+                    <span className="mkt-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-faint)]">
+                      attribution confidence
+                    </span>
+                  </div>
+                  {agents.map((a) => (
+                    <div
+                      key={a.name}
+                      className="flex items-center gap-4 border-b border-[var(--rule)] px-4 py-2.5 last:border-b-0"
+                    >
+                      <span className="w-28 text-[13px] font-medium text-[var(--ink)]">
+                        {a.name}
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--paper)]">
+                        <div
+                          className="h-full rounded-full bg-[var(--forest)]"
+                          style={{ width: `${a.confidence}%` }}
+                        />
+                      </div>
+                      <span className="mkt-mono w-10 text-right text-[12px] text-[var(--ink-dim)]">
+                        {a.confidence}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-px self-start overflow-hidden rounded-xl border border-[var(--rule-strong)] bg-[var(--rule)] sm:grid-cols-2">
+                {authorship.map((a, i) => (
+                  <div
+                    key={a.title}
+                    data-reveal
+                    className="bg-[var(--card)] p-7"
+                  >
+                    <span className="mkt-mono text-[11px] text-[var(--oxblood)]">
+                      {numberLabel(i + 1)}
+                    </span>
+                    <h3 className="mkt-display mt-3 text-[1.35rem] font-medium leading-tight tracking-tight">
+                      {a.title}
+                    </h3>
+                    <p className="mt-2 text-[13px] leading-[1.65] text-[var(--ink-2)]">
+                      {a.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div
-              data-reveal
-              className="mx-auto mt-12 flex max-w-xl flex-col items-center text-center"
-            >
-              <span className="flex size-12 items-center justify-center rounded-control bg-brand-surface-foreground/10 text-brand-surface-foreground ring-1 ring-brand-surface-foreground/15">
-                <LogoMark className="size-6" />
-              </span>
-              <h2 className="mt-6 text-balance text-3xl font-semibold tracking-tight text-brand-surface-foreground sm:text-4xl">
-                Ship AI code with confidence
-              </h2>
-              <p className="mt-3 text-pretty text-base leading-relaxed text-brand-surface-foreground/70">
-                Connect your first repository and see risk scores on your open
-                pull requests in minutes.
-              </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild variant="accent" size="lg" className="group">
-                  <Link href="/sign-up">
+          </section>
+
+          {/* How it works */}
+          <section id="how-it-works" className="border-b border-[var(--rule)]">
+            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
+              <div data-reveal>
+                <Eyebrow>How it works</Eyebrow>
+                <h2 className="mkt-display mt-5 max-w-2xl text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
+                  Live in minutes, governed from day one
+                </h2>
+                <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-[var(--ink-2)]">
+                  Connect a repository and MergeAttest starts scoring pull
+                  requests immediately — no pipeline changes required.
+                </p>
+              </div>
+              <div className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+                {steps.map((s, i) => (
+                  <div key={s.title} data-reveal>
+                    <div className="border-t-2 border-[var(--ink)] pt-4">
+                      <span className="mkt-display text-[2.6rem] leading-none text-[var(--oxblood)]">
+                        {numberLabel(i + 1)}
+                      </span>
+                    </div>
+                    <h3 className="mkt-display mt-3 text-[1.3rem] font-medium leading-tight tracking-tight">
+                      {s.title}
+                    </h3>
+                    <p className="mt-2 text-[13px] leading-[1.65] text-[var(--ink-2)]">
+                      {s.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA */}
+          <section>
+            <div className="mx-auto w-full max-w-6xl px-5 py-28 sm:px-8">
+              <div data-reveal className="mx-auto max-w-2xl text-center">
+                <span className="mkt-seal mx-auto flex size-14 items-center justify-center rounded-full">
+                  <Mark size={26} />
+                </span>
+                <h2 className="mkt-display mt-7 text-[2.8rem] font-medium leading-[1.04] tracking-tight sm:text-[3.6rem]">
+                  Ship AI code with confidence
+                </h2>
+                <p className="mx-auto mt-5 max-w-md text-[15px] leading-[1.7] text-[var(--ink-2)]">
+                  Connect your first repository and see risk scores on your open
+                  pull requests in minutes.
+                </p>
+                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Link
+                    href="/sign-up"
+                    className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-medium"
+                  >
                     Start for free
                     <ArrowRight
                       aria-hidden="true"
-                      className="transition-transform duration-200 group-hover:translate-x-0.5"
+                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
                     />
                   </Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="border-brand-surface-foreground/25 text-brand-surface-foreground hover:border-brand-surface-foreground/45 hover:bg-brand-surface-foreground/10 hover:text-brand-surface-foreground"
-                >
-                  <Link href="/sign-in">Sign in</Link>
-                </Button>
+                  <Link
+                    href="/sign-in"
+                    className="mkt-ghost inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-medium text-[var(--ink-2)]"
+                  >
+                    Sign in
+                  </Link>
+                </div>
+                <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--ink-faint)]">
+                  free plan available · no credit card required
+                </p>
               </div>
-              <p className="mt-6 font-mono text-[11px] text-brand-surface-foreground/45">
-                free plan available · no credit card required
+            </div>
+          </section>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-[var(--rule)] bg-[var(--paper-2)]">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row sm:px-8">
+            <div className="flex items-center gap-2.5">
+              <Mark size={22} />
+              <span className="mkt-display text-[16px] font-medium tracking-tight">
+                MergeAttest
+              </span>
+            </div>
+            <nav
+              aria-label="Footer"
+              className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-[var(--ink-2)]"
+            >
+              <a className="mkt-link" href="#capabilities">
+                Capabilities
+              </a>
+              <a className="mkt-link" href="#how-it-works">
+                How it works
+              </a>
+              <Link className="mkt-link" href="/privacy">
+                Privacy
+              </Link>
+              <Link className="mkt-link" href="/terms">
+                Terms
+              </Link>
+              <Link className="mkt-link" href="/sign-in">
+                Sign in
+              </Link>
+            </nav>
+            <div className="flex flex-col items-center gap-1 sm:items-end">
+              <p className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+                © {new Date().getFullYear()} MergeAttest
+              </p>
+              <p className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+                From the{' '}
+                <a
+                  href="https://eastbase.studio"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Eastbase studio"
+                  className="mkt-link text-[var(--oxblood)]"
+                >
+                  Eastbase
+                </a>{' '}
+                studio
               </p>
             </div>
           </div>
-        </section>
-      </main>
+        </footer>
+      </div>
+    </div>
+  )
+}
 
-      <footer className="border-t border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-control bg-primary text-primary-foreground">
-              <LogoMark className="size-3.5" />
+function AttestationRecord() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[var(--rule-strong)] bg-[var(--card)] shadow-[0_30px_60px_-30px_rgba(28,24,19,0.25)]">
+      <div className="flex items-center justify-between border-b border-[var(--rule)] px-5 py-3">
+        <span className="mkt-mono text-[11px] uppercase tracking-[0.2em] text-[var(--ink-faint)]">
+          attestation record
+        </span>
+        <span className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+          {samplePr.repo}
+        </span>
+      </div>
+
+      <div className="px-6 py-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <span className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+              {samplePr.id}
             </span>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              MergeAttest
-            </span>
+            <h3 className="mkt-display mt-1 text-[1.4rem] font-medium leading-tight tracking-tight">
+              {samplePr.title}
+            </h3>
+            <p className="mkt-mono mt-1 text-[11px] text-[var(--ink-dim)]">
+              agent:{samplePr.agent} · {samplePr.diff}
+            </p>
           </div>
-          <nav
-            aria-label="Footer"
-            className="flex flex-wrap items-center justify-center gap-5 text-xs font-medium text-muted-foreground sm:justify-end"
-          >
-            <a
-              href="#features"
-              className="transition-colors hover:text-foreground"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="transition-colors hover:text-foreground"
-            >
-              How it works
-            </a>
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-foreground"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-foreground"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/sign-in"
-              className="transition-colors hover:text-foreground"
-            >
-              Sign in
-            </Link>
-          </nav>
-          <div className="flex flex-col items-center gap-1 sm:items-end">
-            <p className="font-mono text-[11px] text-subtle-foreground">
-              © {new Date().getFullYear()} MergeAttest
-            </p>
-            <p className="font-mono text-[11px] text-subtle-foreground">
-              From the{' '}
-              <a
-                href="https://eastbase.studio"
-                target="_blank"
-                rel="noopener"
-                aria-label="Eastbase studio"
-                className="rounded-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
-              >
-                Eastbase
-              </a>{' '}
-              studio
-            </p>
+          <div className="shrink-0 text-right">
+            <div className="mkt-display text-[3rem] leading-none text-[var(--oxblood)]">
+              {samplePr.score}
+            </div>
+            <div className="mkt-mono text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">
+              risk / 100
+            </div>
           </div>
         </div>
-      </footer>
+
+        <div className="mt-5 space-y-px overflow-hidden rounded-lg border border-[var(--rule)]">
+          {samplePr.findings.map((f) => (
+            <div
+              key={f.label}
+              className="flex items-center gap-3 border-b border-[var(--rule)] bg-[var(--paper-2)] px-3 py-2.5 last:border-b-0"
+            >
+              <span
+                className="size-1.5 rounded-full"
+                style={{
+                  background:
+                    f.tone === 'danger' ? 'var(--oxblood)' : 'var(--gold)',
+                }}
+              />
+              <span className="text-[12px] text-[var(--ink-2)]">{f.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-5 flex items-center justify-between border-t border-dashed border-[var(--rule-strong)] pt-4">
+          <div>
+            <div className="mkt-mono text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">
+              approved &amp; attested by
+            </div>
+            <div className="mkt-display mt-0.5 text-[1.05rem] italic text-[var(--ink)]">
+              Dana Okafor
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--forest)] px-3 py-1 text-[11px] font-medium text-[var(--forest)]">
+            <span className="size-1.5 rounded-full bg-[var(--forest)]" />
+            On the record
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
