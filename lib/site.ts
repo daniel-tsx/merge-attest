@@ -43,9 +43,4 @@ export const publicAppPaths = [
   '/reset-password',
   '/privacy',
   '/terms',
-  // TEMP (design/fresh-landing-experiment): public landing-design explorations.
-  // Remove these three before merging the experiment.
-  '/landing-1',
-  '/landing-2',
-  '/landing-3',
 ] as const

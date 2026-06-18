@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Fraunces } from 'next/font/google'
-import { ArrowRight } from 'lucide-react'
+import { Sora } from 'next/font/google'
+import { ArrowRight, Plus } from 'lucide-react'
 import {
   agents,
   authorship,
   features,
   heroLede,
   samplePr,
+  signals,
   stats,
   steps,
 } from '@/components/marketing/content'
@@ -23,105 +24,124 @@ export const metadata = createPageMetadata({
   path: '/',
 })
 
-// Editorial "Audit Ledger" landing identity. A self-contained, fixed-theme
-// presentation that fuses the product's thesis (merge + attest = "on the
-// record") with a premium legal/financial editorial aesthetic. Scoped to the
-// `.mkt` class so it does not touch the token-driven product UI.
-const display = Fraunces({
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
+// "Blueprint Schematic" landing identity: a deep-navy technical canvas with
+// cyan linework, monospaced annotations, and a schematic of the merge-gate
+// pipeline. Self-contained and scoped to the `.mkt` class so it does not touch
+// the token-driven product UI.
+const display = Sora({
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
   variable: '--font-mkt-display',
 })
 
 const styles = `
 .mkt {
-  --paper: #f5f1e8;
-  --paper-2: #faf7f0;
-  --card: #fffdf8;
-  --ink: #1c1813;
-  --ink-2: #463f34;
-  --ink-dim: #837a6b;
-  --ink-faint: #a89e8c;
-  --rule: #ddd5c5;
-  --rule-strong: #c6bca7;
-  --oxblood: #9a3324;
-  --forest: #2f5d49;
-  --gold: #9a6b1f;
-  color: var(--ink);
-  background: var(--paper);
+  --bg: #080d18;
+  --bg-2: #0b1322;
+  --panel: #0e1828;
+  --panel-2: #111e30;
+  --line: #1c2c44;
+  --line-soft: #15233a;
+  --text: #d7e3f2;
+  --text-dim: #8ba0bd;
+  --text-faint: #5a6f8e;
+  --cyan: #45d6e6;
+  --cyan-dim: #2a9fb0;
+  --coral: #ff8a5c;
+  --violet: #8aa0ff;
+  color: var(--text);
+  background: var(--bg);
   font-feature-settings: 'ss01' 1;
 }
-.mkt-display {
-  font-family: var(--font-mkt-display), Georgia, 'Times New Roman', serif;
-  font-optical-sizing: auto;
-}
+.mkt-display { font-family: var(--font-mkt-display), system-ui, sans-serif; }
 .mkt-mono { font-family: var(--font-geist-mono), ui-monospace, monospace; }
-.mkt-paper {
-  background-image: radial-gradient(circle at 1px 1px, rgba(28,24,19,0.05) 1px, transparent 0);
-  background-size: 22px 22px;
+.mkt-bp {
+  background-image:
+    linear-gradient(to right, rgba(69,214,230,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(69,214,230,0.05) 1px, transparent 1px),
+    linear-gradient(to right, rgba(69,214,230,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(69,214,230,0.025) 1px, transparent 1px);
+  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+}
+.mkt-glow {
+  background:
+    radial-gradient(620px 420px at 80% 2%, rgba(69,214,230,0.12), transparent 62%),
+    radial-gradient(520px 420px at 6% 18%, rgba(138,160,255,0.08), transparent 60%);
 }
 .mkt a:focus-visible,
 .mkt button:focus-visible {
-  outline: 2px solid var(--oxblood);
+  outline: 2px solid var(--cyan);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 .mkt-link { transition: color 0.18s ease; }
-.mkt-link:hover { color: var(--oxblood); }
+.mkt-link:hover { color: var(--cyan); }
 .mkt-cta {
-  background: var(--ink);
-  color: var(--paper-2);
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  background: var(--cyan);
+  color: #042027;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
-.mkt-cta:hover {
-  background: var(--oxblood);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 36px -18px rgba(154,51,36,0.7);
+.mkt-cta:hover { box-shadow: 0 0 0 1px var(--cyan), 0 14px 44px -14px rgba(69,214,230,0.55); transform: translateY(-1px); }
+.mkt-ghost { border: 1px solid var(--line); transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease; }
+.mkt-ghost:hover { border-color: var(--cyan-dim); color: var(--text); background: var(--panel); }
+.mkt-card { position: relative; background: var(--panel); border: 1px solid var(--line); transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease; }
+.mkt-card:hover { border-color: var(--cyan-dim); background: var(--panel-2); transform: translateY(-2px); }
+/* corner brackets for schematic cards */
+.mkt-bracket::before, .mkt-bracket::after {
+  content: ''; position: absolute; width: 10px; height: 10px; border-color: var(--cyan-dim);
 }
-.mkt-ghost { border: 1px solid var(--rule-strong); transition: border-color 0.2s ease, background 0.2s ease; }
-.mkt-ghost:hover { border-color: var(--ink); background: var(--paper-2); }
-.mkt-feature { transition: background 0.2s ease; }
-.mkt-feature:hover { background: var(--paper-2); }
-.mkt-seal {
-  background:
-    radial-gradient(circle, var(--card) 58%, transparent 59%),
-    repeating-conic-gradient(var(--oxblood) 0deg 10deg, transparent 10deg 20deg);
+.mkt-bracket::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+.mkt-bracket::after { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
+.mkt-flow { stroke-dasharray: 5 6; animation: mkt-dash 1.1s linear infinite; }
+@keyframes mkt-dash { to { stroke-dashoffset: -22; } }
+@media (prefers-reduced-motion: reduce) {
+  .mkt-flow { animation: none; }
 }
 `
 
 const numberLabel = (n: number) => String(n).padStart(2, '0')
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
+function Coord({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mkt-mono text-[11px] uppercase tracking-[0.28em] text-[var(--oxblood)]">
+    <span className="mkt-mono inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[var(--cyan)]">
+      <Plus className="size-3 text-[var(--cyan-dim)]" aria-hidden="true" />
       {children}
     </span>
   )
 }
 
-function Mark({ size = 26 }: { size?: number }) {
+function Mark({ size = 28 }: { size?: number }) {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      width={size}
-      height={size}
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
+    <span
+      className="inline-flex items-center justify-center rounded-lg"
+      style={{
+        width: size,
+        height: size,
+        background: 'var(--panel-2)',
+        border: '1px solid var(--line)',
+      }}
     >
-      <path
-        d="M6.5 25 V7.5 L16 18.5 L25.5 7.5 V25"
-        stroke="var(--ink)"
-        strokeWidth="2.6"
-      />
-      <path
-        d="M10 21 L14.3 25 L23 15.25"
-        stroke="var(--oxblood)"
-        strokeWidth="2.6"
-      />
-    </svg>
+      <svg
+        viewBox="0 0 32 32"
+        width={size * 0.58}
+        height={size * 0.58}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path
+          d="M6.5 25 V7.5 L16 18.5 L25.5 7.5 V25"
+          stroke="var(--text)"
+          strokeWidth="3"
+        />
+        <path
+          d="M10 21 L14.3 25 L23 15.25"
+          stroke="var(--cyan)"
+          strokeWidth="3"
+        />
+      </svg>
+    </span>
   )
 }
 
@@ -133,19 +153,21 @@ export default async function Home() {
     <div className={`mkt ${display.variable}`}>
       <JsonLd data={createHomeJsonLd()} />
       <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div className="mkt-paper flex min-h-screen flex-col">
+      <div className="mkt-glow relative flex min-h-screen flex-col overflow-hidden">
+        <div className="mkt-bp pointer-events-none absolute inset-0 opacity-70" />
+
         {/* Nav */}
-        <header className="sticky top-0 z-50 border-b border-[var(--rule)] bg-[var(--paper)]/85 backdrop-blur">
-          <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between px-5 sm:px-8">
+        <header className="sticky top-0 z-50 border-b border-[var(--line-soft)] bg-[var(--bg)]/85 backdrop-blur">
+          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
             <Link href="/" className="flex items-center gap-2.5">
               <Mark />
-              <span className="mkt-display text-[20px] font-medium tracking-tight">
+              <span className="mkt-display text-[15px] font-semibold tracking-tight">
                 MergeAttest
               </span>
             </Link>
             <nav
               aria-label="Primary"
-              className="hidden items-center gap-9 text-[13px] text-[var(--ink-2)] md:flex"
+              className="hidden items-center gap-8 text-[13px] text-[var(--text-dim)] md:flex"
             >
               <a className="mkt-link" href="#capabilities">
                 Capabilities
@@ -157,16 +179,16 @@ export default async function Home() {
                 How it works
               </a>
             </nav>
-            <div className="flex items-center gap-4 text-[13px]">
+            <div className="flex items-center gap-3 text-[13px]">
               <Link
-                className="mkt-link hidden text-[var(--ink-2)] sm:inline"
+                className="mkt-link hidden text-[var(--text-dim)] sm:inline"
                 href="/sign-in"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
-                className="mkt-cta rounded-full px-4 py-2 font-medium"
+                className="mkt-cta rounded-full px-4 py-2 font-semibold"
               >
                 Start free
               </Link>
@@ -176,63 +198,75 @@ export default async function Home() {
 
         <main className="flex-1">
           {/* Hero */}
-          <section className="border-b border-[var(--rule)]">
-            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-              <div data-intro>
-                <Eyebrow>GitHub-native · free early access</Eyebrow>
-                <h1 className="mkt-display mt-6 text-[3.1rem] font-medium leading-[1.02] tracking-[-0.02em] text-[var(--ink)] sm:text-[4.1rem] lg:text-[4.5rem]">
-                  Govern every AI pull request{' '}
-                  <span className="italic text-[var(--oxblood)]">
-                    before it merges.
-                  </span>
-                </h1>
-                <p className="mt-7 max-w-xl text-[15px] leading-[1.7] text-[var(--ink-2)] sm:text-[16px]">
-                  {heroLede}
-                </p>
-                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
-                    href="/sign-up"
-                    className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium"
-                  >
-                    Start for free
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                    />
-                  </Link>
-                  <a
-                    href="#how-it-works"
-                    className="mkt-ghost inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium text-[var(--ink-2)]"
-                  >
-                    See how it works
-                  </a>
-                </div>
-                <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--ink-faint)]">
-                  free plan available · no credit card required
-                </p>
+          <section className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pt-16 pb-20 sm:px-8 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
+            <div data-intro>
+              <Coord>GitHub-native · free early access</Coord>
+              <h1 className="mkt-display mt-6 text-[3rem] leading-[1.04] tracking-[-0.025em] sm:text-[3.9rem] lg:text-[4.4rem]">
+                <span className="font-bold">Govern every AI pull request</span>{' '}
+                <span className="font-light text-[var(--text-dim)]">
+                  before it merges.
+                </span>
+              </h1>
+              <p className="mt-7 max-w-xl text-[15px] leading-relaxed text-[var(--text-dim)] sm:text-base">
+                {heroLede}
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Link
+                  href="/sign-up"
+                  className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold"
+                >
+                  Start for free
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="mkt-ghost inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium text-[var(--text-dim)]"
+                >
+                  See how it works
+                </a>
               </div>
+              <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--text-faint)]">
+                free plan available · no credit card required
+              </p>
+            </div>
 
-              <div data-intro className="lg:pt-4">
-                <AttestationRecord />
+            <div data-intro>
+              <PipelineSchematic />
+            </div>
+          </section>
+
+          {/* Signals strip */}
+          <section className="relative z-10 border-y border-[var(--line-soft)] bg-[var(--bg-2)]/60">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-6 sm:flex-row sm:items-center sm:gap-7 sm:px-8">
+              <Coord>signals / diff</Coord>
+              <div className="flex flex-wrap gap-2">
+                {signals.map((sig) => (
+                  <span
+                    key={sig}
+                    className="mkt-mono rounded border border-[var(--line)] bg-[var(--panel)] px-2.5 py-1 text-[11px] text-[var(--text-dim)]"
+                  >
+                    {sig}
+                  </span>
+                ))}
               </div>
             </div>
           </section>
 
-          {/* Ledger stats */}
+          {/* Stats readout */}
           <section
             aria-label="Key figures"
-            className="border-b border-[var(--rule)] bg-[var(--paper-2)]"
+            className="relative z-10 mx-auto w-full max-w-6xl px-5 py-16 sm:px-8"
           >
-            <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-px bg-[var(--rule)] px-5 sm:px-8 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] lg:grid-cols-4">
               {stats.map((s) => (
-                <div
-                  key={s.label}
-                  className="bg-[var(--paper-2)] px-2 py-8 sm:px-5"
-                >
-                  <div className="mkt-display text-[2.6rem] leading-none text-[var(--ink)]">
+                <div key={s.label} className="bg-[var(--panel)] p-6">
+                  <div className="mkt-display text-4xl font-bold text-[var(--cyan)]">
                     {s.value}
                   </div>
-                  <div className="mt-2 text-[12px] leading-snug text-[var(--ink-dim)]">
+                  <div className="mt-2 text-[12px] leading-snug text-[var(--text-dim)]">
                     {s.label}
                   </div>
                 </div>
@@ -240,90 +274,82 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* Capabilities — editorial numbered ledger */}
-          <section id="capabilities" className="border-b border-[var(--rule)]">
-            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
-              <div
-                data-reveal
-                className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end"
-              >
-                <div>
-                  <Eyebrow>The capabilities</Eyebrow>
-                  <h2 className="mkt-display mt-5 text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
-                    The full record, not another comment stream
-                  </h2>
-                </div>
-                <p className="text-[15px] leading-[1.7] text-[var(--ink-2)] lg:pb-2">
-                  CodeRabbit, Copilot, and Qodo help teams review faster.
-                  MergeAttest answers the next question: should this AI-assisted
-                  change be allowed to merge, who accepted the risk, and where
-                  is the evidence?
-                </p>
-              </div>
+          {/* Capabilities — schematic bento */}
+          <section
+            id="capabilities"
+            className="relative z-10 mx-auto w-full max-w-6xl px-5 py-16 sm:px-8"
+          >
+            <div data-reveal className="max-w-2xl">
+              <Coord>capabilities</Coord>
+              <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
+                The control layer, fully wired
+              </h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-dim)]">
+                CodeRabbit, Copilot, and Qodo help teams review faster.
+                MergeAttest answers the next question: should this AI-assisted
+                change be allowed to merge, who accepted the risk, and where is
+                the evidence?
+              </p>
+            </div>
 
-              <div className="mt-14 border-t border-[var(--rule)]">
-                {features.map((f, i) => (
-                  <div
-                    key={f.id}
-                    data-reveal
-                    className="mkt-feature grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-[var(--rule)] px-2 py-8 sm:grid-cols-[5rem_1fr_1.2fr] sm:gap-x-10 sm:px-4"
-                  >
-                    <div className="mkt-display text-[2.4rem] leading-none text-[var(--ink-faint)]">
-                      {numberLabel(i + 1)}
-                    </div>
-                    <h3 className="mkt-display self-center text-[1.5rem] font-medium leading-tight tracking-tight text-[var(--ink)]">
-                      {f.title}
-                    </h3>
-                    <p className="col-span-2 text-[14px] leading-[1.7] text-[var(--ink-2)] sm:col-span-1 sm:self-center">
-                      {f.description}
-                    </p>
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {features.map((f, i) => (
+                <div
+                  key={f.id}
+                  data-reveal
+                  className="mkt-card mkt-bracket rounded-xl p-7"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="mkt-mono text-[11px] tracking-[0.16em] text-[var(--cyan)]">
+                      M-{numberLabel(i + 1)}
+                    </span>
+                    <span className="size-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_10px_2px_rgba(69,214,230,0.5)]" />
                   </div>
-                ))}
-              </div>
+                  <h3 className="mkt-display mt-6 text-[1.15rem] font-semibold tracking-tight">
+                    {f.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
+                    {f.description}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
 
           {/* AI authorship */}
           <section
             id="authorship"
-            className="border-b border-[var(--rule)] bg-[var(--paper-2)]"
+            className="relative z-10 border-t border-[var(--line-soft)]"
           >
-            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
               <div data-reveal>
-                <Eyebrow>AI authorship</Eyebrow>
-                <h2 className="mkt-display mt-5 text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
+                <Coord>ai authorship</Coord>
+                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
                   Know which agent wrote it —{' '}
-                  <span className="italic text-[var(--oxblood)]">
-                    and prove it.
-                  </span>
+                  <span className="text-[var(--cyan)]">and prove it.</span>
                 </h2>
-                <p className="mt-5 max-w-md text-[15px] leading-[1.7] text-[var(--ink-2)]">
+                <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[var(--text-dim)]">
                   Coding-agent adoption is near-universal; trust is not.
                   MergeAttest attributes every PR to the agent behind it and
                   turns its track record into audit-ready evidence — the white
                   space no AI reviewer owns.
                 </p>
-                <div className="mt-8 overflow-hidden rounded-xl border border-[var(--rule-strong)] bg-[var(--card)]">
-                  <div className="border-b border-[var(--rule)] px-4 py-2.5">
-                    <span className="mkt-mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-faint)]">
-                      attribution confidence
-                    </span>
-                  </div>
+                <div className="mt-8 space-y-2.5">
                   {agents.map((a) => (
                     <div
                       key={a.name}
-                      className="flex items-center gap-4 border-b border-[var(--rule)] px-4 py-2.5 last:border-b-0"
+                      className="mkt-card flex items-center gap-4 rounded-lg px-4 py-3"
                     >
-                      <span className="w-28 text-[13px] font-medium text-[var(--ink)]">
+                      <span className="w-28 text-[13px] font-medium text-[var(--text)]">
                         {a.name}
                       </span>
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--paper)]">
+                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--line)]">
                         <div
-                          className="h-full rounded-full bg-[var(--forest)]"
+                          className="h-full rounded-full bg-[var(--cyan)]"
                           style={{ width: `${a.confidence}%` }}
                         />
                       </div>
-                      <span className="mkt-mono w-10 text-right text-[12px] text-[var(--ink-dim)]">
+                      <span className="mkt-mono w-10 text-right text-[12px] text-[var(--cyan)]">
                         {a.confidence}%
                       </span>
                     </div>
@@ -331,20 +357,20 @@ export default async function Home() {
                 </div>
               </div>
 
-              <div className="grid gap-px self-start overflow-hidden rounded-xl border border-[var(--rule-strong)] bg-[var(--rule)] sm:grid-cols-2">
+              <div className="grid gap-4 self-start sm:grid-cols-2">
                 {authorship.map((a, i) => (
                   <div
                     key={a.title}
                     data-reveal
-                    className="bg-[var(--card)] p-7"
+                    className="mkt-card mkt-bracket rounded-xl p-6"
                   >
-                    <span className="mkt-mono text-[11px] text-[var(--oxblood)]">
+                    <span className="mkt-mono text-[11px] text-[var(--cyan)]">
                       {numberLabel(i + 1)}
                     </span>
-                    <h3 className="mkt-display mt-3 text-[1.35rem] font-medium leading-tight tracking-tight">
+                    <h3 className="mkt-display mt-3 text-[1.05rem] font-semibold leading-tight tracking-tight">
                       {a.title}
                     </h3>
-                    <p className="mt-2 text-[13px] leading-[1.65] text-[var(--ink-2)]">
+                    <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
                       {a.description}
                     </p>
                   </div>
@@ -353,91 +379,100 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* How it works */}
-          <section id="how-it-works" className="border-b border-[var(--rule)]">
-            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
-              <div data-reveal>
-                <Eyebrow>How it works</Eyebrow>
-                <h2 className="mkt-display mt-5 max-w-2xl text-[2.6rem] font-medium leading-[1.05] tracking-tight sm:text-[3.2rem]">
+          {/* How it works — pipeline */}
+          <section
+            id="how-it-works"
+            className="relative z-10 border-t border-[var(--line-soft)]"
+          >
+            <div className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8">
+              <div data-reveal className="max-w-2xl">
+                <Coord>how it works</Coord>
+                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
                   Live in minutes, governed from day one
                 </h2>
-                <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-[var(--ink-2)]">
+                <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[var(--text-dim)]">
                   Connect a repository and MergeAttest starts scoring pull
                   requests immediately — no pipeline changes required.
                 </p>
               </div>
-              <div className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-                {steps.map((s, i) => (
-                  <div key={s.title} data-reveal>
-                    <div className="border-t-2 border-[var(--ink)] pt-4">
-                      <span className="mkt-display text-[2.6rem] leading-none text-[var(--oxblood)]">
+              <div className="relative mt-14">
+                <span
+                  aria-hidden="true"
+                  className="absolute top-4 right-0 left-0 hidden h-px bg-[var(--line)] lg:block"
+                />
+                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+                  {steps.map((s, i) => (
+                    <div key={s.title} data-reveal className="relative">
+                      <span className="mkt-mono relative z-10 flex size-8 items-center justify-center rounded-full border border-[var(--cyan-dim)] bg-[var(--panel)] text-[12px] font-semibold text-[var(--cyan)]">
                         {numberLabel(i + 1)}
                       </span>
+                      <h3 className="mkt-display mt-4 text-[1.05rem] font-semibold tracking-tight">
+                        {s.title}
+                      </h3>
+                      <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
+                        {s.description}
+                      </p>
                     </div>
-                    <h3 className="mkt-display mt-3 text-[1.3rem] font-medium leading-tight tracking-tight">
-                      {s.title}
-                    </h3>
-                    <p className="mt-2 text-[13px] leading-[1.65] text-[var(--ink-2)]">
-                      {s.description}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </section>
 
           {/* CTA */}
-          <section>
-            <div className="mx-auto w-full max-w-6xl px-5 py-28 sm:px-8">
-              <div data-reveal className="mx-auto max-w-2xl text-center">
-                <span className="mkt-seal mx-auto flex size-14 items-center justify-center rounded-full">
-                  <Mark size={26} />
-                </span>
-                <h2 className="mkt-display mt-7 text-[2.8rem] font-medium leading-[1.04] tracking-tight sm:text-[3.6rem]">
-                  Ship AI code with confidence
-                </h2>
-                <p className="mx-auto mt-5 max-w-md text-[15px] leading-[1.7] text-[var(--ink-2)]">
-                  Connect your first repository and see risk scores on your open
-                  pull requests in minutes.
-                </p>
-                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Link
-                    href="/sign-up"
-                    className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-medium"
-                  >
-                    Start for free
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                    />
-                  </Link>
-                  <Link
-                    href="/sign-in"
-                    className="mkt-ghost inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-medium text-[var(--ink-2)]"
-                  >
-                    Sign in
-                  </Link>
+          <section className="relative z-10 border-t border-[var(--line-soft)]">
+            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
+              <div
+                data-reveal
+                className="mkt-card relative overflow-hidden rounded-2xl px-8 py-16 text-center"
+              >
+                <div className="mkt-bp pointer-events-none absolute inset-0 opacity-50" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--cyan)] to-transparent" />
+                <div className="relative">
+                  <Mark size={48} />
+                  <h2 className="mkt-display mt-7 text-4xl font-bold leading-tight tracking-tight sm:text-[3rem]">
+                    Ship AI code with confidence
+                  </h2>
+                  <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-[var(--text-dim)]">
+                    Connect your first repository and see risk scores on your
+                    open pull requests in minutes.
+                  </p>
+                  <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <Link
+                      href="/sign-up"
+                      className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-semibold"
+                    >
+                      Start for free
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      />
+                    </Link>
+                    <Link
+                      href="/sign-in"
+                      className="mkt-ghost inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-medium text-[var(--text-dim)]"
+                    >
+                      Sign in
+                    </Link>
+                  </div>
                 </div>
-                <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--ink-faint)]">
-                  free plan available · no credit card required
-                </p>
               </div>
             </div>
           </section>
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-[var(--rule)] bg-[var(--paper-2)]">
+        <footer className="relative z-10 border-t border-[var(--line-soft)]">
           <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row sm:px-8">
             <div className="flex items-center gap-2.5">
               <Mark size={22} />
-              <span className="mkt-display text-[16px] font-medium tracking-tight">
+              <span className="mkt-display text-sm font-semibold tracking-tight">
                 MergeAttest
               </span>
             </div>
             <nav
               aria-label="Footer"
-              className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-[var(--ink-2)]"
+              className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-[var(--text-dim)]"
             >
               <a className="mkt-link" href="#capabilities">
                 Capabilities
@@ -456,17 +491,17 @@ export default async function Home() {
               </Link>
             </nav>
             <div className="flex flex-col items-center gap-1 sm:items-end">
-              <p className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+              <p className="mkt-mono text-[11px] text-[var(--text-faint)]">
                 © {new Date().getFullYear()} MergeAttest
               </p>
-              <p className="mkt-mono text-[11px] text-[var(--ink-faint)]">
+              <p className="mkt-mono text-[11px] text-[var(--text-faint)]">
                 From the{' '}
                 <a
                   href="https://eastbase.studio"
                   target="_blank"
                   rel="noopener"
                   aria-label="Eastbase studio"
-                  className="mkt-link text-[var(--oxblood)]"
+                  className="mkt-link text-[var(--cyan)]"
                 >
                   Eastbase
                 </a>{' '}
@@ -480,73 +515,186 @@ export default async function Home() {
   )
 }
 
-function AttestationRecord() {
+function PipelineSchematic() {
+  const agentNames = ['claude code', 'copilot', 'cursor']
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--rule-strong)] bg-[var(--card)] shadow-[0_30px_60px_-30px_rgba(28,24,19,0.25)]">
-      <div className="flex items-center justify-between border-b border-[var(--rule)] px-5 py-3">
-        <span className="mkt-mono text-[11px] uppercase tracking-[0.2em] text-[var(--ink-faint)]">
-          attestation record
+    <div className="mkt-card mkt-bracket rounded-2xl p-5 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.8)]">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="mkt-mono text-[11px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
+          merge-boundary schematic
         </span>
-        <span className="mkt-mono text-[11px] text-[var(--ink-faint)]">
-          {samplePr.repo}
+        <span className="mkt-mono inline-flex items-center gap-1.5 text-[11px] text-[var(--cyan)]">
+          <span className="size-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_2px_rgba(69,214,230,0.5)]" />
+          live
         </span>
       </div>
 
-      <div className="px-6 py-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="mkt-mono text-[11px] text-[var(--ink-faint)]">
-              {samplePr.id}
-            </span>
-            <h3 className="mkt-display mt-1 text-[1.4rem] font-medium leading-tight tracking-tight">
-              {samplePr.title}
-            </h3>
-            <p className="mkt-mono mt-1 text-[11px] text-[var(--ink-dim)]">
-              agent:{samplePr.agent} · {samplePr.diff}
-            </p>
-          </div>
-          <div className="shrink-0 text-right">
-            <div className="mkt-display text-[3rem] leading-none text-[var(--oxblood)]">
-              {samplePr.score}
-            </div>
-            <div className="mkt-mono text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">
-              risk / 100
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-px overflow-hidden rounded-lg border border-[var(--rule)]">
-          {samplePr.findings.map((f) => (
-            <div
-              key={f.label}
-              className="flex items-center gap-3 border-b border-[var(--rule)] bg-[var(--paper-2)] px-3 py-2.5 last:border-b-0"
-            >
-              <span
-                className="size-1.5 rounded-full"
-                style={{
-                  background:
-                    f.tone === 'danger' ? 'var(--oxblood)' : 'var(--gold)',
-                }}
+      <svg
+        viewBox="0 0 420 300"
+        className="w-full"
+        fill="none"
+        role="img"
+        aria-label="Schematic: AI coding agents flow into the MergeAttest gate, which scores risk and routes pull requests to merge or to human review."
+      >
+        {/* agent nodes */}
+        {agentNames.map((name, i) => {
+          const y = 50 + i * 80
+          return (
+            <g key={name}>
+              <rect
+                x="8"
+                y={y - 18}
+                width="108"
+                height="36"
+                rx="8"
+                fill="var(--panel-2)"
+                stroke="var(--line)"
               />
-              <span className="text-[12px] text-[var(--ink-2)]">{f.label}</span>
-            </div>
-          ))}
-        </div>
+              <circle cx="26" cy={y} r="3" fill="var(--violet)" />
+              <text
+                x="40"
+                y={y + 4}
+                fill="var(--text-dim)"
+                style={{ font: '11px var(--font-geist-mono), monospace' }}
+              >
+                {name}
+              </text>
+              {/* flow into gate */}
+              <path
+                className="mkt-flow"
+                d={`M116 ${y} C 150 ${y}, 150 150, 184 150`}
+                stroke="var(--cyan-dim)"
+                strokeWidth="1.5"
+              />
+            </g>
+          )
+        })}
 
-        <div className="mt-5 flex items-center justify-between border-t border-dashed border-[var(--rule-strong)] pt-4">
-          <div>
-            <div className="mkt-mono text-[10px] uppercase tracking-wider text-[var(--ink-faint)]">
-              approved &amp; attested by
+        {/* gate node */}
+        <rect
+          x="184"
+          y="104"
+          width="92"
+          height="92"
+          rx="14"
+          fill="var(--panel-2)"
+          stroke="var(--cyan)"
+          strokeWidth="1.5"
+        />
+        <g transform="translate(214, 128)">
+          <path
+            d="M2 40 V6 L16 22 L30 6 V40"
+            stroke="var(--text)"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 34 L14 42 L26 25"
+            stroke="var(--cyan)"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+        <text
+          x="230"
+          y="188"
+          textAnchor="middle"
+          fill="var(--cyan)"
+          style={{
+            font: '9px var(--font-geist-mono), monospace',
+            letterSpacing: '0.12em',
+          }}
+        >
+          SCAN
+        </text>
+
+        {/* gate to outputs */}
+        <path
+          className="mkt-flow"
+          d="M276 132 C 320 132, 320 70, 360 70"
+          stroke="var(--cyan-dim)"
+          strokeWidth="1.5"
+        />
+        <path
+          className="mkt-flow"
+          d="M276 168 C 320 168, 320 232, 360 232"
+          stroke="var(--cyan-dim)"
+          strokeWidth="1.5"
+        />
+
+        {/* merge output */}
+        <rect
+          x="304"
+          y="50"
+          width="108"
+          height="40"
+          rx="8"
+          fill="var(--panel-2)"
+          stroke="var(--line)"
+        />
+        <text
+          x="320"
+          y="68"
+          fill="var(--text)"
+          style={{ font: '600 12px var(--font-mkt-display), sans-serif' }}
+        >
+          approve
+        </text>
+        <text
+          x="320"
+          y="82"
+          fill="var(--text-faint)"
+          style={{ font: '9px var(--font-geist-mono), monospace' }}
+        >
+          on the record
+        </text>
+
+        {/* review output */}
+        <rect
+          x="304"
+          y="212"
+          width="108"
+          height="40"
+          rx="8"
+          fill="var(--panel-2)"
+          stroke="var(--coral)"
+          strokeOpacity="0.55"
+        />
+        <text
+          x="320"
+          y="230"
+          fill="var(--text)"
+          style={{ font: '600 12px var(--font-mkt-display), sans-serif' }}
+        >
+          human review
+        </text>
+        <text
+          x="320"
+          y="244"
+          fill="var(--coral)"
+          style={{ font: '9px var(--font-geist-mono), monospace' }}
+        >
+          risk {samplePr.score}/100
+        </text>
+      </svg>
+
+      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[var(--line)] pt-4">
+        {[
+          { k: 'attributed', v: 'claude-code' },
+          { k: 'risk', v: `${samplePr.score} · high` },
+          { k: 'verdict', v: 'review' },
+        ].map((m) => (
+          <div key={m.k}>
+            <div className="mkt-mono text-[9px] uppercase tracking-[0.14em] text-[var(--text-faint)]">
+              {m.k}
             </div>
-            <div className="mkt-display mt-0.5 text-[1.05rem] italic text-[var(--ink)]">
-              Dana Okafor
+            <div className="mkt-mono mt-0.5 text-[12px] text-[var(--text)]">
+              {m.v}
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--forest)] px-3 py-1 text-[11px] font-medium text-[var(--forest)]">
-            <span className="size-1.5 rounded-full bg-[var(--forest)]" />
-            On the record
-          </span>
-        </div>
+        ))}
       </div>
     </div>
   )
