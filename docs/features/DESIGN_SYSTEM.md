@@ -3,7 +3,7 @@
 **Status:** `current`
 **Location:** `docs/features/DESIGN_SYSTEM.md`
 
-Last reviewed: 2026-06-10
+Last reviewed: 2026-06-18 (palette moved to the "blueprint" system — cool navy surfaces + a single cyan accent — across both themes; layout/density discipline unchanged)
 
 ## Purpose
 
@@ -34,13 +34,15 @@ Token groups:
 - Interaction: `focus` and `focus-ring`.
 - Shape/elevation: `radius-control`, `radius-card`, `shadow-card`, `shadow-card-hover`, and `shadow-overlay`.
 
-Current token strategy:
+Current token strategy ("blueprint" palette — cool navy + cyan, hue ~250–255 neutrals, ~200–208 accent):
 
-- Use cool near-white surfaces rather than warm cream.
-- Use near-black product chrome for primary actions and shell identity — `primary`
+- Use cool blueprint surfaces: a cool near-white in light mode, deep navy in dark mode (not warm cream, not neutral gray).
+- Use deep-navy product chrome for primary actions and shell identity — `primary`
   **inverts to near-white in dark mode** for high-contrast buttons, so decorative
   dark panels (auth aside) and the modal scrim use `brand-surface` / `scrim`, not `primary`.
-- Use indigo only for selected states, focus, and high-priority accent actions.
+- Use the blueprint cyan accent only for selected states, focus, links, and high-priority accent actions.
+  On solid `accent`, foreground is white in light mode; in dark mode `accent` is a brighter cyan and
+  `accent-foreground` is a deep navy so on-accent text (buttons, selected calendar days) stays legible.
 - Keep semantic status colors clear but muted enough for dense tables; in dark mode
   the `*-soft` fills go dark-tinted and the base/text tones brighten for contrast.
 - Elevation is restrained but real (cards lift with a soft shadow; in dark, depth

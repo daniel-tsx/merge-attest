@@ -6,43 +6,43 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Surfaces — Linear-inspired operational neutrals */
-  --background: oklch(0.973 0.004 264);
-  --foreground: oklch(0.155 0.013 264);
-  --surface: oklch(0.992 0.002 264);
-  --surface-elevated: oklch(0.998 0.001 264);
-  --surface-muted: oklch(0.956 0.005 264);
-  --surface-subtle: oklch(0.931 0.007 264);
-  --surface-hover: oklch(0.944 0.006 264);
-  --surface-pressed: oklch(0.902 0.009 264);
+  /* Surfaces — cool blueprint neutrals (light) */
+  --background: oklch(0.973 0.005 250);
+  --foreground: oklch(0.17 0.022 252);
+  --surface: oklch(0.992 0.003 250);
+  --surface-elevated: oklch(0.998 0.002 250);
+  --surface-muted: oklch(0.955 0.007 250);
+  --surface-subtle: oklch(0.93 0.01 250);
+  --surface-hover: oklch(0.943 0.008 250);
+  --surface-pressed: oklch(0.9 0.012 250);
 
   /* Borders */
-  --border: oklch(0.873 0.012 264);
-  --border-strong: oklch(0.765 0.018 264);
-  --border-subtle: oklch(0.923 0.008 264);
-  --divider: oklch(0.912 0.009 264);
+  --border: oklch(0.872 0.014 250);
+  --border-strong: oklch(0.76 0.022 250);
+  --border-subtle: oklch(0.922 0.011 250);
+  --divider: oklch(0.91 0.012 250);
 
   /* Text */
-  --muted: oklch(0.956 0.005 264);
-  --muted-foreground: oklch(0.435 0.026 264);
-  --subtle-foreground: oklch(0.57 0.026 264);
+  --muted: oklch(0.955 0.007 250);
+  --muted-foreground: oklch(0.44 0.028 252);
+  --subtle-foreground: oklch(0.565 0.03 252);
 
-  /* Primary — near-black product chrome */
-  --primary: oklch(0.155 0.013 264);
-  --primary-hover: oklch(0.22 0.018 264);
-  --primary-foreground: oklch(0.985 0.004 264);
+  /* Primary — deep navy product chrome */
+  --primary: oklch(0.2 0.03 255);
+  --primary-hover: oklch(0.27 0.035 255);
+  --primary-foreground: oklch(0.985 0.004 250);
 
-  /* Accent — restrained Linear indigo */
-  --accent: oklch(0.555 0.16 278);
-  --accent-hover: oklch(0.615 0.17 278);
-  --accent-soft: oklch(0.944 0.026 278);
-  --accent-foreground: oklch(0.985 0.004 264);
-  --accent-ring: oklch(0.78 0.085 278);
+  /* Accent — blueprint cyan (teal-leaning so white text and as-text both read) */
+  --accent: oklch(0.56 0.105 208);
+  --accent-hover: oklch(0.5 0.1 208);
+  --accent-soft: oklch(0.945 0.03 205);
+  --accent-foreground: oklch(0.99 0.005 205);
+  --accent-ring: oklch(0.72 0.085 205);
 
-  /* Brand chrome — fixed deep-ink decorative surfaces, stable across themes */
-  --brand-surface: oklch(0.185 0.016 277);
-  --brand-surface-foreground: oklch(0.97 0.004 264);
-  --scrim: oklch(0.14 0.01 264);
+  /* Brand chrome — fixed deep-navy decorative surfaces, stable across themes */
+  --brand-surface: oklch(0.2 0.03 255);
+  --brand-surface-foreground: oklch(0.96 0.006 250);
+  --scrim: oklch(0.15 0.02 255);
 
   /* Status — clear but not candy-colored */
   --success: oklch(0.475 0.115 160);
@@ -65,8 +65,8 @@
   --info-border: oklch(0.78 0.08 258);
 
   /* Interaction */
-  --focus: oklch(0.555 0.16 278);
-  --focus-ring: oklch(0.78 0.085 278);
+  --focus: oklch(0.56 0.105 208);
+  --focus-ring: oklch(0.72 0.085 205);
 
   /* Elevation — restrained but real depth; cards lift, overlays float */
   --shadow-card:
@@ -86,43 +86,43 @@
 }
 
 .dark {
-  /* Surfaces — deep cool neutrals; elevation expressed by lightness ramp */
-  --background: oklch(0.165 0.008 264);
-  --foreground: oklch(0.955 0.004 264);
-  --surface: oklch(0.205 0.009 264);
-  --surface-elevated: oklch(0.238 0.01 264);
-  --surface-muted: oklch(0.225 0.009 264);
-  --surface-subtle: oklch(0.265 0.01 264);
-  --surface-hover: oklch(0.275 0.011 264);
-  --surface-pressed: oklch(0.31 0.012 264);
+  /* Surfaces — deep navy blueprint; elevation expressed by lightness ramp */
+  --background: oklch(0.175 0.025 255);
+  --foreground: oklch(0.93 0.016 250);
+  --surface: oklch(0.215 0.028 255);
+  --surface-elevated: oklch(0.255 0.03 255);
+  --surface-muted: oklch(0.235 0.028 255);
+  --surface-subtle: oklch(0.285 0.031 255);
+  --surface-hover: oklch(0.295 0.032 255);
+  --surface-pressed: oklch(0.335 0.034 255);
 
   /* Borders */
-  --border: oklch(0.3 0.011 264);
-  --border-strong: oklch(0.42 0.015 264);
-  --border-subtle: oklch(0.262 0.01 264);
-  --divider: oklch(0.278 0.01 264);
+  --border: oklch(0.32 0.036 255);
+  --border-strong: oklch(0.44 0.044 255);
+  --border-subtle: oklch(0.275 0.03 255);
+  --divider: oklch(0.295 0.032 255);
 
   /* Text */
-  --muted: oklch(0.225 0.009 264);
-  --muted-foreground: oklch(0.705 0.018 264);
-  --subtle-foreground: oklch(0.575 0.018 264);
+  --muted: oklch(0.235 0.028 255);
+  --muted-foreground: oklch(0.7 0.03 250);
+  --subtle-foreground: oklch(0.58 0.034 252);
 
-  /* Primary — inverts to near-white high-contrast chrome */
-  --primary: oklch(0.93 0.005 264);
-  --primary-hover: oklch(0.85 0.006 264);
-  --primary-foreground: oklch(0.18 0.012 264);
+  /* Primary — inverts to cool near-white high-contrast chrome */
+  --primary: oklch(0.93 0.012 250);
+  --primary-hover: oklch(0.85 0.013 250);
+  --primary-foreground: oklch(0.2 0.03 255);
 
-  /* Accent — brightened indigo for dark surfaces */
-  --accent: oklch(0.64 0.16 278);
-  --accent-hover: oklch(0.7 0.165 278);
-  --accent-soft: oklch(0.305 0.06 278);
-  --accent-foreground: oklch(0.985 0.004 264);
-  --accent-ring: oklch(0.55 0.12 278);
+  /* Accent — bright blueprint cyan; dark navy text sits on solid accent */
+  --accent: oklch(0.72 0.12 200);
+  --accent-hover: oklch(0.78 0.115 198);
+  --accent-soft: oklch(0.33 0.07 215);
+  --accent-foreground: oklch(0.19 0.03 245);
+  --accent-ring: oklch(0.6 0.1 205);
 
-  /* Brand chrome — stays a deep ink, lifted just above the page */
-  --brand-surface: oklch(0.205 0.014 277);
-  --brand-surface-foreground: oklch(0.97 0.004 264);
-  --scrim: oklch(0.08 0.008 264);
+  /* Brand chrome — stays a deep navy ink, lifted just above the page */
+  --brand-surface: oklch(0.205 0.028 255);
+  --brand-surface-foreground: oklch(0.95 0.012 250);
+  --scrim: oklch(0.09 0.02 255);
 
   /* Status — soft fills go dark-tinted, text/base go bright for contrast */
   --success: oklch(0.7 0.14 160);
@@ -145,8 +145,8 @@
   --info-border: oklch(0.45 0.1 260);
 
   /* Interaction */
-  --focus: oklch(0.64 0.16 278);
-  --focus-ring: oklch(0.6 0.13 278);
+  --focus: oklch(0.72 0.12 200);
+  --focus-ring: oklch(0.62 0.1 203);
 
   /* Elevation — blacker, deeper drops; ring hairline becomes a soft glow */
   --shadow-card:

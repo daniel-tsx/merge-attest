@@ -28,12 +28,12 @@ type ChartPalette = {
 const fallbackPalette: ChartPalette = {
   risk: 'oklch(0.505 0.17 25)',
   testGaps: 'oklch(0.545 0.145 45)',
-  aiAuthored: 'oklch(0.55 0.18 264)',
-  grid: 'oklch(0.873 0.012 264)',
-  axis: 'oklch(0.57 0.026 264)',
-  surface: 'oklch(0.998 0.001 264)',
-  border: 'oklch(0.765 0.018 264)',
-  foreground: 'oklch(0.155 0.013 264)',
+  aiAuthored: 'oklch(0.56 0.105 208)',
+  grid: 'oklch(0.872 0.014 250)',
+  axis: 'oklch(0.565 0.03 252)',
+  surface: 'oklch(0.998 0.002 250)',
+  border: 'oklch(0.76 0.022 250)',
+  foreground: 'oklch(0.17 0.022 252)',
 }
 
 function readPalette(): ChartPalette {

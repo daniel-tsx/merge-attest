@@ -27,12 +27,12 @@ type ChartPalette = {
 // Fallbacks mirror the tokens in app/globals.css; the live values are read
 // from CSS custom properties so the chart tracks the design system.
 const fallbackPalette: ChartPalette = {
-  accent: 'oklch(0.51 0.2 277)',
-  grid: 'oklch(0.873 0.012 264)',
-  axis: 'oklch(0.57 0.026 264)',
-  surface: 'oklch(0.998 0.001 264)',
-  border: 'oklch(0.765 0.018 264)',
-  foreground: 'oklch(0.155 0.013 264)',
+  accent: 'oklch(0.56 0.105 208)',
+  grid: 'oklch(0.872 0.014 250)',
+  axis: 'oklch(0.565 0.03 252)',
+  surface: 'oklch(0.998 0.002 250)',
+  border: 'oklch(0.76 0.022 250)',
+  foreground: 'oklch(0.17 0.022 252)',
 }
 
 function readPalette(): ChartPalette {
