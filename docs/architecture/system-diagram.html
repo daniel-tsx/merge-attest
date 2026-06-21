@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MergeAttest — System Architecture Overview</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0e16;
+        --bg-grid: #0e131e;
+        --panel: #111826;
+        --panel-2: #0d141f;
+        --panel-hover: #16202f;
+        --border: #1f2a3a;
+        --border-soft: #18222f;
+        --text: #e6ecf5;
+        --muted: #93a1b5;
+        --muted-2: #6b788c;
+        --mono: ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace;
+        --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+        /* Category accents */
+        --c-client: #38bdf8; /* Client / browser */
+        --c-app: #818cf8; /* Vercel / App / Next.js */
+        --c-data: #34d399; /* Database / persistence */
+        --c-ext: #fbbf24; /* External service */
+        --c-obs: #a78bfa; /* Observability */
+        --c-sec: #fb7185; /* Security / protection */
+        --c-planned: #94a3b8; /* Optional / planned / dormant */
+        --c-review: #fb923c; /* Needs review */
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scrollbar-color: #29384c var(--bg);
+        scrollbar-width: thin;
+      }
+      body {
+        margin: 0;
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text);
+        background:
+          radial-gradient(
+            1100px 520px at 12% -8%,
+            rgba(56, 189, 248, 0.06),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 480px at 100% 0%,
+            rgba(129, 140, 248, 0.06),
+            transparent 55%
+          ),
+          var(--bg);
+        background-attachment: fixed;
+      }
+
+      /* Thin custom scrollbar (WebKit) */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #29384c;
+        border-radius: 999px;
+        border: 2px solid var(--bg);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #36495f;
+      }
+
+      a {
+        color: var(--c-client);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.86em;
+        background: var(--panel-2);
+        border: 1px solid var(--border-soft);
+        padding: 0.08em 0.4em;
+        border-radius: 5px;
+        color: #cdd7e6;
+      }
+
+      header.page {
+        border-bottom: 1px solid var(--border);
+        padding: 2.4rem 1.5rem 1.9rem;
+        background: linear-gradient(180deg, rgba(17, 24, 38, 0.7), transparent);
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--c-app);
+        margin: 0 0 0.55rem;
+      }
+      header.page h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.95rem;
+        font-weight: 680;
+        letter-spacing: -0.01em;
+      }
+      header.page p.lede {
+        margin: 0;
+        max-width: 60rem;
+        color: var(--muted);
+        font-size: 0.97rem;
+      }
+      .meta {
+        margin-top: 1.1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.4rem;
+        font-size: 0.8rem;
+        color: var(--muted-2);
+        font-family: var(--mono);
+      }
+      .meta strong {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .meta .dot {
+        color: var(--c-data);
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+      }
+      section {
+        margin: 2.6rem 0 0;
+      }
+      h2.sec {
+        font-size: 1.18rem;
+        font-weight: 650;
+        margin: 0 0 0.4rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      h2.sec .num {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--c-app);
+        background: rgba(129, 140, 248, 0.1);
+        border: 1px solid rgba(129, 140, 248, 0.25);
+        border-radius: 6px;
+        padding: 0.12rem 0.5rem;
+      }
+      p.sub {
+        margin: 0 0 1.15rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+        max-width: 62rem;
+      }
+
+      /* Legend */
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 0.5rem;
+      }
+      .legend .item {
+        display: flex;
+        gap: 0.6rem;
+        align-items: flex-start;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 0.6rem 0.7rem;
+      }
+      .legend .swatch {
+        flex: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 4px;
+        margin-top: 0.2rem;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      }
+      .legend .swatch.dashed {
+        background: transparent !important;
+        border: 1.5px dashed var(--c-planned);
+      }
+      .legend .swatch.review {
+        background: transparent !important;
+        border: 1.5px dashed var(--c-review);
+      }
+      .legend .t {
+        font-weight: 600;
+        font-size: 0.82rem;
+      }
+      .legend .d {
+        color: var(--muted-2);
+        font-size: 0.74rem;
+        line-height: 1.4;
+      }
+
+      /* Diagram frame */
+      .diagram-frame {
+        background:
+          linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0 / 100% 26px,
+          linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0 / 26px
+            100%,
+          var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.1rem;
+        overflow-x: auto;
+      }
+      .diagram-frame svg {
+        display: block;
+        width: 100%;
+        min-width: 880px;
+        height: auto;
+      }
+
+      /* SVG node styling via classes */
+      .n-rect {
+        fill: var(--panel);
+        rx: 11;
+      }
+      .n-title {
+        fill: var(--text);
+        font-family: var(--sans);
+        font-weight: 650;
+        font-size: 14px;
+      }
+      .n-sub {
+        fill: var(--muted);
+        font-family: var(--sans);
+        font-size: 11px;
+      }
+      .n-tag {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .a-lbl {
+        fill: var(--muted-2);
+        font-family: var(--mono);
+        font-size: 9.5px;
+      }
+      .flow-solid {
+        stroke: #44566e;
+        stroke-width: 1.6;
+        fill: none;
+      }
+      .flow-dash {
+        stroke: #44566e;
+        stroke-width: 1.6;
+        fill: none;
+        stroke-dasharray: 5 4;
+      }
+
+      /* Flow strips */
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 0.35rem;
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        padding: 0.8rem 0.85rem;
+        margin-bottom: 0.7rem;
+      }
+      .flow .ftitle {
+        flex: 1 1 100%;
+        font-weight: 640;
+        font-size: 0.84rem;
+        margin-bottom: 0.35rem;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .flow .ftitle .badge {
+        font-family: var(--mono);
+        font-size: 0.64rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 0.1rem 0.4rem;
+        border-radius: 5px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.76rem;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-left-width: 3px;
+        border-radius: 7px;
+        padding: 0.32rem 0.55rem;
+        white-space: nowrap;
+        color: #d6deea;
+      }
+      .chip code {
+        background: transparent;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-size: 0.92em;
+      }
+      .arrow {
+        align-self: center;
+        color: var(--muted-2);
+        font-size: 0.85rem;
+        padding: 0 0.05rem;
+      }
+      .chip.cl {
+        border-left-color: var(--c-client);
+      }
+      .chip.ap {
+        border-left-color: var(--c-app);
+      }
+      .chip.db {
+        border-left-color: var(--c-data);
+      }
+      .chip.ex {
+        border-left-color: var(--c-ext);
+      }
+      .chip.ob {
+        border-left-color: var(--c-obs);
+      }
+      .chip.se {
+        border-left-color: var(--c-sec);
+      }
+      .chip.pl {
+        border-left-color: var(--c-planned);
+        border-left-style: dashed;
+      }
+      .chip.stop {
+        border-left-color: var(--c-review);
+        color: var(--c-review);
+      }
+
+      /* Tables */
+      .tbl-scroll {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 11px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+        min-width: 720px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.6rem 0.8rem;
+        border-bottom: 1px solid var(--border-soft);
+        vertical-align: top;
+      }
+      thead th {
+        background: var(--panel);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted-2);
+        position: sticky;
+        top: 0;
+      }
+      tbody tr:hover {
+        background: var(--panel-2);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      .crit {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.12rem 0.45rem;
+        border-radius: 5px;
+        white-space: nowrap;
+      }
+      .crit.core {
+        color: var(--c-data);
+        background: rgba(52, 211, 153, 0.12);
+      }
+      .crit.imp {
+        color: var(--c-client);
+        background: rgba(56, 189, 248, 0.12);
+      }
+      .crit.opt {
+        color: var(--c-planned);
+        background: rgba(148, 163, 184, 0.14);
+      }
+      .crit.plan {
+        color: var(--c-ext);
+        background: rgba(251, 191, 36, 0.12);
+      }
+      .crit.rev {
+        color: var(--c-review);
+        background: rgba(251, 146, 60, 0.12);
+      }
+
+      /* Cards */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 0.7rem;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--border);
+        border-radius: 10px;
+        padding: 0.85rem 0.95rem;
+      }
+      .card h3 {
+        margin: 0 0 0.3rem;
+        font-size: 0.92rem;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .card .ctag {
+        font-family: var(--mono);
+        font-size: 0.62rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted-2);
+      }
+      .card p {
+        margin: 0 0 0.5rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .card .files {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--muted-2);
+        line-height: 1.55;
+        word-break: break-word;
+      }
+      .card .files b {
+        color: #c4cedd;
+        font-weight: 500;
+      }
+      .card.cl {
+        border-left-color: var(--c-client);
+      }
+      .card.ap {
+        border-left-color: var(--c-app);
+      }
+      .card.au {
+        border-left-color: var(--c-sec);
+      }
+      .card.db {
+        border-left-color: var(--c-data);
+      }
+      .card.ex {
+        border-left-color: var(--c-ext);
+      }
+      .card.ob {
+        border-left-color: var(--c-obs);
+      }
+      .card.se {
+        border-left-color: var(--c-sec);
+      }
+
+      /* Doc link grid */
+      .docs {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 0.55rem;
+      }
+      .docs a {
+        display: block;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 0.6rem 0.75rem;
+        color: inherit;
+      }
+      .docs a:hover {
+        border-color: var(--c-app);
+        background: var(--panel-hover);
+        text-decoration: none;
+      }
+      .docs .dt {
+        font-weight: 600;
+        font-size: 0.84rem;
+        color: var(--c-client);
+      }
+      .docs .dd {
+        font-size: 0.74rem;
+        color: var(--muted-2);
+        margin-top: 0.15rem;
+      }
+
+      /* Gap notes */
+      .gaps {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 0.6rem;
+      }
+      .gap {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.75rem 0.85rem;
+      }
+      .gap .gh {
+        font-weight: 620;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+      .gap .sev {
+        flex: none;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .gap p {
+        margin: 0;
+        font-size: 0.79rem;
+        color: var(--muted);
+      }
+      .sev.med {
+        background: var(--c-review);
+      }
+      .sev.low {
+        background: var(--c-data);
+      }
+      .sev.info {
+        background: var(--c-app);
+      }
+
+      .callout {
+        background: var(--panel-2);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--c-app);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .callout b {
+        color: var(--text);
+      }
+      .pillrow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.6rem;
+      }
+      .pill {
+        font-size: 0.74rem;
+        font-family: var(--mono);
+        color: var(--muted-2);
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        padding: 0.2rem 0.6rem;
+      }
+      .pill b {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      footer.page {
+        border-top: 1px solid var(--border);
+        margin-top: 3rem;
+        padding: 1.5rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--muted-2);
+      }
+
+      @media (max-width: 640px) {
+        header.page h1 {
+          font-size: 1.55rem;
+        }
+        main {
+          padding: 1.4rem 1rem 3rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page">
+      <div class="wrap">
+        <p class="eyebrow">System Architecture Overview</p>
+        <h1>MergeAttest</h1>
+        <p class="lede">
+          A high-level map of how the system fits together — a GitHub-native SaaS
+          control center that ingests pull-request activity, runs deterministic
+          governance signals, records approvals, and exports audit evidence.
+          This page is the 30-second big picture; deep dives live in the
+          per-topic docs linked at the bottom.
+        </p>
+        <div class="meta">
+          <span><strong>Status:</strong> current</span>
+          <span><strong>Last updated:</strong> 2026-06-21</span>
+          <span
+            ><span class="dot">●</span> verified against repo code &amp; config
+            on 2026-06-21</span
+          >
+          <span><strong>Scope:</strong> overview only — not a replacement for detailed docs</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- 1. LEGEND -->
+      <section>
+        <h2 class="sec"><span class="num">01</span> Legend</h2>
+        <p class="sub">
+          Colors and badges are consistent across the diagram, flows, tables,
+          and cards below.
+        </p>
+        <div class="legend">
+          <div class="item">
+            <span class="swatch" style="background: var(--c-client)"></span>
+            <div>
+              <div class="t">Client</div>
+              <div class="d">Browser, public &amp; app pages, client islands</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch" style="background: var(--c-app)"></span>
+            <div>
+              <div class="t">Vercel / App</div>
+              <div class="d">Edge proxy, Next.js routes, server actions, domain logic</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch" style="background: var(--c-data)"></span>
+            <div>
+              <div class="t">Database</div>
+              <div class="d">PostgreSQL via Prisma — system of record</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch" style="background: var(--c-ext)"></span>
+            <div>
+              <div class="t">External service</div>
+              <div class="d">Third-party API reached server-side</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch" style="background: var(--c-obs)"></span>
+            <div>
+              <div class="t">Observability</div>
+              <div class="d">Analytics, structured logs, diagnostics</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch" style="background: var(--c-sec)"></span>
+            <div>
+              <div class="t">Security</div>
+              <div class="d">Auth, CSRF, rate limit, signatures, secrets</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch dashed"></span>
+            <div>
+              <div class="t">Optional / Dormant</div>
+              <div class="d">Wired but off or mock-without-keys</div>
+            </div>
+          </div>
+          <div class="item">
+            <span class="swatch review"></span>
+            <div>
+              <div class="t">Needs review</div>
+              <div class="d">Planned, disabled, or limitation to watch</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. MAIN DIAGRAM -->
+      <section>
+        <h2 class="sec"><span class="num">02</span> Architecture map</h2>
+        <p class="sub">
+          Everything enters through the Vercel edge (<code>proxy.ts</code>), which
+          gates pages and API/webhook/job routes alike. Server-side domain logic
+          in <code>lib/</code> is the only thing that talks to PostgreSQL and to
+          external services. Dashed boxes/arrows are dormant, optional, or
+          intentionally disabled today.
+        </p>
+        <div class="diagram-frame">
+          <svg viewBox="0 0 1120 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MergeAttest system architecture diagram">
+            <defs>
+              <marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="3.2" orient="auto">
+                <path d="M0,0 L7.5,3.2 L0,6.4 Z" fill="#5b7088" />
+              </marker>
+            </defs>
+
+            <!-- ===== INBOUND SOURCES (left) ===== -->
+            <!-- User -->
+            <g>
+              <rect class="n-rect" x="24" y="66" width="170" height="58" rx="11" stroke="var(--c-client)" stroke-width="1.5" />
+              <text class="n-tag" x="36" y="84" fill="var(--c-client)">CLIENT</text>
+              <text class="n-title" x="36" y="101">User · Browser</text>
+              <text class="n-sub" x="36" y="116">public + app pages</text>
+            </g>
+            <!-- GitHub WH -->
+            <g>
+              <rect class="n-rect" x="24" y="140" width="170" height="58" rx="11" stroke="var(--c-ext)" stroke-width="1.5" />
+              <text class="n-tag" x="36" y="158" fill="var(--c-ext)">INBOUND</text>
+              <text class="n-title" x="36" y="175">GitHub webhooks</text>
+              <text class="n-sub" x="36" y="190">delivery events · HMAC</text>
+            </g>
+            <!-- Lemon WH -->
+            <g>
+              <rect class="n-rect" x="24" y="214" width="170" height="58" rx="11" stroke="var(--c-planned)" stroke-width="1.5" stroke-dasharray="5 4" />
+              <text class="n-tag" x="36" y="232" fill="var(--c-planned)">INBOUND · DORMANT</text>
+              <text class="n-title" x="36" y="249">Lemon Squeezy WH</text>
+              <text class="n-sub" x="36" y="264">billing events · signed</text>
+            </g>
+            <!-- Cron -->
+            <g>
+              <rect class="n-rect" x="24" y="288" width="170" height="58" rx="11" stroke="var(--c-ext)" stroke-width="1.5" />
+              <text class="n-tag" x="36" y="306" fill="var(--c-ext)">INBOUND</text>
+              <text class="n-title" x="36" y="323">Scheduler / Cron</text>
+              <text class="n-sub" x="36" y="338">external · Bearer secret</text>
+            </g>
+
+            <!-- inbound -> edge arrows -->
+            <path class="flow-solid" d="M194,95 L218,95" marker-end="url(#ah)" />
+            <path class="flow-solid" d="M194,169 L218,169" marker-end="url(#ah)" />
+            <path class="flow-dash" d="M194,243 L218,243" marker-end="url(#ah)" />
+            <path class="flow-solid" d="M194,317 L218,317" marker-end="url(#ah)" />
+
+            <!-- ===== EDGE GATE ===== -->
+            <g>
+              <rect class="n-rect" x="222" y="62" width="156" height="300" rx="12" fill="rgba(251,113,133,0.05)" stroke="var(--c-sec)" stroke-width="1.6" />
+              <text class="n-tag" x="238" y="86" fill="var(--c-sec)">EDGE · SECURITY</text>
+              <text class="n-title" x="238" y="106">Vercel edge</text>
+              <text class="n-title" x="238" y="124" fill="var(--c-app)">proxy.ts</text>
+              <text class="n-sub" x="238" y="152">· session redirect gate</text>
+              <text class="n-sub" x="238" y="172">· rate limit (in-memory)</text>
+              <text class="n-sub" x="238" y="192">· CSRF / origin check</text>
+              <text class="n-sub" x="238" y="212">· security headers</text>
+              <text class="n-sub" x="238" y="232">· x-mergeattest-pathname</text>
+              <text class="n-sub" x="238" y="262" fill="var(--muted-2)">matcher skips static</text>
+              <text class="n-sub" x="238" y="278" fill="var(--muted-2)">assets &amp; _next/*</text>
+              <text class="n-sub" x="238" y="320" fill="var(--c-app)">Static assets</text>
+              <text class="n-sub" x="238" y="336" fill="var(--muted-2)">served by Vercel CDN</text>
+            </g>
+
+            <!-- edge -> spine -->
+            <path class="flow-solid" d="M378,118 L430,118" marker-end="url(#ah)" />
+            <text class="a-lbl" x="384" y="111">verified req</text>
+            <path class="flow-solid" d="M378,250 L430,250" marker-end="url(#ah)" />
+            <text class="a-lbl" x="384" y="243">api · jobs · webhooks</text>
+
+            <!-- ===== SPINE (center) ===== -->
+            <!-- App router -->
+            <g>
+              <rect class="n-rect" x="432" y="62" width="300" height="110" rx="12" fill="rgba(129,140,248,0.05)" stroke="var(--c-app)" stroke-width="1.6" />
+              <text class="n-tag" x="448" y="86" fill="var(--c-app)">APPLICATION · NEXT.JS 16 / REACT 19</text>
+              <text class="n-title" x="448" y="108">App Router</text>
+              <text class="n-sub" x="448" y="130">RSC pages · route handlers (app/api/*)</text>
+              <text class="n-sub" x="448" y="148">server actions · client islands (Recharts, nuqs)</text>
+              <text class="n-sub" x="448" y="166" fill="var(--muted-2)">zod validation · role + entitlement guards</text>
+            </g>
+            <!-- Domain -->
+            <g>
+              <rect class="n-rect" x="432" y="196" width="300" height="110" rx="12" stroke="var(--c-app)" stroke-width="1.6" />
+              <text class="n-tag" x="448" y="220" fill="var(--c-app)">DOMAIN LOGIC · lib/</text>
+              <text class="n-title" x="448" y="242">Business services</text>
+              <text class="n-sub" x="448" y="264">app-data · risk · test-gap · rules · attribution</text>
+              <text class="n-sub" x="448" y="282">github · billing · ai · approvals · audit · jobs</text>
+              <text class="n-sub" x="448" y="300" fill="var(--muted-2)">org-scoped · multi-tenant by organizationId</text>
+            </g>
+            <!-- Data -->
+            <g>
+              <rect class="n-rect" x="432" y="330" width="300" height="92" rx="12" fill="rgba(52,211,153,0.05)" stroke="var(--c-data)" stroke-width="1.6" />
+              <text class="n-tag" x="448" y="354" fill="var(--c-data)">DATA · SYSTEM OF RECORD</text>
+              <text class="n-title" x="448" y="376">PostgreSQL · Prisma 7</text>
+              <text class="n-sub" x="448" y="398">pooled provider (e.g. Neon / Supabase — not pinned)</text>
+              <text class="n-sub" x="448" y="414" fill="var(--muted-2)">demo-data fallback in dev when DATABASE_URL absent</text>
+            </g>
+
+            <!-- spine internal arrows -->
+            <path class="flow-solid" d="M582,172 L582,194" marker-end="url(#ah)" />
+            <text class="a-lbl" x="588" y="187">call services</text>
+            <path class="flow-solid" d="M582,306 L582,328" marker-end="url(#ah)" />
+            <text class="a-lbl" x="588" y="321">Prisma query</text>
+
+            <!-- ===== EXTERNAL SERVICES (right) ===== -->
+            <g>
+              <rect class="n-rect" x="784" y="62" width="312" height="54" rx="10" stroke="var(--c-ext)" stroke-width="1.5" />
+              <text class="n-tag" x="798" y="80" fill="var(--c-ext)">EXTERNAL · CORE</text>
+              <text class="n-title" x="798" y="100">GitHub App API <tspan class="n-sub">· Octokit · sync &amp; comments</tspan></text>
+            </g>
+            <g>
+              <rect class="n-rect" x="784" y="128" width="312" height="54" rx="10" stroke="var(--c-ext)" stroke-width="1.5" />
+              <text class="n-tag" x="798" y="146" fill="var(--c-ext)">EXTERNAL · AUTH</text>
+              <text class="n-title" x="798" y="166">Better Auth Infra <tspan class="n-sub">· dash plugin (API key)</tspan></text>
+            </g>
+            <g>
+              <rect class="n-rect" x="784" y="194" width="312" height="54" rx="10" stroke="var(--c-review)" stroke-width="1.5" stroke-dasharray="5 4" />
+              <text class="n-tag" x="798" y="212" fill="var(--c-review)">EXTERNAL · AI · EXECUTION DISABLED</text>
+              <text class="n-title" x="798" y="232">OpenRouter <tspan class="n-sub">· BYOK · queued, not executed</tspan></text>
+            </g>
+            <g>
+              <rect class="n-rect" x="784" y="260" width="312" height="54" rx="10" stroke="var(--c-planned)" stroke-width="1.5" stroke-dasharray="5 4" />
+              <text class="n-tag" x="798" y="278" fill="var(--c-planned)">EXTERNAL · EMAIL · OPTIONAL</text>
+              <text class="n-title" x="798" y="298">Resend <tspan class="n-sub">· transactional · mock without keys</tspan></text>
+            </g>
+            <g>
+              <rect class="n-rect" x="784" y="326" width="312" height="54" rx="10" stroke="var(--c-planned)" stroke-width="1.5" stroke-dasharray="5 4" />
+              <text class="n-tag" x="798" y="344" fill="var(--c-planned)">EXTERNAL · BILLING · DORMANT</text>
+              <text class="n-title" x="798" y="364">Lemon Squeezy <tspan class="n-sub">· checkout / portal off</tspan></text>
+            </g>
+
+            <!-- domain -> external arrows (fan from domain right edge) -->
+            <path class="flow-solid" d="M732,232 C760,210 760,100 782,90" marker-end="url(#ah)" />
+            <path class="flow-solid" d="M732,240 C762,222 760,160 782,155" marker-end="url(#ah)" />
+            <path class="flow-dash" d="M732,250 L782,221" marker-end="url(#ah)" />
+            <path class="flow-dash" d="M732,260 C762,278 760,285 782,287" marker-end="url(#ah)" />
+            <path class="flow-dash" d="M732,270 C760,300 760,348 782,353" marker-end="url(#ah)" />
+
+            <!-- ===== OBSERVABILITY BAND ===== -->
+            <g>
+              <rect class="n-rect" x="222" y="452" width="874" height="70" rx="12" fill="rgba(167,139,250,0.05)" stroke="var(--c-obs)" stroke-width="1.5" />
+              <text class="n-tag" x="238" y="476" fill="var(--c-obs)">OBSERVABILITY</text>
+              <text class="n-sub" x="238" y="496" fill="var(--text)">Vercel Analytics (web traffic)  ·  Structured JSON logs → Vercel log drain  ·  /api/diagnostics  ·  /api/health</text>
+              <text class="n-sub" x="238" y="513" fill="var(--muted-2)">No error-tracking SaaS (Sentry) and no product analytics (PostHog) today — known observability gap</text>
+            </g>
+            <!-- spine -> observability -->
+            <path class="flow-dash" d="M582,422 L582,450" marker-end="url(#ah)" />
+            <text class="a-lbl" x="588" y="442">logs</text>
+            <!-- app -> analytics tap -->
+            <path class="flow-dash" d="M470,172 C420,300 360,420 320,450" marker-end="url(#ah)" />
+            <text class="a-lbl" x="332" y="430">web events</text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- 3. CORE REQUEST FLOW -->
+      <section>
+        <h2 class="sec"><span class="num">03</span> Core request flow</h2>
+        <p class="sub">The default path for an authenticated page view.</p>
+        <div class="flow">
+          <div class="ftitle">
+            Authenticated page request
+            <span class="badge" style="background: rgba(56,189,248,0.12); color: var(--c-client)">read</span>
+          </div>
+          <span class="chip cl">User · Browser</span>
+          <span class="arrow">→</span>
+          <span class="chip se"><code>proxy.ts</code> session gate</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">RSC <code>page.tsx</code></span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>app-data.ts</code> org scope</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">Prisma</span>
+          <span class="arrow">→</span>
+          <span class="chip db">PostgreSQL</span>
+          <span class="arrow">→</span>
+          <span class="chip cl">HTML + client islands</span>
+          <span class="arrow">→</span>
+          <span class="chip ob">Vercel Analytics</span>
+        </div>
+        <div class="flow">
+          <div class="ftitle">
+            API / webhook / job request
+            <span class="badge" style="background: rgba(129,140,248,0.12); color: var(--c-app)">write</span>
+          </div>
+          <span class="chip ex">Inbound caller</span>
+          <span class="arrow">→</span>
+          <span class="chip se"><code>proxy.ts</code> rate limit + origin</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">route handler</span>
+          <span class="arrow">→</span>
+          <span class="chip se">auth: session / Bearer / signature</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">domain service + zod</span>
+          <span class="arrow">→</span>
+          <span class="chip db">Prisma write</span>
+          <span class="arrow">→</span>
+          <span class="chip ob">JSON log on error</span>
+        </div>
+      </section>
+
+      <!-- 4. IMPORTANT FLOWS -->
+      <section>
+        <h2 class="sec"><span class="num">04</span> Important flows</h2>
+        <p class="sub">
+          The domain-specific paths that matter most for understanding the
+          system. Dashed / stop chips mark dormant or intentionally disabled
+          steps.
+        </p>
+
+        <div class="flow">
+          <div class="ftitle">Authentication</div>
+          <span class="chip cl">/sign-in · /sign-up</span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>/api/auth/[...all]</code> (Better Auth)</span>
+          <span class="arrow">→</span>
+          <span class="chip ex">Better Auth Infra dash</span>
+          <span class="arrow">→</span>
+          <span class="chip db">User / Session / Membership</span>
+          <span class="arrow">→</span>
+          <span class="chip se">session cookie → role (owner/admin/member/viewer)</span>
+        </div>
+
+        <div class="flow">
+          <div class="ftitle">GitHub connect &amp; webhook sync</div>
+          <span class="chip ex">GitHub App install</span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>/api/github/installation</code></span>
+          <span class="arrow">→</span>
+          <span class="chip ex">webhook delivery (HMAC)</span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>/api/github/webhook</code> dedupe + enqueue</span>
+          <span class="arrow">→</span>
+          <span class="chip se">cron <code>/api/jobs/github-webhooks</code></span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>github-sync</code> → risk / test-gap / rules</span>
+          <span class="arrow">→</span>
+          <span class="chip db">repos + PRs</span>
+        </div>
+
+        <div class="flow">
+          <div class="ftitle">
+            AI review
+            <span class="badge" style="background: rgba(251,146,60,0.14); color: var(--c-review)">execution disabled</span>
+          </div>
+          <span class="chip ap">PR event</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">enqueue <code>AiReviewJob</code></span>
+          <span class="arrow">→</span>
+          <span class="chip se">cron <code>/api/jobs/pr-reviews</code></span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>pr-review-worker</code> diff guardrails</span>
+          <span class="arrow">→</span>
+          <span class="chip stop">⛔ model call disabled → skipped</span>
+        </div>
+
+        <div class="flow">
+          <div class="ftitle">Approvals &amp; audit</div>
+          <span class="chip cl">reviewer signs off</span>
+          <span class="arrow">→</span>
+          <span class="chip ap">server action (role + entitlement)</span>
+          <span class="arrow">→</span>
+          <span class="chip db">PR status + <code>AuditEvent</code></span>
+          <span class="arrow">→</span>
+          <span class="chip db">optional <code>Attestation</code></span>
+          <span class="arrow">→</span>
+          <span class="chip ex">optional GitHub comment / check run</span>
+        </div>
+
+        <div class="flow">
+          <div class="ftitle">
+            Billing webhook
+            <span class="badge" style="background: rgba(148,163,184,0.16); color: var(--c-planned)">dormant</span>
+          </div>
+          <span class="chip pl">Lemon Squeezy</span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>/api/lemon-squeezy/webhook</code> (signed)</span>
+          <span class="arrow">→</span>
+          <span class="chip ap"><code>lemon-squeezy-webhooks</code></span>
+          <span class="arrow">→</span>
+          <span class="chip db">subscription / entitlements</span>
+          <span class="arrow">→</span>
+          <span class="chip pl">checkout/portal gated by <code>ENABLE_PAID_BILLING</code></span>
+        </div>
+
+        <div class="flow">
+          <div class="ftitle">
+            Retention &amp; email
+            <span class="badge" style="background: rgba(148,163,184,0.16); color: var(--c-planned)">email optional</span>
+          </div>
+          <span class="chip se">cron <code>/api/jobs/retention</code> (Bearer)</span>
+          <span class="arrow">→</span>
+          <span class="chip db">purge aged audit / webhook / billing rows</span>
+          <span class="arrow" style="opacity: 0.4">·</span>
+          <span class="chip ap"><code>lib/email.ts</code></span>
+          <span class="arrow">→</span>
+          <span class="chip pl">Resend (mock without keys)</span>
+        </div>
+      </section>
+
+      <!-- 5. SERVICE INVENTORY -->
+      <section>
+        <h2 class="sec"><span class="num">05</span> Service inventory</h2>
+        <p class="sub">
+          Only services detected in code/config are listed. Criticality:
+          <span class="crit core">core</span>
+          <span class="crit imp">important</span>
+          <span class="crit opt">optional</span>
+          <span class="crit plan">planned</span>
+          <span class="crit rev">needs review</span>
+        </p>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Used for</th>
+                <th>Where it appears</th>
+                <th>Criticality</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>Vercel</b></td>
+                <td>Hosting, edge runtime, CDN, serverless functions</td>
+                <td><code>proxy.ts</code>, build, <code>VERCEL_GIT_COMMIT_SHA</code> in logs</td>
+                <td><span class="crit core">core</span></td>
+                <td>“Vercel-friendly”; no hard provider lock-in in app code</td>
+              </tr>
+              <tr>
+                <td><b>PostgreSQL + Prisma 7</b></td>
+                <td>System of record for all tenant data</td>
+                <td><code>prisma/schema.prisma</code>, <code>lib/data/app-data.ts</code></td>
+                <td><span class="crit core">core</span></td>
+                <td>Pooled provider (Neon/Supabase are examples in docs, not pinned). <code>@prisma/adapter-pg</code></td>
+              </tr>
+              <tr>
+                <td><b>GitHub App API</b></td>
+                <td>Install, repo/PR sync, webhooks, comments &amp; check runs</td>
+                <td><code>lib/github*.ts</code>, <code>app/api/github/**</code></td>
+                <td><span class="crit core">core</span></td>
+                <td>Octokit GitHub App; the primary product integration</td>
+              </tr>
+              <tr>
+                <td><b>Better Auth (+ Infra)</b></td>
+                <td>Email/password auth, sessions, dashboard plugin</td>
+                <td><code>lib/auth*.ts</code>, <code>app/api/auth/[...all]</code></td>
+                <td><span class="crit core">core</span></td>
+                <td>Needs <code>BETTER_AUTH_API_KEY</code> in prod. <code>@better-auth/sso</code> dep present but not wired</td>
+              </tr>
+              <tr>
+                <td><b>External scheduler / Cron</b></td>
+                <td>Drives webhook queue, AI queue, retention jobs</td>
+                <td><code>/api/jobs/*</code> (Bearer <code>JOB_RUNNER_SECRET</code>)</td>
+                <td><span class="crit core">core</span></td>
+                <td>No <code>vercel.json</code> cron in repo — must be configured (Vercel Cron / GitHub Actions / etc.)</td>
+              </tr>
+              <tr>
+                <td><b>Vercel Analytics</b></td>
+                <td>Basic web traffic / page analytics</td>
+                <td><code>@vercel/analytics</code> in <code>app/layout.tsx</code></td>
+                <td><span class="crit imp">important</span></td>
+                <td>The only analytics in the system</td>
+              </tr>
+              <tr>
+                <td><b>Resend</b></td>
+                <td>Transactional email (verification, invites)</td>
+                <td><code>lib/email.ts</code></td>
+                <td><span class="crit opt">optional</span></td>
+                <td>Mocked in dev without <code>RESEND_API_KEY</code>; no alert/notification delivery yet</td>
+              </tr>
+              <tr>
+                <td><b>OpenRouter</b></td>
+                <td>BYOK AI provider for advisory PR review</td>
+                <td><code>lib/ai/**</code>, <code>app/api/jobs/pr-reviews</code></td>
+                <td><span class="crit rev">needs review</span></td>
+                <td>Queue is durable but <b>model execution is intentionally disabled</b> → jobs end “skipped”</td>
+              </tr>
+              <tr>
+                <td><b>Lemon Squeezy</b></td>
+                <td>Checkout, customer portal, subscription webhooks</td>
+                <td><code>lib/billing.ts</code>, <code>app/api/lemon-squeezy/webhook</code></td>
+                <td><span class="crit plan">planned</span></td>
+                <td>Dormant — free-only launch; gated by <code>ENABLE_PAID_BILLING=false</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout" style="margin-top: 0.9rem">
+          <b>Checked but not in this system</b> (commonly in this stack — verified
+          absent in deps &amp; code):
+          <div class="pillrow">
+            <span class="pill"><b>Cloudflare</b> DNS/WAF/R2</span>
+            <span class="pill"><b>Upstash</b> Redis / QStash</span>
+            <span class="pill"><b>Sentry</b> error tracking</span>
+            <span class="pill"><b>PostHog</b> product analytics</span>
+            <span class="pill"><b>Stripe</b></span>
+            <span class="pill"><b>Object storage</b> (S3 / R2) — no file uploads</span>
+            <span class="pill">Direct <b>OpenAI / Anthropic / Google AI</b> SDKs</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. LAYER SUMMARY -->
+      <section>
+        <h2 class="sec"><span class="num">06</span> Layer summary</h2>
+        <p class="sub">What each layer does, where it lives, and what to watch.</p>
+        <div class="cards">
+          <div class="card cl">
+            <h3>Client <span class="ctag">browser</span></h3>
+            <p>
+              Public marketing/auth pages and the authenticated app shell.
+              Server-rendered by default; small client islands for charts,
+              filters, command palette, and toasts.
+            </p>
+            <div class="files">
+              <b>app/page.tsx</b>, <b>app/(auth)</b>, <b>app/dashboard</b> …,
+              <b>components/app/*</b>, <b>components/ui/*</b>
+            </div>
+          </div>
+          <div class="card ap">
+            <h3>Edge &amp; app <span class="ctag">vercel / next.js</span></h3>
+            <p>
+              <code>proxy.ts</code> is the single gate (session, rate limit,
+              CSRF, headers). Behind it: ~22 route handlers, server actions, and
+              RSC pages. Domain logic lives in <code>lib/</code>.
+            </p>
+            <div class="files">
+              <b>proxy.ts</b>, <b>app/api/**/route.ts</b>,
+              <b>app/**/actions.ts</b>, <b>lib/*.ts</b>
+            </div>
+          </div>
+          <div class="card au">
+            <h3>Authentication <span class="ctag">better auth</span></h3>
+            <p>
+              Email/password sessions via cookie; org membership maps to roles
+              (owner / admin / member / viewer). Protected routes enforced at the
+              edge; platform admin gated by an allowlist.
+            </p>
+            <div class="files">
+              <b>lib/auth.ts</b>, <b>lib/auth/session.ts</b>,
+              <b>app/api/auth/[...all]</b>, <b>lib/admin/access.ts</b>
+            </div>
+          </div>
+          <div class="card db">
+            <h3>Data <span class="ctag">postgres / prisma</span></h3>
+            <p>
+              Multi-tenant schema rooted at <code>Organization</code>; every read
+              is org-scoped through <code>app-data.ts</code>. Dev can fall back to
+              demo data; production fails closed without a database.
+            </p>
+            <div class="files">
+              <b>prisma/schema.prisma</b>, <b>prisma/migrations</b>,
+              <b>lib/data/app-data.ts</b>, <b>lib/demo-data.ts</b>
+            </div>
+          </div>
+          <div class="card ex">
+            <h3>External services <span class="ctag">server-side</span></h3>
+            <p>
+              Reached only from <code>lib/</code>: GitHub App (core), Better Auth
+              Infra, Resend (optional), OpenRouter (disabled), Lemon Squeezy
+              (dormant). See the inventory above.
+            </p>
+            <div class="files">
+              <b>lib/github*.ts</b>, <b>lib/email.ts</b>, <b>lib/ai/*</b>,
+              <b>lib/billing.ts</b>
+            </div>
+          </div>
+          <div class="card se">
+            <h3>Security <span class="ctag">cross-cutting</span></h3>
+            <p>
+              Auth + role + plan entitlements server-side; CSRF/origin and
+              in-memory rate limiting in <code>proxy.ts</code>; webhook signature
+              verification; Bearer-secured jobs; encrypted BYOK keys; env
+              validated in prod.
+            </p>
+            <div class="files">
+              <b>lib/security.ts</b>, <b>lib/rate-limit.ts</b>,
+              <b>lib/entitlements.ts</b>, <b>lib/env.ts</b>,
+              <b>lib/ai/credentials.ts</b>
+            </div>
+          </div>
+          <div class="card ob">
+            <h3>Observability <span class="ctag">logs / analytics</span></h3>
+            <p>
+              Structured JSON logs to stdout (captured by the Vercel log drain)
+              plus Vercel Analytics. Diagnostics and health endpoints for triage.
+              No error-tracking or product-analytics SaaS.
+            </p>
+            <div class="files">
+              <b>lib/observability.ts</b>, <b>app/api/diagnostics</b>,
+              <b>app/api/health</b>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. RELATED DOCS -->
+      <section>
+        <h2 class="sec"><span class="num">07</span> Related docs</h2>
+        <p class="sub">
+          Deep dives for each area (all files exist in this folder). This page
+          links out rather than duplicating them.
+        </p>
+        <div class="docs">
+          <a href="index.html"><span class="dt">Architecture hub</span><span class="dd">index of all deep-dive docs</span></a>
+          <a href="authentication-architecture.html"><span class="dt">Authentication</span><span class="dd">sessions, RBAC, edge gate</span></a>
+          <a href="database-architecture.html"><span class="dt">Database</span><span class="dd">schema, retention, Prisma</span></a>
+          <a href="governance-architecture.html"><span class="dt">Governance</span><span class="dd">risk, test gaps, rules, approvals</span></a>
+          <a href="github-integration-architecture.html"><span class="dt">GitHub integration</span><span class="dd">install, sync, webhooks</span></a>
+          <a href="jobs-and-async-architecture.html"><span class="dt">Jobs &amp; async</span><span class="dd">queues, cron, idempotency</span></a>
+          <a href="billing-and-entitlements-architecture.html"><span class="dt">Billing &amp; entitlements</span><span class="dd">Lemon Squeezy, plans, usage</span></a>
+          <a href="ai-review-architecture.html"><span class="dt">AI review</span><span class="dd">BYOK, job lifecycle, guardrails</span></a>
+          <a href="frontend-architecture.html"><span class="dt">Frontend</span><span class="dd">RSC, shells, URL state</span></a>
+          <a href="security-architecture.html"><span class="dt">Security</span><span class="dd">threat model, tenant isolation</span></a>
+          <a href="observability-architecture.html"><span class="dt">Observability</span><span class="dd">logs, diagnostics, gaps</span></a>
+          <a href="deployment-runtime-architecture.html"><span class="dt">Deployment &amp; runtime</span><span class="dd">Vercel, env, cron</span></a>
+          <a href="audit-and-compliance-architecture.html"><span class="dt">Audit &amp; compliance</span><span class="dd">events, exports, evidence</span></a>
+          <a href="governance-architecture.html"><span class="dt">Approvals pipeline</span><span class="dd">attestation gate &amp; reviewers</span></a>
+        </div>
+        <div class="callout" style="margin-top: 0.9rem">
+          Markdown companions: <code>docs/SYSTEM_DESIGN.md</code> (living
+          overview), <code>docs/AGENT_START_HERE.md</code> (source-of-truth map),
+          <code>docs/features/API.md</code> (endpoint reference),
+          <code>docs/operations/OPERATIONS_RUNBOOK.md</code> (cron &amp;
+          incidents).
+        </div>
+      </section>
+
+      <!-- 8. GAPS & REVIEW NOTES -->
+      <section>
+        <h2 class="sec"><span class="num">08</span> Gaps &amp; review notes</h2>
+        <p class="sub">
+          Real gaps found while reviewing the code — several are deliberate for
+          the free early-access launch, but worth tracking.
+        </p>
+        <div class="gaps">
+          <div class="gap">
+            <div class="gh"><span class="sev med"></span> Rate limiting is in-memory</div>
+            <p>
+              <code>lib/rate-limit.ts</code> is per-instance, so limits don’t span
+              serverless invocations. Fine for a soft guard; a shared store
+              (e.g. Upstash) would be needed for hard enforcement at scale.
+            </p>
+          </div>
+          <div class="gap">
+            <div class="gh"><span class="sev info"></span> AI execution disabled</div>
+            <p>
+              The OpenRouter path is fully queued and guardrailed but ends in a
+              “skipped” status — no model is actually called yet. Treat AI output
+              as not-live.
+            </p>
+          </div>
+          <div class="gap">
+            <div class="gh"><span class="sev med"></span> No error-tracking SaaS</div>
+            <p>
+              Errors go to structured JSON logs only (no Sentry/equivalent), and
+              there is no product analytics beyond Vercel Analytics. Diagnosing
+              issues relies on the log drain + <code>/api/diagnostics</code>.
+            </p>
+          </div>
+          <div class="gap">
+            <div class="gh"><span class="sev info"></span> Cron is an external dependency</div>
+            <p>
+              No <code>vercel.json</code> cron in the repo. Jobs (webhooks, AI,
+              retention) only run if an external scheduler hits
+              <code>/api/jobs/*</code> — required in production.
+            </p>
+          </div>
+          <div class="gap">
+            <div class="gh"><span class="sev low"></span> Database host not pinned</div>
+            <p>
+              Code targets generic pooled PostgreSQL; Neon/Supabase appear only as
+              examples in docs. Confirm the actual production provider when
+              reasoning about pooling/limits.
+            </p>
+          </div>
+          <div class="gap">
+            <div class="gh"><span class="sev info"></span> No notification delivery</div>
+            <p>
+              Resend handles auth/invite email only; there is no Slack/email
+              alerting on governance events. <code>@better-auth/sso</code> is a
+              dependency but enterprise SSO/SCIM is not wired.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. MAINTENANCE -->
+      <section>
+        <h2 class="sec"><span class="num">09</span> Keeping this diagram current</h2>
+        <div class="callout">
+          Update this overview when you: add or remove an <b>external service</b>;
+          add <b>API/job routes</b> or change <code>proxy.ts</code>; change
+          <b>auth</b> (roles, SSO) or <b>database schema</b>; <b>enable paid
+          billing</b> or <b>turn on AI model execution</b>; introduce
+          <b>object storage</b>, a <b>shared rate-limit/cache</b>, or an
+          <b>observability SaaS</b>; move <b>hosting/runtime</b>; or do a
+          pre-launch review. Keep it a map — push detail into the linked deep-dive
+          docs.
+        </div>
+      </section>
+    </main>
+
+    <footer class="page">
+      MergeAttest · System architecture overview · generated 2026-06-21 · sits
+      alongside <code>docs/architecture/index.html</code>
+    </footer>
+  </body>
+</html>
