@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export type PageLoadingVariant =
   | 'dashboard'
+  | 'admin'
   | 'list'
   | 'detail'
   | 'log'
@@ -30,6 +31,7 @@ export function PageLoading({
     >
       <PageLoadingHeader title={title} description={description} />
       {variant === 'dashboard' && <DashboardSkeleton />}
+      {variant === 'admin' && <AdminDashboardSkeleton />}
       {variant === 'list' && <ListSkeleton />}
       {variant === 'detail' && <DetailSkeleton />}
       {variant === 'log' && <LogSkeleton />}
@@ -172,6 +174,50 @@ export function DashboardSkeleton() {
           <TableRowsSkeleton rows={5} />
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function ChartCardSkeleton() {
+  return (
+    <Card>
+      <CardContent className="space-y-3 p-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-48" />
+        <Skeleton className="h-64 w-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+export function AdminDashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <PostureSkeleton />
+      <section className="grid gap-4 lg:grid-cols-2">
+        <ChartCardSkeleton />
+        <ChartCardSkeleton />
+      </section>
+      <section className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+        <Card>
+          <CardContent className="space-y-4 p-4">
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-9 w-28" />
+            <Skeleton className="h-2.5 w-full rounded-full" />
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-4 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="space-y-4 p-4">
+            <Skeleton className="h-4 w-36" />
+            <TableRowsSkeleton rows={5} />
+          </CardContent>
+        </Card>
+      </section>
     </div>
   )
 }
