@@ -37,6 +37,7 @@ import { LogoMark } from '@/components/app/logo'
 import { SignOutButton } from '@/components/app/sign-out-button'
 import { ThemeToggle } from '@/components/app/theme-toggle'
 import { cn } from '@/lib/utils'
+import type { NavAttentionCounts } from '@/lib/data/app-data'
 import type { PlanKey } from '@/lib/types'
 
 type NavItem = {
@@ -47,6 +48,34 @@ type NavItem = {
 }
 
 type NavSection = { label: string; items: NavItem[] }
+
+type NavBadge = { count: number; tone: 'danger' | 'warning'; srLabel: string }
+type NavBadgeMap = Record<string, NavBadge>
+
+const navBadgeTone: Record<NavBadge['tone'], string> = {
+  danger: 'bg-danger-soft text-danger',
+  warning: 'bg-attention-soft text-attention',
+}
+
+function buildNavBadges(navCounts: NavAttentionCounts | null): NavBadgeMap {
+  const badges: NavBadgeMap = {}
+  if (!navCounts) return badges
+  if (navCounts.highRiskOpen > 0) {
+    badges['/pull-requests'] = {
+      count: navCounts.highRiskOpen,
+      tone: 'danger',
+      srLabel: 'high-risk pull requests',
+    }
+  }
+  if (navCounts.pendingApprovals > 0) {
+    badges['/approvals'] = {
+      count: navCounts.pendingApprovals,
+      tone: 'warning',
+      srLabel: 'pending approvals',
+    }
+  }
+  return badges
+}
 
 const baseNavSections: NavSection[] = [
   {
@@ -137,10 +166,12 @@ function isActivePath(pathname: string, href: string) {
 function NavLink({
   item,
   pathname,
+  badge,
   onNavigate,
 }: {
   item: NavItem
   pathname: string
+  badge?: NavBadge
   onNavigate?: () => void
 }) {
   const active = isActivePath(pathname, item.href)
@@ -170,7 +201,17 @@ function NavLink({
         <Icon className="size-3.5" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      {active ? (
+      {badge ? (
+        <span
+          className={cn(
+            'inline-flex min-w-5 shrink-0 items-center justify-center rounded-pill px-1.5 py-0.5 text-[10px] font-semibold tabular-nums',
+            navBadgeTone[badge.tone],
+          )}
+        >
+          {badge.count > 99 ? '99+' : badge.count}
+          <span className="sr-only"> {badge.srLabel}</span>
+        </span>
+      ) : active ? (
         <ChevronRight
           className="size-3.5 text-subtle-foreground"
           aria-hidden="true"
@@ -183,10 +224,12 @@ function NavLink({
 function Navigation({
   sections,
   pathname,
+  badges,
   onNavigate,
 }: {
   sections: NavSection[]
   pathname: string
+  badges: NavBadgeMap
   onNavigate?: () => void
 }) {
   return (
@@ -202,6 +245,7 @@ function Navigation({
                 key={item.href}
                 item={item}
                 pathname={pathname}
+                badge={badges[item.href]}
                 onNavigate={onNavigate}
               />
             ))}
@@ -264,18 +308,21 @@ export function AppShell({
   planKey,
   dataMode,
   isAdmin,
+  navCounts,
 }: {
   children: React.ReactNode
   organizationName: string
   planKey: PlanKey
   dataMode: 'live' | 'demo'
   isAdmin: boolean
+  navCounts: NavAttentionCounts | null
 }) {
   const pathname = usePathname()
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false)
   const mainRef = React.useRef<HTMLElement>(null)
   const previousPathname = React.useRef(pathname)
   const navSections = React.useMemo(() => buildNavSections(isAdmin), [isAdmin])
+  const navBadges = React.useMemo(() => buildNavBadges(navCounts), [navCounts])
   const navItems = React.useMemo(
     () => navSections.flatMap((section) => section.items),
     [navSections],
@@ -319,7 +366,11 @@ export function AppShell({
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-5">
-          <Navigation sections={navSections} pathname={pathname} />
+          <Navigation
+            sections={navSections}
+            pathname={pathname}
+            badges={navBadges}
+          />
         </div>
 
         <div className="border-t border-border p-3">
@@ -374,6 +425,7 @@ export function AppShell({
                   <Navigation
                     sections={navSections}
                     pathname={pathname}
+                    badges={navBadges}
                     onNavigate={() => setMobileNavOpen(false)}
                   />
                 </div>

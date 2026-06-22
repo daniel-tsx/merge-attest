@@ -7,7 +7,10 @@ import { ThemeProvider } from '@/components/app/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { getPlatformAdminContext } from '@/lib/admin/access'
-import { getCurrentOrganization } from '@/lib/data/app-data'
+import {
+  getCurrentOrganization,
+  getNavAttentionCounts,
+} from '@/lib/data/app-data'
 import { publicAppPaths } from '@/lib/site'
 import { createRootMetadata } from '@/lib/seo/metadata'
 import './globals.css'
@@ -79,9 +82,14 @@ export default async function RootLayout({
     publicAppPaths.some(
       (path) => pathname === path || pathname.startsWith(`${path}/`),
     )
-  const [organization, adminContext] = isPublicRoute
-    ? ([null, null] as const)
-    : await Promise.all([getCurrentOrganization(), getPlatformAdminContext()])
+  const [organization, adminContext, navCounts] = isPublicRoute
+    ? ([null, null, null] as const)
+    : await Promise.all([
+        getCurrentOrganization(),
+        getPlatformAdminContext(),
+        // getCurrentOrganization is request-cached, so this adds no extra org read.
+        getCurrentOrganization().then((org) => getNavAttentionCounts(org.id)),
+      ])
 
   return (
     <html
@@ -104,6 +112,7 @@ export default async function RootLayout({
                 planKey={organization?.planKey ?? 'free'}
                 dataMode={organization?.dataMode ?? 'live'}
                 isAdmin={adminContext?.isAdmin ?? false}
+                navCounts={navCounts}
               >
                 {children}
               </RootShell>

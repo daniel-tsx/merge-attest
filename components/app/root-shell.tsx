@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { AppShell } from '@/components/app/app-shell'
 import { publicAppPaths } from '@/lib/site'
+import type { NavAttentionCounts } from '@/lib/data/app-data'
 import type { PlanKey } from '@/lib/types'
 
 const publicRoutes = new Set<string>(publicAppPaths)
@@ -13,12 +14,14 @@ export function RootShell({
   planKey,
   dataMode,
   isAdmin,
+  navCounts,
 }: {
   children: React.ReactNode
   organizationName: string
   planKey: PlanKey
   dataMode: 'live' | 'demo'
   isAdmin: boolean
+  navCounts: NavAttentionCounts | null
 }) {
   const pathname = usePathname()
 
@@ -36,6 +39,7 @@ export function RootShell({
       planKey={planKey}
       dataMode={dataMode}
       isAdmin={isAdmin}
+      navCounts={navCounts}
     >
       {children}
     </AppShell>

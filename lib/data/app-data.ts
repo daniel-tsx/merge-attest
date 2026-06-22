@@ -1279,6 +1279,49 @@ export async function getApiKeyCount(organizationId: string) {
   )
 }
 
+export type NavAttentionCounts = {
+  pendingApprovals: number
+  highRiskOpen: number
+}
+
+/**
+ * Cheap aggregate counts for the persistent nav "attention" badges. Two indexed
+ * COUNT queries (no row payload), so it is safe to read from the shell layout on
+ * every authenticated page. Mirrors the dashboard's pending-approval and
+ * high-risk definitions.
+ */
+export async function getNavAttentionCounts(
+  organizationId: string,
+): Promise<NavAttentionCounts> {
+  return queryWithDemoFallback(
+    async (client) => {
+      const [pendingApprovals, highRiskOpen] = await Promise.all([
+        client.pullRequest.count({
+          where: { organizationId, approvalStatus: 'pending' },
+        }),
+        client.pullRequest.count({
+          where: {
+            organizationId,
+            riskLevel: {
+              in: ['high', 'critical'] as PullRequest['riskLevel'][],
+            },
+          },
+        }),
+      ])
+      return { pendingApprovals, highRiskOpen }
+    },
+    () => ({
+      pendingApprovals: demoPullRequests.filter(
+        (pr) => pr.approvalStatus === 'pending',
+      ).length,
+      highRiskOpen: demoPullRequests.filter(
+        (pr) => pr.riskLevel === 'high' || pr.riskLevel === 'critical',
+      ).length,
+    }),
+    'nav attention counts',
+  )
+}
+
 export async function listPullRequests(
   organizationId: string,
   filters: PullRequestFilters = {},
