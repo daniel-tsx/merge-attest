@@ -12,7 +12,7 @@ import { PageHeader } from '@/components/app/page-header'
 import { DashboardSkeleton } from '@/components/app/page-loading'
 import { RiskScoreBar } from '@/components/app/risk-score'
 import { CiBadge, RiskBadge, TestGapBadge } from '@/components/app/status-badge'
-import { TrendChart } from '@/components/charts/dashboard-charts'
+import { GovernanceTrendChart } from '@/components/charts/dashboard-charts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -309,49 +309,32 @@ async function DashboardContent() {
         </Card>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Risk trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {trendData.length ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Average risk across {trendData.length} reporting periods.
-                </p>
-                <TrendChart data={trendData} metric="risk" />
-              </div>
-            ) : (
-              <EmptyState
-                title="No risk trend data yet"
-                description="Synced pull requests will populate this chart."
-              />
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Test gap trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {trendData.length ? (
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Detected test gaps across {trendData.length} reporting
-                  periods.
-                </p>
-                <TrendChart data={trendData} metric="testGaps" />
-              </div>
-            ) : (
-              <EmptyState
-                title="No test-gap trend data yet"
-                description="Synced pull requests will populate this chart."
-              />
-            )}
-          </CardContent>
-        </Card>
-      </section>
+      <Card>
+        <CardHeader className="sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Signal trends</CardTitle>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Average risk score against test-gap volume across the trailing
+              window.
+            </p>
+          </div>
+          {trendData.length ? (
+            <span className="text-eyebrow shrink-0 text-subtle-foreground">
+              {trendData.length} reporting periods
+            </span>
+          ) : null}
+        </CardHeader>
+        <CardContent>
+          {trendData.length ? (
+            <GovernanceTrendChart data={trendData} />
+          ) : (
+            <EmptyState
+              title="No trend data yet"
+              description="Synced pull requests will populate risk and test-gap trends here."
+            />
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

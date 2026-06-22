@@ -160,20 +160,12 @@ export function DashboardSkeleton() {
         <StatPanelSkeleton />
         <StatPanelSkeleton />
       </section>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <Skeleton className="h-4 w-32" />
-            <Skeleton className="h-48 w-full" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-48 w-full" />
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="space-y-3 p-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-72 w-full" />
+        </CardContent>
+      </Card>
       <Card>
         <CardContent className="space-y-4 p-4">
           <Skeleton className="h-4 w-40" />
