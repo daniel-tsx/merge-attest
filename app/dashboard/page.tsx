@@ -32,6 +32,8 @@ import {
 import { githubConfigured } from '@/lib/github'
 import { getOnboardingStatus } from '@/lib/onboarding'
 import { buildReportingMetrics, buildSignalTrends } from '@/lib/reporting'
+import { mapRiskLevel } from '@/lib/risk'
+import type { RiskLevel } from '@/lib/types'
 import { cn, formatDate, formatNumber } from '@/lib/utils'
 
 export default function DashboardPage() {
@@ -339,49 +341,83 @@ async function DashboardContent() {
       <Card>
         <CardHeader>
           <CardTitle>Repository risk profiles</CardTitle>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Ranked by average risk score, with the count of open high-risk pull
+            requests per repository.
+          </p>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="px-5 pt-5">
-            <ResultSummary
-              count={reportingMetrics.repositoryRiskProfiles.length}
-              label="repository profiles"
-              detail="Ranked by average risk and risky PR count"
+        <CardContent>
+          {reportingMetrics.repositoryRiskProfiles.length ? (
+            <>
+              <ol className="space-y-3.5">
+                {reportingMetrics.repositoryRiskProfiles
+                  .slice(0, 8)
+                  .map((profile, index) => {
+                    const level = mapRiskLevel(profile.averageRiskScore)
+                    const tone = riskTone[level]
+                    const width = Math.max(
+                      2,
+                      Math.min(100, profile.averageRiskScore),
+                    )
+                    return (
+                      <li
+                        key={profile.repositoryName}
+                        className="flex items-center gap-3 sm:gap-4"
+                      >
+                        <span className="w-5 shrink-0 text-right font-mono text-xs tabular-nums text-subtle-foreground">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="truncate text-sm font-medium text-foreground">
+                              {profile.repositoryName}
+                            </span>
+                            <div className="flex shrink-0 items-center gap-2">
+                              <span className="rounded-pill bg-surface px-2 py-0.5 text-[11px] font-medium tabular-nums text-muted-foreground ring-1 ring-border">
+                                {profile.riskyPullRequests} risky
+                              </span>
+                              <span
+                                className={cn(
+                                  'w-7 text-right text-sm font-semibold tabular-nums',
+                                  tone.text,
+                                )}
+                              >
+                                {profile.averageRiskScore}
+                              </span>
+                            </div>
+                          </div>
+                          <span
+                            role="img"
+                            aria-label={`${profile.repositoryName}: average risk ${profile.averageRiskScore} of 100 (${level})`}
+                            className="mt-1.5 block h-1.5 w-full overflow-hidden rounded-full bg-surface-subtle"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={cn('block h-full rounded-full', tone.bar)}
+                              style={{ width: `${width}%` }}
+                            />
+                          </span>
+                        </div>
+                      </li>
+                    )
+                  })}
+              </ol>
+              {reportingMetrics.repositoryRiskProfiles.length > 8 ? (
+                <Link
+                  href="/repositories"
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+                >
+                  +{reportingMetrics.repositoryRiskProfiles.length - 8} more
+                  repositories
+                </Link>
+              ) : null}
+            </>
+          ) : (
+            <EmptyState
+              title="No repository risk profiles yet"
+              description="Repository risk profiles will appear after pull requests are synced."
             />
-          </div>
-          <div className="overflow-x-auto">
-            <Table>
-              <caption className="sr-only">
-                Repository risk profiles ranked by average risk and risky pull
-                requests
-              </caption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Repository</TableHead>
-                  <TableHead>Average risk</TableHead>
-                  <TableHead>Risky PRs</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reportingMetrics.repositoryRiskProfiles.map((profile) => (
-                  <TableRow key={profile.repositoryName}>
-                    <TableCell className="font-medium text-foreground">
-                      {profile.repositoryName}
-                    </TableCell>
-                    <TableCell>{profile.averageRiskScore}</TableCell>
-                    <TableCell>{profile.riskyPullRequests}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {reportingMetrics.repositoryRiskProfiles.length === 0 ? (
-            <div className="p-5">
-              <EmptyState
-                title="No repository risk profiles yet"
-                description="Repository risk profiles will appear after pull requests are synced."
-              />
-            </div>
-          ) : null}
+          )}
         </CardContent>
       </Card>
 
@@ -458,28 +494,35 @@ async function DashboardContent() {
           <CardHeader>
             <CardTitle>Recent agent activity</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {activityEvents.map((event) => (
-              <div
-                key={event.id}
-                className="rounded-control border border-border bg-surface-muted/30 p-3.5 transition-colors hover:bg-surface-muted/60"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-medium text-foreground">
-                    {event.repositoryName}
-                  </div>
-                  <RiskBadge level={event.riskLevel} />
-                </div>
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  {event.summary}
-                </p>
-                <p className="mt-2 text-xs text-subtle-foreground">
-                  {event.agentSource.replace('_', ' ')} · {event.actor} ·{' '}
-                  {formatDate(event.timestamp)}
-                </p>
-              </div>
-            ))}
-            {activityEvents.length === 0 ? (
+          <CardContent>
+            {activityEvents.length ? (
+              <ol className="relative space-y-5 before:absolute before:bottom-2 before:left-[5px] before:top-2 before:w-px before:bg-border">
+                {activityEvents.map((event) => (
+                  <li key={event.id} className="relative pl-6">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'absolute left-0 top-1 size-[11px] rounded-full ring-4 ring-surface-elevated',
+                        riskTone[event.riskLevel].bar,
+                      )}
+                    />
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {event.repositoryName}
+                      </span>
+                      <RiskBadge level={event.riskLevel} />
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {event.summary}
+                    </p>
+                    <p className="mt-1.5 font-mono text-[11px] text-subtle-foreground">
+                      {event.agentSource.replace('_', ' ')} · {event.actor} ·{' '}
+                      {formatDate(event.timestamp)}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            ) : (
               <EmptyState
                 title="No activity yet"
                 description="Sync repositories or process GitHub webhooks to populate the timeline."
@@ -492,7 +535,7 @@ async function DashboardContent() {
                   </Link>
                 }
               />
-            ) : null}
+            )}
           </CardContent>
         </Card>
       </section>
@@ -506,6 +549,13 @@ const statToneDot: Record<string, string> = {
   danger: 'bg-danger',
   warning: 'bg-attention',
   success: 'bg-success',
+}
+
+const riskTone: Record<RiskLevel, { bar: string; text: string }> = {
+  critical: { bar: 'bg-danger', text: 'text-danger' },
+  high: { bar: 'bg-attention', text: 'text-attention' },
+  medium: { bar: 'bg-warning', text: 'text-warning' },
+  low: { bar: 'bg-success', text: 'text-success-strong' },
 }
 
 function StatPanel({
