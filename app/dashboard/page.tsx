@@ -1,15 +1,12 @@
 import { Suspense } from 'react'
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ShieldAlert,
-  TestTube2,
-} from 'lucide-react'
 import Link from 'next/link'
-import { AnimatedNumber } from '@/components/app/animated-number'
 import { EmptyState, ResultSummary } from '@/components/app/empty-state'
-import { MetricCard } from '@/components/app/metric-card'
-import { MetricTrend } from '@/components/app/metric-trend'
+import {
+  GovernancePosture,
+  type AttentionItem,
+  type PostureLevel,
+  type PostureSignal,
+} from '@/components/app/governance-posture'
 import { OnboardingChecklist } from '@/components/app/onboarding-checklist'
 import { PageHeader } from '@/components/app/page-header'
 import { DashboardSkeleton } from '@/components/app/page-loading'
@@ -100,50 +97,88 @@ async function DashboardContent() {
     ),
   }
 
-  const heroMetrics = [
+  const signals: PostureSignal[] = [
     {
-      key: 'pendingApprovals' as const,
+      key: 'pendingApprovals',
       label: 'Pending approvals',
       value: metrics.pendingApprovals,
       description: 'Decisions waiting on a reviewer',
-      icon: CheckCircle2,
-      tone:
-        metrics.pendingApprovals > 0
-          ? ('accent' as const)
-          : ('neutral' as const),
+      tone: metrics.pendingApprovals > 0 ? 'accent' : 'neutral',
+      ...signalTrends.pendingApprovals,
     },
     {
-      key: 'highRiskPrs' as const,
+      key: 'highRiskPrs',
       label: 'High-risk PRs',
       value: metrics.highRiskPrs,
       description: 'High or critical risk score',
-      icon: ShieldAlert,
-      tone:
-        metrics.highRiskPrs > 0 ? ('danger' as const) : ('success' as const),
+      tone: metrics.highRiskPrs > 0 ? 'danger' : 'success',
+      ...signalTrends.highRiskPrs,
     },
     {
-      key: 'failedCi' as const,
+      key: 'failedCi',
       label: 'Failed CI checks',
       value: metrics.failedCiChecks,
       description: 'Blocking merge confidence',
-      icon: AlertTriangle,
-      tone:
-        metrics.failedCiChecks > 0
-          ? ('warning' as const)
-          : ('success' as const),
+      tone: metrics.failedCiChecks > 0 ? 'warning' : 'success',
+      ...signalTrends.failedCi,
     },
     {
-      key: 'testGaps' as const,
+      key: 'testGaps',
       label: 'PRs with test gaps',
       value: metrics.prsWithTestGaps,
       description: 'Suggested test coverage',
-      icon: TestTube2,
-      tone:
-        metrics.prsWithTestGaps > 0
-          ? ('warning' as const)
-          : ('success' as const),
+      tone: metrics.prsWithTestGaps > 0 ? 'warning' : 'success',
+      ...signalTrends.testGaps,
     },
   ]
+
+  const hardBlockers =
+    metrics.highRiskPrs + metrics.failedCiChecks + metrics.ruleViolations
+  const reviewQueue = metrics.pendingApprovals + metrics.prsWithTestGaps
+  const postureLevel: PostureLevel =
+    hardBlockers > 0 ? 'action' : reviewQueue > 0 ? 'attention' : 'clear'
+  const postureSummary =
+    postureLevel === 'clear'
+      ? 'Every monitored pull request has cleared its risk, test, CI, and approval gates.'
+      : postureLevel === 'action'
+        ? 'Blocking signals are open on AI-assisted changes. Clear them before these merge to production.'
+        : 'Review work is queued. No hard blockers, but these changes still need a human decision.'
+  const attentionItems: AttentionItem[] = []
+  if (metrics.highRiskPrs > 0)
+    attentionItems.push({
+      label: 'high-risk',
+      count: metrics.highRiskPrs,
+      href: '/pull-requests',
+      tone: 'danger',
+    })
+  if (metrics.failedCiChecks > 0)
+    attentionItems.push({
+      label: 'failing CI',
+      count: metrics.failedCiChecks,
+      href: '/pull-requests',
+      tone: 'warning',
+    })
+  if (metrics.ruleViolations > 0)
+    attentionItems.push({
+      label: 'rule violations',
+      count: metrics.ruleViolations,
+      href: '/pull-requests',
+      tone: 'danger',
+    })
+  if (metrics.pendingApprovals > 0)
+    attentionItems.push({
+      label: 'awaiting approval',
+      count: metrics.pendingApprovals,
+      href: '/approvals?approvalStatus=pending',
+      tone: 'warning',
+    })
+  if (metrics.prsWithTestGaps > 0)
+    attentionItems.push({
+      label: 'missing tests',
+      count: metrics.prsWithTestGaps,
+      href: '/pull-requests',
+      tone: 'warning',
+    })
 
   const secondaryMetrics = [
     {
@@ -203,43 +238,16 @@ async function DashboardContent() {
     <div className="space-y-8">
       <OnboardingChecklist status={onboardingStatus} />
 
-      <section className="space-y-6">
-        <div className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold tracking-tight text-foreground">
-              Operational signals
-            </h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              What needs a reviewer&apos;s attention right now.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {heroMetrics.map((metric) => {
-              const signal = signalTrends[metric.key]
-              return (
-                <MetricCard
-                  key={metric.label}
-                  label={metric.label}
-                  value={<AnimatedNumber value={metric.value} />}
-                  description={metric.description}
-                  icon={metric.icon}
-                  tone={metric.tone}
-                  trailing={
-                    <MetricTrend
-                      series={signal.series}
-                      trend={signal.trend}
-                      tone={metric.tone}
-                    />
-                  }
-                />
-              )
-            })}
-          </div>
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <StatPanel title="Workspace volume" stats={secondaryMetrics} />
-          <StatPanel title="AI review activity" stats={aiReviewCards} />
-        </div>
+      <GovernancePosture
+        level={postureLevel}
+        summary={postureSummary}
+        attention={attentionItems}
+        signals={signals}
+      />
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <StatPanel title="Workspace volume" stats={secondaryMetrics} />
+        <StatPanel title="AI review activity" stats={aiReviewCards} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">

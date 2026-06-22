@@ -2,7 +2,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 type GateScanSize = 'sm' | 'md' | 'lg'
-type GateScanTone = 'accent' | 'danger' | 'muted'
+type GateScanTone = 'accent' | 'warning' | 'danger' | 'muted'
 type GateScanState = 'scan' | 'fissure' | 'question'
 
 type GateScanProps = {
@@ -21,12 +21,14 @@ const sizeClass: Record<GateScanSize, string> = {
 
 const toneClass: Record<GateScanTone, string> = {
   accent: 'text-accent',
+  warning: 'text-attention',
   danger: 'text-danger',
   muted: 'text-muted-foreground',
 }
 
 const haloClass: Record<GateScanTone, string> = {
   accent: 'bg-accent-soft',
+  warning: 'bg-attention-soft',
   danger: 'bg-danger-soft',
   muted: 'bg-surface-muted',
 }

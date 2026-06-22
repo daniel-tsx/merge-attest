@@ -60,22 +60,6 @@ function PageLoadingHeader({
   )
 }
 
-function MetricCardSkeleton() {
-  return (
-    <Card>
-      <CardContent className="space-y-3 p-4">
-        <div className="flex items-start justify-between">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="size-9 rounded-control" />
-        </div>
-        <Skeleton className="h-7 w-20" />
-        <Skeleton className="h-3 w-32" />
-        <Skeleton className="h-6 w-full" />
-      </CardContent>
-    </Card>
-  )
-}
-
 function StatPanelSkeleton() {
   return (
     <Card>
@@ -134,19 +118,47 @@ function FilterBarSkeleton() {
   )
 }
 
+function PostureSkeleton() {
+  return (
+    <Card className="overflow-hidden">
+      <div className="grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <div className="space-y-4 border-b border-border p-5 sm:p-6 lg:border-b-0 lg:border-r">
+          <div className="flex items-start gap-4">
+            <Skeleton className="size-16 shrink-0 rounded-card" />
+            <div className="flex-1 space-y-2 pt-1">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-7 w-48 max-w-full" />
+              <Skeleton className="h-4 w-full max-w-sm" />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton key={index} className="h-7 w-28 rounded-pill" />
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-border">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="space-y-3 bg-surface-elevated p-4 sm:p-5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-7 w-16" />
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
 export function DashboardSkeleton() {
   return (
     <div className="space-y-8">
-      <section className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <MetricCardSkeleton key={index} />
-          ))}
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <StatPanelSkeleton />
-          <StatPanelSkeleton />
-        </div>
+      <PostureSkeleton />
+      <section className="grid gap-4 lg:grid-cols-2">
+        <StatPanelSkeleton />
+        <StatPanelSkeleton />
       </section>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
