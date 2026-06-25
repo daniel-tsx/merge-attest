@@ -12,6 +12,17 @@ MergeAttest does not need to store full source file contents to provide the curr
 
 OpenRouter API keys are customer-provided credentials and must be encrypted before storage. Do not include plaintext keys in diagnostics, audit exports, review packets, or logs.
 
+## Sub-processors
+
+The public privacy policy (`app/privacy/page.tsx`) names the third-party providers MergeAttest relies on. Keep that list in sync with what the code actually uses:
+
+- **GitHub** — pull request metadata source (GitHub App).
+- **Vercel** — application hosting and cookieless web analytics (`@vercel/analytics` in `app/layout.tsx`).
+- **Resend** — transactional email (`lib/email.ts`).
+- **OpenRouter** — advisory AI review (BYOK; execution off during early access, `lib/ai/openrouter.ts`).
+- **Lemon Squeezy** — payment/subscription processing (dormant until `ENABLE_PAID_BILLING=true`, `lib/billing.ts`).
+- **Managed PostgreSQL provider** — durable storage (name the provider before launch; currently a `TODO` placeholder in the privacy page).
+
 ## Retention
 
 Audit retention is plan based:

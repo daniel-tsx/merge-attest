@@ -54,7 +54,7 @@ export const features: Feature[] = [
     id: 'risk',
     title: 'Deterministic risk scoring',
     description:
-      'Every pull request gets a transparent, explainable score — reviewers see exactly why a change is flagged. AI comments add context; they never replace the control.',
+      'Every pull request gets a transparent, rule-based score — reviewers see exactly which signals flagged a change. No model guesswork, so the same diff always scores the same.',
   },
   {
     id: 'attribution',
@@ -133,6 +133,42 @@ export const steps = [
     title: 'Keep an audit trail',
     description:
       'Every decision is logged and retained, ready to export the moment compliance asks.',
+  },
+] as const
+
+/** Landing FAQ — also mirrored into FAQPage JSON-LD for search. */
+export const faqs = [
+  {
+    q: 'Do I need to change my CI pipeline?',
+    a: 'No. MergeAttest installs as a GitHub App and reads pull requests through the GitHub API. There are no required workflow or pipeline changes — connect a repository and scoring starts on the next pull request.',
+  },
+  {
+    q: 'How does it decide a pull request is risky?',
+    a: 'Risk scoring is deterministic, not AI-generated. It inspects signals like diff size, sensitive paths, missing test coverage, dependency and migration changes, and secret patterns, then shows the exact reasons behind every score — so the same diff always scores the same.',
+  },
+  {
+    q: 'Does MergeAttest use AI to review my code?',
+    a: 'Risk scoring, agent attribution, and rule checks are all rule-based and run without any language model. An advisory AI review layer is built in and uses your own OpenRouter key, but model execution is turned off during early access — nothing is sent to a model provider unless you enable it.',
+  },
+  {
+    q: 'Which coding agents can it attribute?',
+    a: 'Built-in detection covers Claude Code, GitHub Copilot, Cursor, OpenAI Codex, and Devin, using commit trailers, bot accounts, emails, and branch prefixes — each with a confidence score and the evidence behind it. You can map your own signals in the agent identity registry when your team has its own conventions.',
+  },
+  {
+    q: 'Is it built for teams?',
+    a: 'Yes. Invite your team with roles, assign reviewers, leave review notes, and record who approved each risky change — every decision is kept in the audit trail.',
+  },
+  {
+    q: 'What does it cost?',
+    a: 'MergeAttest is free during early access, with no credit card required. The free plan covers up to 3 connected repositories, 200 PR checks per month, and 7 days of audit history. Paid plans for higher limits are planned for later.',
+  },
+  {
+    q: 'What happens to my source code?',
+    a: 'MergeAttest works from pull request metadata — changed file paths, risk signals, approvals, and audit events. It does not store your full source files. Customer-provided credentials, such as an OpenRouter key, are encrypted before storage.',
+  },
+  {
+    q: 'Can I export my data or leave?',
+    a: 'Yes. Export audit evidence and compliance reports whenever you need them, and disconnect the GitHub App at any time. Contact support to request deletion of your workspace data.',
   },
 ] as const
 

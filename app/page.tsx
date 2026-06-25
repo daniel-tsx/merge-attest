@@ -5,6 +5,7 @@ import { ArrowRight, Plus } from 'lucide-react'
 import {
   agents,
   authorship,
+  faqs,
   features,
   heroLede,
   samplePr,
@@ -177,6 +178,9 @@ export default async function Home() {
               </a>
               <a className="mkt-link" href="#how-it-works">
                 How it works
+              </a>
+              <a className="mkt-link" href="#faq">
+                FAQ
               </a>
             </nav>
             <div className="flex items-center gap-3 text-[13px]">
@@ -419,6 +423,57 @@ export default async function Home() {
             </div>
           </section>
 
+          {/* FAQ */}
+          <section
+            id="faq"
+            className="relative z-10 border-t border-[var(--line-soft)]"
+          >
+            <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+              <div data-reveal className="lg:sticky lg:top-28 lg:self-start">
+                <Coord>faq</Coord>
+                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
+                  Questions, answered
+                </h2>
+                <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-[var(--text-dim)]">
+                  What MergeAttest does, what it touches, and what it costs — no
+                  fine print.
+                </p>
+                <a
+                  href="mailto:support@mergeattest.com"
+                  className="mkt-link mkt-mono mt-6 inline-block text-[12px] text-[var(--cyan)]"
+                >
+                  support@mergeattest.com
+                </a>
+              </div>
+
+              <dl className="overflow-hidden rounded-xl border border-[var(--line)]">
+                {faqs.map((item, i) => (
+                  <div
+                    key={item.q}
+                    data-reveal
+                    className={
+                      i === 0
+                        ? 'bg-[var(--panel)] p-6 sm:p-7'
+                        : 'border-t border-[var(--line)] bg-[var(--panel)] p-6 sm:p-7'
+                    }
+                  >
+                    <dt className="flex items-baseline gap-3">
+                      <span className="mkt-mono text-[11px] tracking-[0.16em] text-[var(--cyan)]">
+                        {numberLabel(i + 1)}
+                      </span>
+                      <span className="mkt-display text-[1.05rem] font-semibold leading-snug tracking-tight text-[var(--text)]">
+                        {item.q}
+                      </span>
+                    </dt>
+                    <dd className="mt-2.5 pl-[2.1rem] text-[13.5px] leading-relaxed text-[var(--text-dim)]">
+                      {item.a}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+
           {/* CTA */}
           <section className="relative z-10 border-t border-[var(--line-soft)]">
             <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
@@ -480,15 +535,18 @@ export default async function Home() {
               <a className="mkt-link" href="#how-it-works">
                 How it works
               </a>
+              <a className="mkt-link" href="#faq">
+                FAQ
+              </a>
               <Link className="mkt-link" href="/privacy">
                 Privacy
               </Link>
               <Link className="mkt-link" href="/terms">
                 Terms
               </Link>
-              <Link className="mkt-link" href="/sign-in">
-                Sign in
-              </Link>
+              <a className="mkt-link" href="mailto:support@mergeattest.com">
+                Contact
+              </a>
             </nav>
             <div className="flex flex-col items-center gap-1 sm:items-end">
               <p className="mkt-mono text-[11px] text-[var(--text-faint)]">

@@ -1,3 +1,4 @@
+import { faqs } from '@/components/marketing/content'
 import { getSiteUrl } from '@/lib/env'
 import { siteConfig } from '@/lib/site'
 
@@ -5,6 +6,15 @@ export function createHomeJsonLd() {
   const url = getSiteUrl()
 
   return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
