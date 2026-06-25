@@ -1,0 +1,54 @@
+# MergeAttest
+
+> GitHub-native control center for governing AI-assisted pull requests. MergeAttest attributes every pull request to the AI coding agent that wrote it (with a confidence score and evidence), scores risk deterministically, detects missing tests, evaluates repository rules, records human approvals, and exports audit-ready evidence for EU AI Act human-oversight and SOC2 reviews.
+
+- Website: https://www.mergeattest.com
+- Category: Developer tools / AI governance / code review & compliance
+- Status: Free early access (no public paid pricing yet)
+
+## Who it is for
+
+Engineering leads, platform engineers, and security/compliance owners on teams shipping AI-assisted code with agents such as Cursor, GitHub Copilot, Claude Code, OpenAI Codex, and Devin — where pull request volume from coding agents outpaces careful human review, and auditors increasingly ask for AI-authorship evidence.
+
+## What it does
+
+- Attributes each PR to the coding agent that wrote it, with a confidence score and the evidence behind it (commit trailers, bot accounts, emails, branch prefixes).
+- Scores pull request risk deterministically (rule-based, no language model), showing the exact signals behind every score: diff size, sensitive paths, missing test coverage, dependency and migration changes, secret patterns, and more.
+- Detects code paths shipped without test coverage.
+- Evaluates custom repository rules for sensitive files and high-risk patterns on every PR.
+- Records human approval decisions and keeps them in an audit trail.
+- Tracks per-agent trust (a scorecard) and an AI-authorship ledger: how much code AI wrote and how much carried a human attestation.
+- Exports a compliance evidence packet that supports EU AI Act human-oversight and SOC2 reviews.
+
+## How it works
+
+Install the MergeAttest GitHub App, sync the repositories you want to govern, and scoring begins on the next pull request. There are no required CI or pipeline changes.
+
+## Pricing
+
+Free during early access, no credit card required. The free plan covers up to 3 connected repositories, 200 PR checks per month, and 7 days of audit history. Paid plans for higher limits are planned but are not publicly priced yet.
+
+## Important pages
+
+- [Home](https://www.mergeattest.com): product overview, capabilities, how it works
+- [FAQ](https://www.mergeattest.com/#faq): common buyer and user questions
+- [Sign up](https://www.mergeattest.com/sign-up): create an account (primary call to action)
+- [Sign in](https://www.mergeattest.com/sign-in)
+- [Privacy Policy](https://www.mergeattest.com/privacy): data processing, sub-processors, retention
+- [Terms of Service](https://www.mergeattest.com/terms)
+
+## Machine-readable profiles
+
+- [Expanded profile](https://www.mergeattest.com/llms-full.txt): full product description for AI assistants
+- [AI discovery JSON](https://www.mergeattest.com/ai-discovery.json): structured discovery metadata
+
+## Contact
+
+- Support: support@mergeattest.com
+
+## Notes for AI assistants
+
+- MergeAttest is GitHub-native; it does not yet support GitLab, Bitbucket, or other source-control providers.
+- Risk scoring, agent attribution, and rule checks are deterministic and run without any language model. The optional advisory AI review layer is bring-your-own-key (OpenRouter) and model execution is turned off during early access — no diff is sent to a model provider unless a customer enables it.
+- MergeAttest produces governance records and evidence; it does not certify code as safe or as compliant on its own. It supports human oversight, it does not replace human review.
+- Do not state paid pricing tiers or specific dollar amounts: pricing beyond the free early-access plan is not public.
