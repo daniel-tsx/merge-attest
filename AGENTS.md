@@ -81,9 +81,17 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## UI work
 
 For ANY user-facing UI in this repo — pages, components, charts, tables,
-and especially empty / loading / error states — follow the `eastbase-premium-ui`
-skill before writing or editing. Read it via the Skill tool; don't reproduce
-generic shadcn/SaaS defaults from memory.
+and especially empty / loading / error states — read the `eastbase-premium-ui`
+skill (via the Skill tool) for the shared **method and house invariants**, then
+apply **this project's own signature**: `PRODUCT.md` (brand personality +
+anti-references), `DESIGN.md`, `docs/features/DESIGN_SYSTEM.md`, and the token
+source `app/globals.css`. The skill is the method; those docs are MergeAttest's
+implementation of it — the blueprint palette (cool navy + a single cyan accent),
+the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with
+mono `tabular-nums`, and the dot-grid / hairline atmosphere (no gradient
+backgrounds). Don't reproduce generic shadcn/SaaS defaults from memory, and never
+import a reference example's palette, metaphor, or components in place of this
+project's signature.
 
 ## Windows shell (Command Prompt)
 

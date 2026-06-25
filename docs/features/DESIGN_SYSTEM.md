@@ -3,13 +3,19 @@
 **Status:** `current`
 **Location:** `docs/features/DESIGN_SYSTEM.md`
 
-Last reviewed: 2026-06-18 (palette moved to the "blueprint" system — cool navy surfaces + a single cyan accent — across both themes; layout/density discipline unchanged)
+Last reviewed: 2026-06-25 (recorded the relationship to the shared `eastbase-premium-ui` skill; the blueprint palette and control-room signature are unchanged)
 
 ## Purpose
 
 This document records the current UI foundation for MergeAttest. The goal is a Linear-influenced operational interface: precise, compact, security-minded, and built for scanning pull request risk, approvals, policies, and audit evidence. Notion-style clarity is useful for docs and settings copy, but the product UI should feel closer to an engineering control room than a friendly workspace editor.
 
 For architecture, page composition, and the three-layer component model, read [`../SYSTEM_DESIGN.md`](../SYSTEM_DESIGN.md) first.
+
+## Relationship to the `eastbase-premium-ui` skill
+
+MergeAttest follows Eastbase Studio's shared `eastbase-premium-ui` skill — read it (via the Skill tool) before any UI work. The skill is the **method and house invariants** that hold across every Eastbase product: personality lives in structure (not decoration), one signature hue plus a small semantic palette, atmosphere instead of gradient backgrounds, numerals typeset on purpose, bespoke components over stock, designed empty / loading / error states, hairline-precise restraint, first-class theming, and accessible motion.
+
+This document and [`../../app/globals.css`](../../app/globals.css) (the runtime token source) are **MergeAttest's own signature** — its implementation of that method — and they stay intact: the blueprint palette (cool navy surfaces + a single cyan accent), the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with mono `tabular-nums`, and the dot-grid / hairline atmosphere. Apply the skill's *moves*; never import a reference example's palette, metaphor, typeface, or components (the skill's BurnCap and editorial references are illustrations of the method, not templates for this product). The two are designed to agree — every rule below is this project's expression of a skill invariant; where they ever seem to differ, keep the house invariant as the method and this project's signature as the specifics, and reconcile rather than replace either.
 
 ## Direction
 
