@@ -25,6 +25,7 @@ pnpm dev
 | Production checklist        | [`docs/operations/PRODUCTION_CHECKLIST.md`](docs/operations/PRODUCTION_CHECKLIST.md)           |
 | Operations runbook          | [`docs/operations/OPERATIONS_RUNBOOK.md`](docs/operations/OPERATIONS_RUNBOOK.md)               |
 | Privacy & support           | [`docs/operations/PRIVACY_RETENTION_SUPPORT.md`](docs/operations/PRIVACY_RETENTION_SUPPORT.md) |
+| AI discoverability          | [`docs/operations/AI_DISCOVERABILITY.md`](docs/operations/AI_DISCOVERABILITY.md)               |
 | Product roadmap             | [`docs/strategy/ENHANCEMENT_PLAN.md`](docs/strategy/ENHANCEMENT_PLAN.md)                       |
 
 Historical plans and reviews live under [`docs/archive/`](docs/archive/).

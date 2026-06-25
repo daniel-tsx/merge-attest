@@ -46,12 +46,13 @@ Root [`README.md`](../README.md) has the quick start only.
 
 ### Operations
 
-| Doc                                                                                  | Status    | Summary                                         |
-| ------------------------------------------------------------------------------------ | --------- | ----------------------------------------------- |
-| [`operations/SETUP.md`](operations/SETUP.md)                                         | `current` | Stack, local dev, routes, module map            |
-| [`operations/PRODUCTION_CHECKLIST.md`](operations/PRODUCTION_CHECKLIST.md)           | `current` | Pre-launch env and runtime checks               |
-| [`operations/OPERATIONS_RUNBOOK.md`](operations/OPERATIONS_RUNBOOK.md)               | `current` | CI gate, scheduled jobs, incidents, retention   |
-| [`operations/PRIVACY_RETENTION_SUPPORT.md`](operations/PRIVACY_RETENTION_SUPPORT.md) | `current` | Data stored, retention windows, support contact |
+| Doc                                                                                  | Status    | Summary                                                                              |
+| ------------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------ |
+| [`operations/SETUP.md`](operations/SETUP.md)                                         | `current` | Stack, local dev, routes, module map                                                 |
+| [`operations/PRODUCTION_CHECKLIST.md`](operations/PRODUCTION_CHECKLIST.md)           | `current` | Pre-launch env and runtime checks                                                    |
+| [`operations/OPERATIONS_RUNBOOK.md`](operations/OPERATIONS_RUNBOOK.md)               | `current` | CI gate, scheduled jobs, incidents, retention                                        |
+| [`operations/PRIVACY_RETENTION_SUPPORT.md`](operations/PRIVACY_RETENTION_SUPPORT.md) | `current` | Data stored, retention windows, support contact                                      |
+| [`operations/AI_DISCOVERABILITY.md`](operations/AI_DISCOVERABILITY.md)               | `current` | Agent-readable layer: `llms.txt`, `ai-discovery.json`, JSON-LD, what never to invent |
 
 ### Strategy
 
