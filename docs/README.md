@@ -61,6 +61,13 @@ Root [`README.md`](../README.md) has the quick start only.
 | [`strategy/ENHANCEMENT_PLAN.md`](strategy/ENHANCEMENT_PLAN.md)               | `current` | Active product roadmap and remaining gaps   |
 | [`strategy/ENTERPRISE_PLACEHOLDERS.md`](strategy/ENTERPRISE_PLACEHOLDERS.md) | `current` | Explicitly deferred enterprise capabilities |
 
+### Design
+
+| Doc                                                                                      | Status    | Summary                                                                             |
+| ---------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------- |
+| [`design/FABLE_LANDING_DIRECTIONS.md`](design/FABLE_LANDING_DIRECTIONS.md)               | `planned` | Three landing redesign directions with prototypes at `/design-directions` (noindex) |
+| [`design/FABLE_LANDING_DIRECTIONS_REVIEW.md`](design/FABLE_LANDING_DIRECTIONS_REVIEW.md) | `current` | Review verdicts, recommended direction, and next redesign pass                      |
+
 ## Archived Docs
 
 Do not implement from these without re-verifying against code.

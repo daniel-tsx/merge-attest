@@ -6,7 +6,11 @@ import { publicAppPaths } from '@/lib/site'
 import type { NavAttentionCounts } from '@/lib/data/app-data'
 import type { PlanKey } from '@/lib/types'
 
-const publicRoutes = new Set<string>(publicAppPaths)
+// Prefix matching, consistent with the proxy and the root layout.
+const isPublicRoute = (pathname: string) =>
+  publicAppPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
 
 export function RootShell({
   children,
@@ -25,7 +29,7 @@ export function RootShell({
 }) {
   const pathname = usePathname()
 
-  if (publicRoutes.has(pathname)) {
+  if (isPublicRoute(pathname)) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         {children}
