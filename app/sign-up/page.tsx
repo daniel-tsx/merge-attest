@@ -83,7 +83,7 @@ export default function SignUpPage() {
       <form className="space-y-5" method="post" onSubmit={handleSubmit}>
         <div className="space-y-1.5">
           <label
-            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-subtle-foreground"
             htmlFor="name"
           >
             Full name
@@ -98,7 +98,7 @@ export default function SignUpPage() {
         </div>
         <div className="space-y-1.5">
           <label
-            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-subtle-foreground"
             htmlFor="email"
           >
             Work email
@@ -114,7 +114,7 @@ export default function SignUpPage() {
         </div>
         <div className="space-y-1.5">
           <label
-            className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-subtle-foreground"
             htmlFor="password"
           >
             Password

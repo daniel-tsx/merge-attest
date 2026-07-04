@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { GateScan } from '@/components/app/gate-scan'
+import { displayFont } from '@/components/marketing/display-font'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -17,14 +18,18 @@ export default function ErrorPage({
   }, [error])
 
   return (
-    <main className="flex min-h-[60vh] items-center justify-center p-4">
+    <main
+      className={`${displayFont.variable} flex min-h-[60vh] items-center justify-center p-4`}
+    >
       <Card className="w-full max-w-lg">
         <CardHeader className="flex flex-col items-start gap-3 border-b-0 pb-0">
           <GateScan size="lg" tone="danger" state="fissure" />
-          <CardTitle className="text-base">Something went wrong</CardTitle>
+          <CardTitle className="font-serif text-lg font-medium tracking-[-0.01em]">
+            Something went wrong
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
-            MergeAttest could not load this view. The error has been surfaced to the
-            runtime logs with the current release context.
+            MergeAttest could not load this view. The error has been surfaced to
+            the runtime logs with the current release context.
           </p>
           {error.digest && (
             <p className="font-mono text-xs text-subtle-foreground">

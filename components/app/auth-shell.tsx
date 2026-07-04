@@ -137,7 +137,7 @@ export function AuthFieldLabel({
 }) {
   return (
     <label
-      className="text-xs font-medium uppercase tracking-wider text-subtle-foreground"
+      className="font-mono text-[11px] uppercase tracking-[0.16em] text-subtle-foreground"
       htmlFor={htmlFor}
     >
       {children}

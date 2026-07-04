@@ -71,10 +71,14 @@ Current token strategy ("blueprint" palette — cool navy + cyan, hue ~250–255
 
 - `font-serif` — marketing ceremony face (Fraunces). The face loads via
   `components/marketing/display-font.ts` (`displayFont.variable` must be
-  mounted on the surface root — landing, `AuthShell`, `LegalPageShell`);
-  `--font-serif` in `globals.css` maps the utility to `--font-display`.
-  Reserved for the "Paper of Record" register (marketing/auth/legal
-  headlines) — never for dense product data.
+  mounted on the surface root — landing, `AuthShell`, `LegalPageShell`,
+  `EmptyState`, and the 404/error pages); `--font-serif` in `globals.css`
+  maps the utility to `--font-display`. Reserved for the "Paper of Record"
+  register: marketing/auth/legal headlines plus the one product exception —
+  empty/404/error state titles, which are designed moments. Never for dense
+  product data. Auth form field labels use the register's mono micro-label
+  (`font-mono text-[11px] uppercase tracking-[0.16em]`), matching the
+  attestation record's field terms.
 - `text-display` (theme size) — page titles via `PageHeader` (size/leading/tracking/weight bundled).
 - `text-eyebrow` (`@utility`) — the uppercase micro-label (11px / 500 / 0.08em) used by
   `PageHeader`, `MetricCard`, `Table` headers, and dashboard stat/compliance tiles.

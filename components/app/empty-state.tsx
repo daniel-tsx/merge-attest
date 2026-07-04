@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Inbox } from 'lucide-react'
+import { displayFont } from '@/components/marketing/display-font'
 import { cn } from '@/lib/utils'
 
 export function EmptyState({
@@ -19,6 +20,7 @@ export function EmptyState({
   return (
     <div
       className={cn(
+        displayFont.variable,
         'rounded-card border border-dashed border-border bg-surface-muted/45 px-6 py-10 text-center',
         className,
       )}
@@ -26,7 +28,9 @@ export function EmptyState({
       <div className="mx-auto flex size-10 items-center justify-center rounded-control border border-border bg-surface-elevated text-subtle-foreground">
         <Icon className="size-5" aria-hidden="true" />
       </div>
-      <h2 className="mt-4 text-sm font-semibold tracking-tight text-foreground">
+      {/* Register cue: empty states are the one product surface that takes
+          the marketing ceremony face (see docs/features/DESIGN_SYSTEM.md). */}
+      <h2 className="mt-4 font-serif text-[15px] font-medium tracking-[-0.01em] text-foreground">
         {title}
       </h2>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
