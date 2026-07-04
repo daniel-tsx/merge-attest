@@ -1,16 +1,18 @@
 # MergeAttest Documentation
 
 **Status:** `current` — documentation index
-**Last verified:** 2026-06-10
+**Last verified:** 2026-07-04
 
 MergeAttest is a SaaS control center for engineering teams using AI coding agents. It monitors AI-assisted pull requests, scores risky changes, detects missing tests, evaluates repository rules, records approvals, and keeps an audit trail before code reaches production.
 
 ## Start Here
 
 1. [`AGENT_START_HERE.md`](AGENT_START_HERE.md) — read every session (source-of-truth map, drift warnings, env vars, verification)
-2. [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) — architecture, domain flows, and UI layer model (read before UI or structural changes)
-3. [`operations/SETUP.md`](operations/SETUP.md) — local setup, routes, and architecture
-4. Task-specific docs from the folders below
+2. Root [`AGENTS.md`](../AGENTS.md) — project operating guide: identity, task→docs matrix, quality standards, guardrails, commands
+3. [`agents/FUTURE_AGENT_ONBOARDING.md`](agents/FUTURE_AGENT_ONBOARDING.md) — new to this repo? Short practical orientation
+4. [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) — architecture, domain flows, and UI layer model (read before UI or structural changes)
+5. [`operations/SETUP.md`](operations/SETUP.md) — local setup, routes, and architecture
+6. Task-specific docs from the folders below
 
 Root [`README.md`](../README.md) has the quick start only.
 
@@ -20,6 +22,9 @@ Root [`README.md`](../README.md) has the quick start only.
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`architecture/`](architecture/)       | Deep-dive HTML architecture references (auth, database, governance, GitHub, jobs, billing, AI, frontend, security, ops) — start at [`architecture/index.html`](architecture/index.html) |
 | [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md) | Cross-cutting architecture, domain flows, UI composition model                                                                                                                          |
+| [`agents/`](agents/)                   | Agent operating layer: knowledge map, quality bar, onboarding, playbooks, audit record, handoff                                                                                         |
+| [`agent-prompts/`](agent-prompts/)     | Copy/paste-ready task prompts for future agent sessions — start at the [catalog](agent-prompts/README.md)                                                                               |
+| [`skills/`](skills/)                   | Project skill specifications (specs only for now; convertible to Claude Code skills later)                                                                                              |
 | [`features/`](features/)               | Current feature and system reference docs                                                                                                                                               |
 | [`operations/`](operations/)           | Setup, production, runbooks, privacy, and support                                                                                                                                       |
 | [`strategy/`](strategy/)               | Roadmap and product direction that still guides decisions                                                                                                                               |
@@ -34,6 +39,20 @@ Root [`README.md`](../README.md) has the quick start only.
 | [`architecture/index.html`](architecture/index.html) | `current` | Architecture hub — links to all deep-dive HTML references      |
 | [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)               | `current` | Architecture layers, tenancy, domain flows, UI component model |
 | [`AGENT_START_HERE.md`](AGENT_START_HERE.md)         | `current` | Agent session entry point and source-of-truth map              |
+
+### Agent operating layer
+
+| Doc                                                                                | Status    | Summary                                                                                                                               |
+| ---------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [`../AGENTS.md`](../AGENTS.md)                                                     | `current` | Root operating guide: identity, principles, task→docs matrix, guardrails                                                              |
+| [`agents/REPO_KNOWLEDGE_MAP.md`](agents/REPO_KNOWLEDGE_MAP.md)                     | `current` | Routes, key files, integrations, sensitive areas, repo gotchas                                                                        |
+| [`agents/PROJECT_QUALITY_BAR.md`](agents/PROJECT_QUALITY_BAR.md)                   | `current` | Pass/fail standard for landing, app, copy, security, docs, handoffs                                                                   |
+| [`agents/FUTURE_AGENT_ONBOARDING.md`](agents/FUTURE_AGENT_ONBOARDING.md)           | `current` | Short orientation for a new agent session                                                                                             |
+| [`agents/playbooks/`](agents/playbooks/)                                           | `current` | Task methods: landing redesign, launch polish, content audit, discoverability, security review, architecture update, marketing assets |
+| [`agent-prompts/README.md`](agent-prompts/README.md)                               | `current` | Prompt catalog: use case, model tier, risk, required docs per prompt                                                                  |
+| [`skills/README.md`](skills/README.md)                                             | `current` | Skill-spec index and conversion notes                                                                                                 |
+| [`agents/DOCS_AUDIT_AND_CLEANUP.md`](agents/DOCS_AUDIT_AND_CLEANUP.md)             | `current` | Audit record of the 2026-07-04 docs review (append future audits here)                                                                |
+| [`agents/FABLE_PROJECT_SYSTEM_HANDOFF.md`](agents/FABLE_PROJECT_SYSTEM_HANDOFF.md) | `current` | Handoff for the agent-system pass: what exists, what's next, model routing                                                            |
 
 ### Features
 

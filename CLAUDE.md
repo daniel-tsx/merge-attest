@@ -2,6 +2,8 @@
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
+**Project operating guide:** everything MergeAttest-specific (identity, task→docs matrix, quality bar, guardrails, commands) lives in [`AGENTS.md`](AGENTS.md) — read it before non-trivial work. When the two overlap, `AGENTS.md` wins.
+
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
 ## 1. Think Before Coding

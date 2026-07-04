@@ -1,97 +1,85 @@
-# AGENTS.md
+# AGENTS.md — MergeAttest Operating Guide
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+The operating guide for any coding agent (Claude Code, Cursor, Codex, or another Fable/Opus/Sonnet session) working in this repository. `CLAUDE.md` carries the generic behavioral guidelines; this file carries everything project-specific. When they overlap, this file wins.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+## 1. Project Identity
 
-## 1. Think Before Coding
+**MergeAttest** (mergeattest.com) is a GitHub-native SaaS control center for engineering teams shipping AI-assisted code. It attributes every pull request to the coding agent that wrote it (confidence + evidence), scores risk **deterministically** (rule-based, no LLM), detects missing tests, evaluates repository rules, records human approvals and attestations, and exports audit-ready evidence for EU AI Act human-oversight and SOC2 reviews.
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+- **For:** engineering leads, platform engineers, security/compliance owners. They distrust AI-washing; the product earns trust by showing deterministic mechanics, not by claiming intelligence.
+- **Operator:** Eastbase Studio (https://www.eastbase.studio). Product support surface: `support@mergeattest.com`. Studio contact: `support@eastbase.studio`. Don't swap them.
+- **Stage (2026-07):** free early access, **pre-customer**. No public pricing. Paid billing dormant behind `ENABLE_PAID_BILLING` (Lemon Squeezy code intact on purpose). AI review model execution intentionally disabled (queue durable, worker skips). Success metric: installed GitHub Apps and governed repositories.
+- **Voice:** operational, exact, governance-oriented — "an engineering control room, not a friendly workspace editor." Evidence over claims; no hype adjectives.
 
-Before implementing:
+## 2. Operating Principles
 
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+1. **Inspect before editing.** `git status` first; never overwrite work you didn't make. Read the required docs (matrix below) before coding.
+2. **Trust code over docs.** If they disagree, surface the drift; update the current doc only when behavior changes durably.
+3. **Surgical scope.** Every changed line traces to the task. No adjacent "improvements", no speculative abstractions, no broad refactors.
+4. **No generic SaaS output.** This product has a specific signature (see §4 and the UI section). Stock shadcn/SaaS-template output is wrong here even when it "looks fine".
+5. **No unsupported claims — anywhere.** Pre-customer product: never invent users, revenue, testimonials, logos, pricing, compliance certifications, or "AI-powered" claims. This applies to UI copy, docs, metadata, `llms.txt`, and placeholders.
+6. **Production is off-limits** without explicit instruction in the current session: no live billing, no production DB mutations, no real webhooks, no domain/DNS.
+7. **Never expose secrets.** Treat every `.env*` value as sensitive; never print or commit them; update `.env.example` when adding vars.
+8. **Run the checks** relevant to the change (§6) and report results honestly — separate "verified" from "assumed".
+9. **Commit when the task calls for it; never push** unless explicitly instructed.
+10. **Leave a trail.** Update the matching current doc when routes, env vars, schema, billing/auth/security, or user-visible behavior change; follow `docs/agent-prompts/handoff-after-major-task.md` for large tasks.
 
-## 2. Simplicity First
+## 3. Required Reading by Task
 
-**Minimum code that solves the problem. Nothing speculative.**
+Always: `docs/AGENT_START_HERE.md` + `docs/agents/REPO_KNOWLEDGE_MAP.md`. Then:
 
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
+| Task                      | Read before starting                                                                                                                             | Playbook / prompt                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Landing redesign / polish | `PRODUCT.md`, `DESIGN.md`, `docs/features/DESIGN_SYSTEM.md`, `app/page.tsx`, `lib/site.ts`                                                       | `docs/agents/playbooks/landing-redesign.md`           |
+| Launch polish             | `docs/operations/PRODUCTION_CHECKLIST.md`, `docs/agents/PROJECT_QUALITY_BAR.md`, legal pages                                                     | `docs/agents/playbooks/final-launch-polish.md`        |
+| Feature work              | `docs/SYSTEM_DESIGN.md`, relevant `docs/features/*`, `prisma/schema.prisma`, matching `tests/*`                                                  | —                                                     |
+| UI / dashboard work       | `docs/SYSTEM_DESIGN.md`, `docs/features/DESIGN_SYSTEM.md`, `app/globals.css`, `eastbase-premium-ui` skill                                        | `docs/agent-prompts/feature-polish.md`                |
+| Security / access review  | `docs/SYSTEM_DESIGN.md` security model, `proxy.ts`, `lib/auth*`, `lib/data/app-data.ts`, `docs/features/ADMIN.md`, `docs/features/API.md`        | `docs/agents/playbooks/security-and-access-review.md` |
+| Content / copy update     | `PRODUCT.md`, `components/marketing/content.ts`, `lib/site.ts`, `docs/operations/AI_DISCOVERABILITY.md`                                          | `docs/agents/playbooks/product-content-audit.md`      |
+| AI-agent visibility / SEO | `docs/operations/AI_DISCOVERABILITY.md`, `public/llms*.txt`, `public/ai-discovery.json`, `app/{robots,sitemap}.ts`, `lib/seo/**`                 | `docs/agents/playbooks/ai-agent-discoverability.md`   |
+| Billing / pricing         | `docs/architecture/billing-and-entitlements-architecture.html`, `lib/{billing,plans,entitlements}.ts`, `docs/AGENT_START_HERE.md` launch posture | — (billing changes need explicit owner instruction)   |
+| Architecture doc update   | `docs/SYSTEM_DESIGN.md`, `docs/architecture/index.html`                                                                                          | `docs/agents/playbooks/architecture-update.md`        |
+| Blog / marketing          | `PRODUCT.md`, `docs/strategy/ENHANCEMENT_PLAN.md`, `eastbase-blog-post` skill if available                                                       | `docs/agents/playbooks/marketing-assets.md`           |
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+## 4. Quality Standards
 
-## 3. Surgical Changes
+The full bar with pass/fail examples: `docs/agents/PROJECT_QUALITY_BAR.md`. In short, good work here means:
 
-**Touch only what you must. Clean up only your own mess.**
+- Copy is product-specific, exact, and claim-safe; the page itself feels audited.
+- UI carries the MergeAttest signature: blueprint palette (cool indigo OKLCH neutrals, one restrained accent), Geist Sans/Mono with `tabular-nums`, Fraunces only for marketing ceremony, hairline borders and dot-grid atmosphere, **no gradient backgrounds**, design tokens from `app/globals.css` — never raw palette classes.
+- Empty/loading/error states are designed surfaces; skeletons match their real layouts.
+- Responsive verified in the browser; visible focus rings; `prefers-reduced-motion` respected; decorative icons `aria-hidden`.
+- Server-side enforcement for anything private: org-scoped reads via `lib/data/app-data.ts`, entitlements via `lib/entitlements.ts`, never client-side-only checks.
+- Deterministic features stay deterministic — don't quietly introduce LLM calls into risk/rules/attribution paths.
 
-When editing existing code:
+## 5. Safety & Commercial Guardrails
 
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
+**Human-only (flag, never attempt):** domain/DNS, live payment setup or real payments, production secrets rotation, email sender verification, legal sign-off, publishing to social/directories, enabling `ENABLE_PAID_BILLING` in production, enabling AI review model execution.
 
-When your changes create orphans:
+**Explicit-instruction-only:** production DB migrations or data mutations, changes to attribution signal weights / scorecard / attestation semantics, compliance-export format changes, deleting or re-gating billing code, changing plan limits in `lib/entitlements.ts`.
 
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
+**Sensitive code (change with care + tests):** `proxy.ts`, `lib/auth*`, `lib/data/app-data.ts` scoping, `lib/admin/**` boundary (the only cross-org reader), webhook signature verification, `lib/job-auth.ts`, `lib/retention.ts`, `prisma/migrations/` (append-only).
 
-The test: Every changed line should trace directly to the user's request.
+**Security work is defensive.** Frame it as access-control review, ownership validation, webhook integrity, rate-limit review, private-data protection, and negative-path authorization tests ("as org A, request org B's resource — expect rejection"). No offensive testing, no destructive verification.
 
-## 4. Goal-Driven Execution
+## 6. Commands
 
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
+```bash
+pnpm install
+pnpm dev            # localhost:3000 — auth flows require port 3000 (INVALID_ORIGIN otherwise)
+pnpm lint
+pnpm typecheck      # runs prisma generate first
+pnpm test           # vitest run — scoped: pnpm exec vitest run tests/<file>
+pnpm build          # needs GITHUB_* placeholder env vars locally (see knowledge map gotchas)
+pnpm db:generate && pnpm db:migrate && pnpm db:seed   # dev database
+pnpm format         # scope prettier to touched files — repo-wide format:check fails on Windows CRLF
 ```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
-
-## Additional Rules
-
-- Always check the latest documentation when implementing new features and upgrade packages when newer versions are available.
-- Prefer pnpm as the package manager for new projects.
-- Always review existing implementations in the project to ensure consistent patterns across the app.
-- Write clean code following best practices and optimize for performance.
-- Don't use linear gradient background unless I tell you or it's a really necessary case
-- Prefer to use color on project's design system over custom color
+CI (`.github/workflows/ci.yml`): lint → typecheck → test → audit → build. Match it before calling work done.
 
 ## UI work
 
-For ANY user-facing UI in this repo — pages, components, charts, tables,
-and especially empty / loading / error states — read the `eastbase-premium-ui`
-skill (via the Skill tool) for the shared **method and house invariants**, then
-apply **this project's own signature**: `PRODUCT.md` (brand personality +
-anti-references), `DESIGN.md`, `docs/features/DESIGN_SYSTEM.md`, and the token
-source `app/globals.css`. The skill is the method; those docs are MergeAttest's
-implementation of it — the blueprint palette (cool navy + a single cyan accent),
-the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with
-mono `tabular-nums`, and the dot-grid / hairline atmosphere (no gradient
-backgrounds). Don't reproduce generic shadcn/SaaS defaults from memory, and never
-import a reference example's palette, metaphor, or components in place of this
-project's signature.
+For ANY user-facing UI in this repo — pages, components, charts, tables, and especially empty / loading / error states — read the `eastbase-premium-ui` skill (via the Skill tool) for the shared **method and house invariants**, then apply **this project's own signature**: `PRODUCT.md` (brand personality + anti-references), `DESIGN.md`, `docs/features/DESIGN_SYSTEM.md`, and the token source `app/globals.css`. The skill is the method; those docs are MergeAttest's implementation of it — the blueprint palette (cool navy + a single cyan accent), the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with mono `tabular-nums`, and the dot-grid / hairline atmosphere (no gradient backgrounds). Don't reproduce generic shadcn/SaaS defaults from memory, and never import a reference example's palette, metaphor, or components in place of this project's signature.
 
 ## Windows shell (Command Prompt)
 
@@ -103,36 +91,16 @@ project's signature.
 | `set FOO=bar && command`           | `$env:FOO = "bar"; command`                  |
 | Chain with `&&`                    | Chain with `;` or pipelines when unnecessary |
 
-Only use PowerShell when the user explicitly requests it.
-
-**Important:** This file guides command _syntax_. Cursor may still spawn PowerShell for the agent shell on Windows. To change that, see **Cursor shell setup** below and `.vscode/settings.json` in this repo.
-
-### Cursor shell setup (Windows)
-
-1. **Workspace** — this repo includes `.vscode/settings.json` with `terminal.integrated.automationProfile.windows` → `cmd.exe`.
-2. **User settings** — in `%APPDATA%\Cursor\User\settings.json`, add the same `automationProfile` (your `defaultProfile` alone does not control the agent):
-   ```json
-   "terminal.integrated.automationProfile.windows": {
-     "path": "C:\\Windows\\System32\\cmd.exe"
-   }
-   ```
-3. **Cursor Settings** — enable **Legacy Terminal Tool** (`Ctrl+Shift+J` → Agents; exact menu label varies by version), then restart Cursor and run **Terminal: Kill All Terminals**.
-4. **Optional user setting** (forum-reported, not official docs): `"cursor.useLegacyTerminalTool": true`
-5. **Project rule** — `.cursor/rules/windows-cmd-shell.mdc` reinforces cmd syntax every session.
-
-If commands still run in PowerShell, that is a known Cursor Windows limitation; keep using cmd-compatible syntax anyway.
+Only use PowerShell when the user explicitly requests it. This repo includes `.vscode/settings.json` (automation profile → cmd) and `.cursor/rules/windows-cmd-shell.mdc`; if the agent shell still spawns PowerShell (a known Cursor Windows limitation), keep using cmd-compatible syntax anyway.
 
 ## Documentation as Working Memory
 
 Use docs as durable project memory, but verify against code before acting.
 
-- Before starting non-trivial work, read `README.md`, `docs/AGENT_START_HERE.md` if present, and any feature doc directly related to the task.
-- For UI, pages, or styling changes, also read `docs/SYSTEM_DESIGN.md` and `docs/features/DESIGN_SYSTEM.md` for architecture, layout patterns, and tokens.
-- Treat docs as guidance, not absolute truth. If docs and code disagree, trust the code, surface the mismatch, and update the doc only if the task changes durable behavior.
-- Update docs when changing architecture, routes/APIs, environment variables, database schema, billing/auth/security behavior, testing commands, or user-visible feature behavior.
-- Do not update docs for incidental implementation details, temporary debugging, tiny refactors, or changes that are already obvious from code/tests.
-- Every new or edited doc should make its status clear: `current`, `planned`, `shipped`, `historical`, or `superseded`.
-- Prefer one current source-of-truth doc per feature. Move completed plans and stale reviews to `docs/archive/` instead of leaving them beside current operational docs.
+- Before non-trivial work: `README.md`, `docs/AGENT_START_HERE.md`, plus the matrix row above.
+- Treat docs as guidance, not absolute truth; code wins, surface mismatches.
+- Update docs when changing architecture, routes/APIs, env vars, schema, billing/auth/security, testing commands, or user-visible behavior — not for incidental refactors.
+- Every doc states its status: `current`, `planned`, `shipped`, `historical`, or `superseded`. One current source-of-truth doc per feature; completed plans move to `docs/archive/`.
 
 # This is NOT the Next.js you know
 

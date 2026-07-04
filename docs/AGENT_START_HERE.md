@@ -9,7 +9,8 @@ Read this file at the start of every non-trivial session, then follow the read o
 
 1. `README.md` — product one-liner and quick start
 2. This file — source-of-truth map, drift warnings, verification commands
-3. Task-specific docs (pick one):
+3. Root `AGENTS.md` — project operating guide (identity, task→docs matrix, quality standards, guardrails) with `agents/REPO_KNOWLEDGE_MAP.md` for routes, sensitive areas, and repo gotchas
+4. Task-specific docs (pick one):
    - Deep architecture references (HTML) → `architecture/index.html`
    - System architecture and UI composition → `SYSTEM_DESIGN.md`
    - Local setup, routes, architecture → `operations/SETUP.md`
@@ -19,7 +20,8 @@ Read this file at the start of every non-trivial session, then follow the read o
    - Jobs, incidents, retention → `operations/OPERATIONS_RUNBOOK.md`
    - Privacy and support → `operations/PRIVACY_RETENTION_SUPPORT.md`
    - Active roadmap → `strategy/ENHANCEMENT_PLAN.md`
-4. Code paths from the source-of-truth map (below) — trust code over docs when they disagree
+   - Recurring task (landing, launch polish, content, discoverability, security review, marketing) → matching playbook in `agents/playbooks/` and prompt in `agent-prompts/`
+5. Code paths from the source-of-truth map (below) — trust code over docs when they disagree
 
 Do **not** treat `archive/` docs as current product state unless the task is explicitly historical.
 
