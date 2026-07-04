@@ -43,7 +43,4 @@ export const publicAppPaths = [
   '/reset-password',
   '/privacy',
   '/terms',
-  // Landing redesign explorations — noindex previews, not in the sitemap.
-  // See docs/design/FABLE_LANDING_DIRECTIONS.md.
-  '/design-directions',
 ] as const

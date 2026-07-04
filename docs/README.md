@@ -61,13 +61,6 @@ Root [`README.md`](../README.md) has the quick start only.
 | [`strategy/ENHANCEMENT_PLAN.md`](strategy/ENHANCEMENT_PLAN.md)               | `current` | Active product roadmap and remaining gaps   |
 | [`strategy/ENTERPRISE_PLACEHOLDERS.md`](strategy/ENTERPRISE_PLACEHOLDERS.md) | `current` | Explicitly deferred enterprise capabilities |
 
-### Design
-
-| Doc                                                                                      | Status    | Summary                                                                             |
-| ---------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------- |
-| [`design/FABLE_LANDING_DIRECTIONS.md`](design/FABLE_LANDING_DIRECTIONS.md)               | `planned` | Three landing redesign directions with prototypes at `/design-directions` (noindex) |
-| [`design/FABLE_LANDING_DIRECTIONS_REVIEW.md`](design/FABLE_LANDING_DIRECTIONS_REVIEW.md) | `current` | Review verdicts, recommended direction, and next redesign pass                      |
-
 ## Archived Docs
 
 Do not implement from these without re-verifying against code.
@@ -91,6 +84,13 @@ Do not implement from these without re-verifying against code.
 | ------------------------------------------------------------------------------ | ------------------------ | ------------------------------------------------------------- |
 | [`archive/ui/UI_UX_IMPROVEMENT_PLAN.md`](archive/ui/UI_UX_IMPROVEMENT_PLAN.md) | `shipped` / `historical` | UI modernization plan; many phases landed in design system    |
 | [`archive/ui/UI_REVAMP_PLAN.md`](archive/ui/UI_REVAMP_PLAN.md)                 | `shipped` / `historical` | Dark mode, ⌘K palette, toasts, dashboard polish — all shipped |
+
+### Design explorations
+
+| Doc                                                                                                      | Status                   | Notes                                                                        |
+| -------------------------------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------- |
+| [`archive/design/FABLE_LANDING_DIRECTIONS.md`](archive/design/FABLE_LANDING_DIRECTIONS.md)               | `shipped` / `historical` | Three landing directions; **Paper of Record** shipped as the landing 2026-07 |
+| [`archive/design/FABLE_LANDING_DIRECTIONS_REVIEW.md`](archive/design/FABLE_LANDING_DIRECTIONS_REVIEW.md) | `historical`             | Review verdicts; the "next redesign pass" steps were executed                |
 
 ## Maintenance Rules
 

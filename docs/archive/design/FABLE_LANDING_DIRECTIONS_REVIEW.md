@@ -1,7 +1,10 @@
 # Landing Design Directions — Review Notes
 
-**Status:** `current` (point-in-time review of the exploration; supersede when a direction ships)
-**Location:** `docs/design/FABLE_LANDING_DIRECTIONS_REVIEW.md`
+**Status:** `historical` — the "next redesign pass" below was executed on
+2026-07-04: Paper of Record shipped as the production landing with the merge
+board and "what it will not do" sections imported, the register carried into
+the auth shell, legal headers, and OG image, and the preview routes removed.
+**Location:** `docs/archive/design/FABLE_LANDING_DIRECTIONS_REVIEW.md`
 **Reviewed:** 2026-07-04, in-browser at desktop (1280px) and mobile (375px)
 **Companion:** [`FABLE_LANDING_DIRECTIONS.md`](./FABLE_LANDING_DIRECTIONS.md)
 

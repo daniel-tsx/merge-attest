@@ -22,9 +22,13 @@ OKLCH everywhere, hue 264–278 (cool indigo-tinted neutrals). Strategy: Restrai
 
 - Sans: Geist Sans (`--font-geist-sans`), with `cv11 ss01 cv02 cv03` features
 - Mono: Geist Mono — micro-labels, eyebrows, metadata, numerals (`tabular-nums`)
+- Serif (ceremony): Fraunces via `components/marketing/display-font.ts` —
+  `font-serif` resolves to `--font-display` where `displayFont.variable` is
+  mounted. Marketing, auth, and legal headlines only; never dense product data
 - `text-display` utility: 26px/1.2/-0.02em/600 for app page titles
 - `text-eyebrow` utility: 11px/500/0.08em uppercase micro-label
-- Marketing headlines: tight tracking (`tracking-tight`), weight 600
+- Marketing ("Paper of Record" register): serif headlines, weight 500–600,
+  `-0.01em`–`-0.015em` tracking; mono uppercase eyebrows at `0.24em`
 
 ## Shape & Elevation
 
@@ -34,9 +38,9 @@ OKLCH everywhere, hue 264–278 (cool indigo-tinted neutrals). Strategy: Restrai
 
 ## Motion
 
-- Global `prefers-reduced-motion: reduce` kill-switch in `globals.css`
-- Landing: `[data-intro]` staggered hero rise, `[data-reveal]` scroll-timeline reveal, `.border-beam` traveling conic border (defined, currently unused)
-- Hover lift on landing cards via shadow + border only, never `transform` (fights the scroll-timeline reveal)
+- Global `prefers-reduced-motion: reduce` kill-switch in `globals.css` (zeroes duration **and** delay)
+- Landing ("Paper of Record" register): near-static by design — `[data-intro]` staggered hero rise plus one signature moment, the `.attest-draw` seal check-stroke; nothing loops
+- `[data-reveal]` scroll-timeline reveal and `.border-beam` traveling conic border remain defined in `globals.css` but are currently unused
 - Ease-out curves (`cubic-bezier(0.22, 1, 0.36, 1)`); no bounce
 
 ## Components

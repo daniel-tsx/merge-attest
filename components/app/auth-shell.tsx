@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { GitPullRequest, ListChecks, ShieldCheck } from 'lucide-react'
 import { LogoMark } from '@/components/app/logo'
 import { ThemeToggle } from '@/components/app/theme-toggle'
+import { displayFont } from '@/components/marketing/display-font'
 
 const trustPoints = [
   {
@@ -37,7 +38,9 @@ export function AuthShell({
   footer?: ReactNode
 }) {
   return (
-    <main className="relative min-h-screen bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
+    <main
+      className={`${displayFont.variable} relative min-h-screen bg-background lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]`}
+    >
       <div className="absolute right-4 top-4 z-10">
         <ThemeToggle />
       </div>
@@ -56,11 +59,11 @@ export function AuthShell({
         </div>
         <div className="relative max-w-md space-y-6">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-surface-foreground/60">
-              Pull Request Control
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-brand-surface-foreground/60">
+              Public register · AI-assisted pull requests
             </p>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight">
-              The control center for high-risk pull requests.
+            <h2 className="mt-3 font-serif text-3xl font-medium leading-tight tracking-[-0.01em]">
+              Every AI pull request, on the record.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-brand-surface-foreground/70">
               Score risky changes, enforce rules, and capture every approval —
@@ -88,9 +91,9 @@ export function AuthShell({
             })}
           </ul>
         </div>
-        <div className="relative flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-brand-surface-foreground/45">
+        <div className="relative flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-brand-surface-foreground/45">
           <span className="size-1 rounded-full bg-brand-surface-foreground/40" />
-          SOC 2-aligned controls · GDPR ready
+          Attested · exportable evidence for EU AI Act &amp; SOC2 reviews
         </div>
       </aside>
       <section className="flex min-h-screen flex-col justify-center px-4 py-10 sm:px-8 lg:px-12">
@@ -99,10 +102,12 @@ export function AuthShell({
             <span className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
               <LogoMark className="size-4" />
             </span>
-            <span className="text-sm font-semibold tracking-tight">MergeAttest</span>
+            <span className="text-sm font-semibold tracking-tight">
+              MergeAttest
+            </span>
           </div>
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground">
+            <h1 className="font-serif text-2xl font-medium leading-tight tracking-[-0.01em] text-foreground">
               {title}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

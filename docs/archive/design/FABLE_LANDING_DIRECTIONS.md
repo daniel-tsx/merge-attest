@@ -1,8 +1,9 @@
 # Landing Page Design Directions
 
-**Status:** `planned` (exploration — one direction will be chosen for a full redesign)
-**Location:** `docs/design/FABLE_LANDING_DIRECTIONS.md`
-**Prototypes:** `/design-directions` (index), one route per direction — see each section.
+**Status:** `historical` — exploration complete. **Paper of Record** was
+chosen and shipped as the production landing (2026-07-04); the preview routes
+under `app/design-directions/` were removed when it shipped.
+**Location:** `docs/archive/design/FABLE_LANDING_DIRECTIONS.md`
 **Created:** 2026-07-04
 
 This document defines three deliberately different landing page directions for

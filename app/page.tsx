@@ -1,18 +1,17 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Sora } from 'next/font/google'
-import { ArrowRight, Plus } from 'lucide-react'
+import { LogoMark } from '@/components/app/logo'
+import { ThemeToggle } from '@/components/app/theme-toggle'
 import {
   agents,
   authorship,
   faqs,
-  features,
   heroLede,
   samplePr,
   signals,
-  stats,
   steps,
 } from '@/components/marketing/content'
+import { displayFont } from '@/components/marketing/display-font'
 import { getServerSession } from '@/lib/auth/session'
 import { JsonLd } from '@/lib/seo/json-ld'
 import { createHomeJsonLd } from '@/lib/seo/home-json-ld'
@@ -25,123 +24,225 @@ export const metadata = createPageMetadata({
   path: '/',
 })
 
-// "Blueprint Schematic" landing identity: a deep-navy technical canvas with
-// cyan linework, monospaced annotations, and a schematic of the merge-gate
-// pipeline. Self-contained and scoped to the `.mkt` class so it does not touch
-// the token-driven product UI.
-const display = Sora({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-mkt-display',
-})
+// "Paper of Record" landing: a documentary register built on the app's design
+// tokens (theme-aware, light-first). The attestation record is the hero
+// artifact; the merge board is the mid-page product proof. Ceremony type is
+// Fraunces via `font-serif` (components/marketing/display-font.ts). Motion:
+// one signature moment (the seal's `attest-draw`) plus the shared
+// `[data-intro]` hero stagger — nothing loops.
 
-const styles = `
-.mkt {
-  --bg: #080d18;
-  --bg-2: #0b1322;
-  --panel: #0e1828;
-  --panel-2: #111e30;
-  --line: #1c2c44;
-  --line-soft: #15233a;
-  --text: #d7e3f2;
-  --text-dim: #8ba0bd;
-  --text-faint: #5a6f8e;
-  --cyan: #45d6e6;
-  --cyan-dim: #2a9fb0;
-  --coral: #ff8a5c;
-  --violet: #8aa0ff;
-  color: var(--text);
-  background: var(--bg);
-  font-feature-settings: 'ss01' 1;
-}
-.mkt-display { font-family: var(--font-mkt-display), system-ui, sans-serif; }
-.mkt-mono { font-family: var(--font-geist-mono), ui-monospace, monospace; }
-.mkt-bp {
-  background-image:
-    linear-gradient(to right, rgba(69,214,230,0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(69,214,230,0.05) 1px, transparent 1px),
-    linear-gradient(to right, rgba(69,214,230,0.025) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(69,214,230,0.025) 1px, transparent 1px);
-  background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
-}
-.mkt-glow {
-  background:
-    radial-gradient(620px 420px at 80% 2%, rgba(69,214,230,0.12), transparent 62%),
-    radial-gradient(520px 420px at 6% 18%, rgba(138,160,255,0.08), transparent 60%);
-}
-.mkt a:focus-visible,
-.mkt button:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-.mkt-link { transition: color 0.18s ease; }
-.mkt-link:hover { color: var(--cyan); }
-.mkt-cta {
-  background: var(--cyan);
-  color: #042027;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
-}
-.mkt-cta:hover { box-shadow: 0 0 0 1px var(--cyan), 0 14px 44px -14px rgba(69,214,230,0.55); transform: translateY(-1px); }
-.mkt-ghost { border: 1px solid var(--line); transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease; }
-.mkt-ghost:hover { border-color: var(--cyan-dim); color: var(--text); background: var(--panel); }
-.mkt-card { position: relative; background: var(--panel); border: 1px solid var(--line); transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease; }
-.mkt-card:hover { border-color: var(--cyan-dim); background: var(--panel-2); transform: translateY(-2px); }
-/* corner brackets for schematic cards */
-.mkt-bracket::before, .mkt-bracket::after {
-  content: ''; position: absolute; width: 10px; height: 10px; border-color: var(--cyan-dim);
-}
-.mkt-bracket::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
-.mkt-bracket::after { bottom: -1px; right: -1px; border-bottom: 1px solid; border-right: 1px solid; }
-.mkt-flow { stroke-dasharray: 5 6; animation: mkt-dash 1.1s linear infinite; }
-@keyframes mkt-dash { to { stroke-dashoffset: -22; } }
-@media (prefers-reduced-motion: reduce) {
-  .mkt-flow { animation: none; }
-}
-`
+const two = (n: number) => String(n).padStart(2, '0')
 
-const numberLabel = (n: number) => String(n).padStart(2, '0')
+const focusRing =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring'
 
-function Coord({ children }: { children: React.ReactNode }) {
+const inkLink = `${focusRing} rounded-sm underline decoration-border-strong underline-offset-[3px] transition-colors hover:text-accent hover:decoration-accent`
+
+const primaryCta = `${focusRing} inline-flex items-center justify-center rounded-control bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover`
+
+/** What each deterministic signal writes into the record (sample PR #482). */
+const signalEntries: Record<(typeof signals)[number], string> = {
+  'diff size': '+218 −34 across 6 files',
+  'sensitive paths': 'payments/webhooks/** touched',
+  'test coverage': '2 changed paths without tests',
+  'dependency changes': 'no manifest changes',
+  'migration files': 'none detected',
+  'secret patterns': 'none detected',
+  'API surface': '1 public endpoint modified',
+  'lockfile drift': 'lockfile unchanged',
+}
+
+const problems = [
+  {
+    title: 'Generation outran review.',
+    body: 'Coding agents multiplied pull request volume, and careful human review did not multiply with it. Changes merge on momentum.',
+  },
+  {
+    title: 'Authorship became a guess.',
+    body: 'Six months from now, nobody on the team can say which agent wrote the change that broke payments — or which human accepted the risk.',
+  },
+  {
+    title: 'Now someone is asking for proof.',
+    body: 'EU AI Act human-oversight expectations and SOC2 reviews are starting to ask for AI-authorship evidence. A guess is not evidence. A record is.',
+  },
+]
+
+type Verdict = 'clear' | 'hold' | 'scoring'
+
+/** Mid-page product proof: the pull request monitor as a racked board. */
+const board: Array<{
+  id: string
+  title: string
+  repo: string
+  agent: string
+  score: number | null
+  verdict: Verdict
+  note: string
+}> = [
+  {
+    id: '#484',
+    title: 'Add tests for coupon code edge cases',
+    repo: 'acme/web',
+    agent: 'codex',
+    score: 9,
+    verdict: 'clear',
+    note: 'low risk · tests included',
+  },
+  {
+    id: '#483',
+    title: 'Rotate webhook secrets in terraform',
+    repo: 'acme/infra',
+    agent: 'devin',
+    score: 87,
+    verdict: 'hold',
+    note: 'sensitive paths · secret patterns',
+  },
+  {
+    id: '#482',
+    title: 'Add retry logic to payment webhook',
+    repo: 'acme/api-gateway',
+    agent: 'claude-code',
+    score: 72,
+    verdict: 'hold',
+    note: '2 test gaps · 1 rule violation',
+  },
+  {
+    id: '#481',
+    title: 'Bump pg pool timeouts for burst load',
+    repo: 'acme/api-gateway',
+    agent: 'copilot',
+    score: 34,
+    verdict: 'clear',
+    note: 'medium-low · no rule hits',
+  },
+  {
+    id: '#485',
+    title: 'Refactor invoice PDF generation',
+    repo: 'acme/web',
+    agent: 'cursor',
+    score: null,
+    verdict: 'scoring',
+    note: 'received · scoring in progress',
+  },
+]
+
+const willNot = [
+  {
+    title: 'It will not send your code to a model.',
+    body: 'Scoring, attribution, and rule checks run without any language model. An advisory AI layer exists, uses your own OpenRouter key, and is off unless you turn it on.',
+  },
+  {
+    title: 'It will not generate an opinion and call it a score.',
+    body: 'Every score decomposes into the exact signals that produced it. If you disagree with a number, you can point at the rule that made it.',
+  },
+  {
+    title: 'It will not store your source files.',
+    body: 'It works from pull request metadata: changed paths, risk signals, approvals, audit events. Your code stays on GitHub.',
+  },
+  {
+    title: 'It will not hold your evidence hostage.',
+    body: 'Export audit records and reports whenever you want. Disconnect the GitHub App at any time. Leaving is a button, not a negotiation.',
+  },
+]
+
+const packetFiles = [
+  { name: 'attestations.csv', note: 'per-PR authorship + risk record' },
+  { name: 'approvals.json', note: 'who signed off, and when' },
+  { name: 'agent-scorecards.csv', note: 'per-agent trust history' },
+  { name: 'audit-log.json', note: 'every governance event, retained' },
+]
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mkt-mono inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[var(--cyan)]">
-      <Plus className="size-3 text-[var(--cyan-dim)]" aria-hidden="true" />
+    <p className="font-mono text-[11px] tracking-[0.24em] text-subtle-foreground uppercase">
       {children}
-    </span>
+    </p>
   )
 }
 
-function Mark({ size = 28 }: { size?: number }) {
+function Seal({ size = 108 }: { size?: number }) {
   return (
-    <span
-      className="inline-flex items-center justify-center rounded-lg"
-      style={{
-        width: size,
-        height: size,
-        background: 'var(--panel-2)',
-        border: '1px solid var(--line)',
-      }}
+    <svg
+      viewBox="0 0 108 108"
+      width={size}
+      height={size}
+      fill="none"
+      role="img"
+      aria-label="MergeAttest attestation seal"
+      className="text-accent"
     >
-      <svg
-        viewBox="0 0 32 32"
-        width={size * 0.58}
-        height={size * 0.58}
-        fill="none"
+      <circle cx="54" cy="54" r="52" stroke="currentColor" strokeWidth="1.5" />
+      <circle
+        cx="54"
+        cy="54"
+        r="41"
+        stroke="currentColor"
+        strokeWidth="0.75"
+        strokeDasharray="2 3"
+      />
+      <defs>
+        <path id="seal-arc" d="M54 8.5 a45.5 45.5 0 1 1 -0.01 0" fill="none" />
+      </defs>
+      <text
+        fill="currentColor"
+        style={{
+          font: '500 8.5px var(--font-geist-mono), monospace',
+          letterSpacing: '0.32em',
+        }}
+      >
+        <textPath href="#seal-arc" startOffset="0">
+          ATTESTED · MERGEATTEST · ON THE RECORD ·
+        </textPath>
+      </text>
+      <g
+        transform="translate(37, 37)"
+        stroke="currentColor"
+        strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
-        aria-hidden="true"
       >
-        <path
-          d="M6.5 25 V7.5 L16 18.5 L25.5 7.5 V25"
-          stroke="var(--text)"
-          strokeWidth="3"
-        />
-        <path
-          d="M10 21 L14.3 25 L23 15.25"
-          stroke="var(--cyan)"
-          strokeWidth="3"
-        />
-      </svg>
+        <path d="M5.5 27 V7 L17 19.5 L28.5 7 V27" />
+        <path className="attest-draw" d="M9.5 21.5 L15 27 L25.5 14.5" />
+      </g>
+    </svg>
+  )
+}
+
+function RecordRow({
+  term,
+  children,
+}: {
+  term: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-[7.5rem_1fr] gap-3 border-t border-border px-5 py-3 first:border-t-0 sm:grid-cols-[8.5rem_1fr]">
+      <dt className="pt-px font-mono text-[10px] tracking-[0.18em] text-subtle-foreground uppercase">
+        {term}
+      </dt>
+      <dd className="text-[13px] leading-relaxed text-foreground">
+        {children}
+      </dd>
+    </div>
+  )
+}
+
+function VerdictChip({ verdict }: { verdict: Verdict }) {
+  if (verdict === 'clear')
+    return (
+      <span className="inline-flex items-center rounded-sm border border-success-border bg-success-soft px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-success uppercase">
+        clear
+      </span>
+    )
+  if (verdict === 'hold')
+    return (
+      <span className="inline-flex items-center rounded-sm border border-attention-border bg-attention-soft px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-attention uppercase">
+        hold
+      </span>
+    )
+  return (
+    <span className="inline-flex items-center rounded-sm border border-border px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+      scoring
     </span>
   )
 }
@@ -151,609 +252,622 @@ export default async function Home() {
   if (session) redirect('/dashboard')
 
   return (
-    <div className={`mkt ${display.variable}`}>
+    <div
+      className={`${displayFont.variable} flex min-h-screen flex-col bg-background text-foreground`}
+    >
       <JsonLd data={createHomeJsonLd()} />
-      <style dangerouslySetInnerHTML={{ __html: styles }} />
-      <div className="mkt-glow relative flex min-h-screen flex-col overflow-hidden">
-        <div className="mkt-bp pointer-events-none absolute inset-0 opacity-70" />
 
-        {/* Nav */}
-        <header className="sticky top-0 z-50 border-b border-[var(--line-soft)] bg-[var(--bg)]/85 backdrop-blur">
-          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-            <Link href="/" className="flex items-center gap-2.5">
-              <Mark />
-              <span className="mkt-display text-[15px] font-semibold tracking-tight">
+      {/* Masthead */}
+      <header className="border-b border-border-strong">
+        <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
+          <div className="flex items-center justify-between border-b border-border py-2.5">
+            <p className="font-mono text-[10px] tracking-[0.24em] text-subtle-foreground uppercase">
+              Public register · AI-assisted pull requests
+            </p>
+            <p className="hidden font-mono text-[10px] tracking-[0.24em] text-subtle-foreground uppercase sm:block">
+              Free early access
+            </p>
+          </div>
+          <div className="flex h-16 items-center justify-between">
+            <Link
+              href="/"
+              className={`${focusRing} flex items-center gap-2.5 rounded-sm`}
+            >
+              <span className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
+                <LogoMark className="size-4" />
+              </span>
+              <span className="font-serif text-[19px] font-semibold tracking-tight">
                 MergeAttest
               </span>
             </Link>
             <nav
               aria-label="Primary"
-              className="hidden items-center gap-8 text-[13px] text-[var(--text-dim)] md:flex"
+              className="hidden items-center gap-7 text-[13px] text-muted-foreground md:flex"
             >
-              <a className="mkt-link" href="#capabilities">
-                Capabilities
+              <a className={inkLink} href="#method">
+                Method
               </a>
-              <a className="mkt-link" href="#authorship">
-                AI authorship
+              <a className={inkLink} href="#live">
+                The register
               </a>
-              <a className="mkt-link" href="#how-it-works">
-                How it works
+              <a className={inkLink} href="#evidence">
+                Evidence
               </a>
-              <a className="mkt-link" href="#faq">
+              <a className={inkLink} href="#faq">
                 FAQ
               </a>
             </nav>
             <div className="flex items-center gap-3 text-[13px]">
+              <ThemeToggle />
               <Link
-                className="mkt-link hidden text-[var(--text-dim)] sm:inline"
+                className={`${inkLink} hidden text-muted-foreground sm:inline`}
                 href="/sign-in"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
-                className="mkt-cta rounded-full px-4 py-2 font-semibold"
+                className={`${focusRing} rounded-control bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary-hover`}
               >
-                Start free
+                Open the register
               </Link>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="flex-1">
-          {/* Hero */}
-          <section className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pt-16 pb-20 sm:px-8 sm:pt-20 lg:grid-cols-[1fr_1.05fr] lg:gap-10">
-            <div data-intro>
-              <Coord>GitHub-native · free early access</Coord>
-              <h1 className="mkt-display mt-6 text-[3rem] leading-[1.04] tracking-[-0.025em] sm:text-[3.9rem] lg:text-[4.4rem]">
-                <span className="font-bold">Govern every AI pull request</span>{' '}
-                <span className="font-light text-[var(--text-dim)]">
-                  before it merges.
-                </span>
-              </h1>
-              <p className="mt-7 max-w-xl text-[15px] leading-relaxed text-[var(--text-dim)] sm:text-base">
-                {heroLede}
-              </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  href="/sign-up"
-                  className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold"
-                >
-                  Start for free
-                  <ArrowRight
-                    aria-hidden="true"
-                    className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                  />
-                </Link>
-                <a
-                  href="#how-it-works"
-                  className="mkt-ghost inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium text-[var(--text-dim)]"
-                >
-                  See how it works
-                </a>
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="mx-auto grid w-full max-w-6xl items-start gap-12 px-5 pt-14 pb-20 sm:px-8 sm:pt-20 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16">
+          <div data-intro>
+            <Eyebrow>Merge + attest — the name is the method</Eyebrow>
+            <h1 className="mt-5 font-serif text-[2.7rem] leading-[1.06] font-medium tracking-[-0.015em] text-balance sm:text-[3.6rem] lg:text-[4rem]">
+              Every AI pull request, on&nbsp;the&nbsp;record.
+            </h1>
+            <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+              {heroLede}
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/sign-up" className={primaryCta}>
+                Open the register — free
+              </Link>
+              <a
+                href="#method"
+                className={`${inkLink} inline-flex items-center justify-center px-2 py-3 text-sm text-muted-foreground`}
+              >
+                Read the method
+              </a>
+            </div>
+            <p className="mt-6 font-mono text-[11px] tracking-wide text-subtle-foreground">
+              GitHub-native · no pipeline changes · no credit card
+            </p>
+          </div>
+
+          {/* The attestation record — the product's real output as the hero */}
+          <div data-intro style={{ ['--intro-index' as string]: 1 }}>
+            <div
+              id="record"
+              className="rounded-card border border-border-strong bg-surface-elevated shadow-card"
+            >
+              <div className="flex items-baseline justify-between border-b border-border-strong px-5 py-3.5">
+                <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
+                  Attestation record
+                </p>
+                <p className="font-mono text-[12px] tabular-nums">№ 0482</p>
               </div>
-              <p className="mkt-mono mt-6 text-[11px] tracking-wide text-[var(--text-faint)]">
-                free plan available · no credit card required
-              </p>
-            </div>
-
-            <div data-intro>
-              <PipelineSchematic />
-            </div>
-          </section>
-
-          {/* Signals strip */}
-          <section className="relative z-10 border-y border-[var(--line-soft)] bg-[var(--bg-2)]/60">
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-6 sm:flex-row sm:items-center sm:gap-7 sm:px-8">
-              <Coord>signals / diff</Coord>
-              <div className="flex flex-wrap gap-2">
-                {signals.map((sig) => (
-                  <span
-                    key={sig}
-                    className="mkt-mono rounded border border-[var(--line)] bg-[var(--panel)] px-2.5 py-1 text-[11px] text-[var(--text-dim)]"
-                  >
-                    {sig}
+              <dl>
+                <RecordRow term="Repository">
+                  <span className="font-mono text-[12.5px]">
+                    {samplePr.repo}
                   </span>
-                ))}
+                </RecordRow>
+                <RecordRow term="Pull request">
+                  {samplePr.title}{' '}
+                  <span className="font-mono text-[12px] text-subtle-foreground tabular-nums">
+                    {samplePr.id} · {samplePr.diff}
+                  </span>
+                </RecordRow>
+                <RecordRow term="Attributed to">
+                  <span className="font-mono text-[12.5px]">
+                    {samplePr.agent}
+                  </span>{' '}
+                  <span className="text-[12.5px] text-muted-foreground tabular-nums">
+                    · confidence 95%
+                  </span>
+                  <span className="mt-1 block text-[12px] text-subtle-foreground">
+                    evidence: commit trailer, bot account
+                  </span>
+                </RecordRow>
+                <RecordRow term="Risk score">
+                  <span className="font-mono text-[13px] font-medium tabular-nums">
+                    {samplePr.score}/100
+                  </span>{' '}
+                  <span className="text-[12.5px] text-attention">
+                    · {samplePr.band} — deterministic, reproducible
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="mt-2 block h-1 w-full max-w-[220px] rounded-full bg-surface-muted"
+                  >
+                    <span
+                      className="block h-full rounded-full bg-attention"
+                      style={{ width: `${samplePr.score}%` }}
+                    />
+                  </span>
+                </RecordRow>
+                <RecordRow term="Findings">
+                  <span className="flex flex-wrap gap-x-4 gap-y-1 text-[12.5px]">
+                    {samplePr.findings.map((f) => (
+                      <span
+                        key={f.label}
+                        className={
+                          f.tone === 'danger' ? 'text-danger' : 'text-attention'
+                        }
+                      >
+                        {f.label}
+                      </span>
+                    ))}
+                  </span>
+                </RecordRow>
+                <RecordRow term="Disposition">
+                  Held for human review — approval will be recorded with
+                  reviewer, role, and timestamp.
+                </RecordRow>
+              </dl>
+              <div className="flex items-center justify-between gap-4 border-t border-border px-5 py-4">
+                <div>
+                  <p className="font-mono text-[10px] tracking-[0.18em] text-subtle-foreground uppercase">
+                    Exportable
+                  </p>
+                  <p className="mt-1 font-mono text-[12px] text-muted-foreground tabular-nums">
+                    JSON · CSV · retained per plan
+                  </p>
+                </div>
+                <Seal size={96} />
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Stats readout */}
-          <section
-            aria-label="Key figures"
-            className="relative z-10 mx-auto w-full max-w-6xl px-5 py-16 sm:px-8"
-          >
-            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--line)] lg:grid-cols-4">
-              {stats.map((s) => (
-                <div key={s.label} className="bg-[var(--panel)] p-6">
-                  <div className="mkt-display text-4xl font-bold text-[var(--cyan)]">
-                    {s.value}
-                  </div>
-                  <div className="mt-2 text-[12px] leading-snug text-[var(--text-dim)]">
-                    {s.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Capabilities — schematic bento */}
-          <section
-            id="capabilities"
-            className="relative z-10 mx-auto w-full max-w-6xl px-5 py-16 sm:px-8"
-          >
-            <div data-reveal className="max-w-2xl">
-              <Coord>capabilities</Coord>
-              <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
-                The control layer, fully wired
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-dim)]">
-                CodeRabbit, Copilot, and Qodo help teams review faster.
-                MergeAttest answers the next question: should this AI-assisted
-                change be allowed to merge, who accepted the risk, and where is
-                the evidence?
-              </p>
-            </div>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map((f, i) => (
-                <div
-                  key={f.id}
-                  data-reveal
-                  className="mkt-card mkt-bracket rounded-xl p-7"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="mkt-mono text-[11px] tracking-[0.16em] text-[var(--cyan)]">
-                      M-{numberLabel(i + 1)}
-                    </span>
-                    <span className="size-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_10px_2px_rgba(69,214,230,0.5)]" />
-                  </div>
-                  <h3 className="mkt-display mt-6 text-[1.15rem] font-semibold tracking-tight">
-                    {f.title}
+        {/* Problem, stated plainly */}
+        <section className="border-t border-border-strong">
+          <div className="mx-auto w-full max-w-6xl px-5 py-18 sm:px-8">
+            <Eyebrow>The problem, stated plainly</Eyebrow>
+            <h2 className="mt-4 max-w-2xl font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+              Review didn&rsquo;t scale with generation.
+            </h2>
+            <div className="mt-10 grid gap-x-10 gap-y-8 md:grid-cols-3">
+              {problems.map((p, i) => (
+                <div key={p.title} className="border-t border-border pt-5">
+                  <p className="font-mono text-[11px] text-accent tabular-nums">
+                    ¶ {two(i + 1)}
+                  </p>
+                  <h3 className="mt-3 font-serif text-[1.2rem] leading-snug font-medium">
+                    {p.title}
                   </h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
-                    {f.description}
+                  <p className="mt-2.5 text-[13.5px] leading-relaxed text-muted-foreground">
+                    {p.body}
                   </p>
                 </div>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* AI authorship */}
-          <section
-            id="authorship"
-            className="relative z-10 border-t border-[var(--line-soft)]"
-          >
-            <div className="mx-auto grid w-full max-w-6xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
-              <div data-reveal>
-                <Coord>ai authorship</Coord>
-                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
-                  Know which agent wrote it —{' '}
-                  <span className="text-[var(--cyan)]">and prove it.</span>
+        {/* What goes on the record — the 8 signals as a ledger */}
+        <section id="method" className="border-t border-border">
+          <div className="mx-auto w-full max-w-6xl px-5 py-18 sm:px-8">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+              <div>
+                <Eyebrow>What goes on the record</Eyebrow>
+                <h2 className="mt-4 font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+                  Eight signals, inspected on every diff.
                 </h2>
-                <p className="mt-4 max-w-md text-[15px] leading-relaxed text-[var(--text-dim)]">
-                  Coding-agent adoption is near-universal; trust is not.
-                  MergeAttest attributes every PR to the agent behind it and
-                  turns its track record into audit-ready evidence — the white
-                  space no AI reviewer owns.
+                <p className="mt-5 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+                  Risk scoring is rule-based, not model-generated. Every entry
+                  below is written to the record with the exact reason behind it
+                  — the same diff always produces the same score.
                 </p>
-                <div className="mt-8 space-y-2.5">
-                  {agents.map((a) => (
-                    <div
-                      key={a.name}
-                      className="mkt-card flex items-center gap-4 rounded-lg px-4 py-3"
-                    >
-                      <span className="w-28 text-[13px] font-medium text-[var(--text)]">
-                        {a.name}
-                      </span>
-                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--line)]">
-                        <div
-                          className="h-full rounded-full bg-[var(--cyan)]"
-                          style={{ width: `${a.confidence}%` }}
-                        />
-                      </div>
-                      <span className="mkt-mono w-10 text-right text-[12px] text-[var(--cyan)]">
-                        {a.confidence}%
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                <p className="mt-6 font-mono text-[11px] tracking-wide text-subtle-foreground">
+                  No model guesswork · fully reproducible
+                </p>
               </div>
-
-              <div className="grid gap-4 self-start sm:grid-cols-2">
-                {authorship.map((a, i) => (
+              <div
+                className="border-t border-border-strong"
+                role="list"
+                aria-label="Deterministic signals recorded on every pull request"
+              >
+                {signals.map((sig, i) => (
                   <div
-                    key={a.title}
-                    data-reveal
-                    className="mkt-card mkt-bracket rounded-xl p-6"
+                    key={sig}
+                    role="listitem"
+                    className="grid grid-cols-[2.4rem_1fr] items-baseline gap-3 border-b border-border py-3.5 sm:grid-cols-[2.4rem_11rem_1fr]"
                   >
-                    <span className="mkt-mono text-[11px] text-[var(--cyan)]">
-                      {numberLabel(i + 1)}
+                    <span className="font-mono text-[11px] text-accent tabular-nums">
+                      {two(i + 1)}
                     </span>
-                    <h3 className="mkt-display mt-3 text-[1.05rem] font-semibold leading-tight tracking-tight">
-                      {a.title}
-                    </h3>
-                    <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
-                      {a.description}
-                    </p>
+                    <span className="text-[13.5px] font-medium capitalize">
+                      {sig}
+                    </span>
+                    <span className="col-start-2 font-mono text-[12px] text-subtle-foreground sm:col-start-3">
+                      {signalEntries[sig]}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* How it works — pipeline */}
-          <section
-            id="how-it-works"
-            className="relative z-10 border-t border-[var(--line-soft)]"
-          >
-            <div className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8">
-              <div data-reveal className="max-w-2xl">
-                <Coord>how it works</Coord>
-                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
-                  Live in minutes, governed from day one
-                </h2>
-                <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[var(--text-dim)]">
-                  Connect a repository and MergeAttest starts scoring pull
-                  requests immediately — no pipeline changes required.
+        {/* The register, live — merge board product proof */}
+        <section id="live" className="border-t border-border">
+          <div className="mx-auto w-full max-w-6xl px-5 py-18 sm:px-8">
+            <div className="max-w-2xl">
+              <Eyebrow>The register, live</Eyebrow>
+              <h2 className="mt-4 font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+                Entries are written as traffic arrives.
+              </h2>
+              <p className="mt-5 max-w-xl text-[14px] leading-relaxed text-muted-foreground">
+                This is the product surface, not an illustration: the pull
+                request monitor sequences every inbound AI-assisted change —
+                identified, scored, and cleared or held for a recorded human
+                sign-off.
+              </p>
+            </div>
+            <div className="mt-10 rounded-card border border-border bg-surface shadow-card">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2.5">
+                <p className="font-mono text-[10px] tracking-[0.2em] text-subtle-foreground uppercase">
+                  merge board · inbound pull requests
+                </p>
+                <p className="font-mono text-[10px] tracking-[0.2em] text-subtle-foreground uppercase">
+                  sample traffic
                 </p>
               </div>
-              <div className="relative mt-14">
-                <span
-                  aria-hidden="true"
-                  className="absolute top-4 right-0 left-0 hidden h-px bg-[var(--line)] lg:block"
-                />
-                <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-                  {steps.map((s, i) => (
-                    <div key={s.title} data-reveal className="relative">
-                      <span className="mkt-mono relative z-10 flex size-8 items-center justify-center rounded-full border border-[var(--cyan-dim)] bg-[var(--panel)] text-[12px] font-semibold text-[var(--cyan)]">
-                        {numberLabel(i + 1)}
+              <div role="list" aria-label="Sample merge queue" className="p-2">
+                {board.map((pr) => (
+                  <div
+                    key={pr.id}
+                    role="listitem"
+                    className={`mb-1.5 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-control border p-3.5 transition-colors last:mb-0 sm:grid-cols-[3.2rem_1.4fr_0.7fr_0.7fr_6.5rem_5rem] sm:items-center ${
+                      pr.verdict === 'hold'
+                        ? 'border-attention-border bg-attention-soft'
+                        : 'border-border bg-surface hover:bg-surface-hover'
+                    }`}
+                  >
+                    <span className="font-mono text-[12px] text-subtle-foreground tabular-nums">
+                      {pr.id}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13.5px] font-medium">
+                        {pr.title}
                       </span>
-                      <h3 className="mkt-display mt-4 text-[1.05rem] font-semibold tracking-tight">
-                        {s.title}
-                      </h3>
-                      <p className="mt-2 text-[13px] leading-relaxed text-[var(--text-dim)]">
-                        {s.description}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                      <span className="mt-0.5 block font-mono text-[10.5px] text-subtle-foreground sm:hidden">
+                        {pr.repo} · {pr.agent} · {pr.note}
+                      </span>
+                    </span>
+                    <span className="hidden truncate font-mono text-[11.5px] text-muted-foreground sm:block">
+                      {pr.repo}
+                    </span>
+                    <span className="hidden font-mono text-[11.5px] text-muted-foreground sm:block">
+                      {pr.agent}
+                    </span>
+                    <span className="col-start-1 flex items-center gap-2 sm:col-start-auto">
+                      <span className="w-7 font-mono text-[12px] font-medium tabular-nums">
+                        {pr.score === null ? '——' : pr.score}
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="block h-1 w-14 overflow-hidden rounded-full bg-surface-muted"
+                      >
+                        {pr.score !== null && (
+                          <span
+                            className={`block h-full rounded-full ${
+                              pr.score >= 60
+                                ? 'bg-attention'
+                                : pr.score >= 35
+                                  ? 'bg-warning'
+                                  : 'bg-success'
+                            }`}
+                            style={{ width: `${pr.score}%` }}
+                          />
+                        )}
+                      </span>
+                    </span>
+                    <span className="col-start-2 justify-self-end sm:col-start-auto">
+                      <VerdictChip verdict={pr.verdict} />
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5">
+                <p className="font-mono text-[10.5px] text-subtle-foreground">
+                  holds require recorded human sign-off before merge
+                </p>
+                <p className="font-mono text-[10.5px] text-subtle-foreground tabular-nums">
+                  2 held · 2 cleared · 1 scoring
+                </p>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* FAQ */}
-          <section
-            id="faq"
-            className="relative z-10 border-t border-[var(--line-soft)]"
-          >
-            <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
-              <div data-reveal className="lg:sticky lg:top-28 lg:self-start">
-                <Coord>faq</Coord>
-                <h2 className="mkt-display mt-5 text-4xl font-bold leading-tight tracking-tight sm:text-[2.9rem]">
-                  Questions, answered
-                </h2>
-                <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-[var(--text-dim)]">
-                  What MergeAttest does, what it touches, and what it costs — no
-                  fine print.
-                </p>
-                <a
-                  href="mailto:support@mergeattest.com"
-                  className="mkt-link mkt-mono mt-6 inline-block text-[12px] text-[var(--cyan)]"
+        {/* Procedure clauses */}
+        <section className="border-t border-border">
+          <div className="mx-auto w-full max-w-6xl px-5 py-18 sm:px-8">
+            <Eyebrow>Procedure</Eyebrow>
+            <h2 className="mt-4 max-w-2xl font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+              From install to evidence, in four clauses.
+            </h2>
+            <div className="mt-10 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((s, i) => (
+                <div
+                  key={s.title}
+                  className="border-t border-border-strong pt-5"
                 >
-                  support@mergeattest.com
-                </a>
-              </div>
+                  <p className="font-serif text-[1.4rem] font-medium text-accent tabular-nums">
+                    §{two(i + 1)}
+                  </p>
+                  <h3 className="mt-3 text-[14.5px] font-semibold">
+                    {s.title}
+                  </h3>
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                    {s.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-              <dl className="overflow-hidden rounded-xl border border-[var(--line)]">
-                {faqs.map((item, i) => (
+        {/* Per-agent accountability */}
+        <section className="border-t border-border">
+          <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_1fr] lg:gap-16">
+            <div>
+              <Eyebrow>Per-agent accountability</Eyebrow>
+              <h2 className="mt-4 font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+                The ledger reads by agent.
+              </h2>
+              <p className="mt-5 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+                Built-in detection attributes each pull request to the agent
+                behind it, with a confidence score and the evidence — commit
+                trailers, bot accounts, emails, branch prefixes.
+              </p>
+              <div className="mt-8 border-t border-border-strong">
+                {agents.map((a) => (
                   <div
-                    key={item.q}
-                    data-reveal
-                    className={
-                      i === 0
-                        ? 'bg-[var(--panel)] p-6 sm:p-7'
-                        : 'border-t border-[var(--line)] bg-[var(--panel)] p-6 sm:p-7'
-                    }
+                    key={a.name}
+                    className="grid grid-cols-[7rem_1fr_3rem] items-center gap-4 border-b border-border py-3"
                   >
-                    <dt className="flex items-baseline gap-3">
-                      <span className="mkt-mono text-[11px] tracking-[0.16em] text-[var(--cyan)]">
-                        {numberLabel(i + 1)}
-                      </span>
-                      <span className="mkt-display text-[1.05rem] font-semibold leading-snug tracking-tight text-[var(--text)]">
-                        {item.q}
-                      </span>
+                    <span className="text-[13px] font-medium">{a.name}</span>
+                    <span
+                      aria-hidden="true"
+                      className="block h-px w-full bg-border"
+                    >
+                      <span
+                        className="block h-px bg-accent"
+                        style={{ width: `${a.confidence}%` }}
+                      />
+                    </span>
+                    <span className="text-right font-mono text-[12px] text-muted-foreground tabular-nums">
+                      {a.confidence}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 font-mono text-[11px] text-subtle-foreground">
+                sample attribution confidence · your own conventions can be
+                mapped in the identity registry
+              </p>
+            </div>
+            <div className="lg:pt-24">
+              {authorship.map((a, i) => (
+                <div
+                  key={a.title}
+                  className="border-t border-border py-5 first:border-t-0 lg:first:border-t"
+                >
+                  <div className="grid grid-cols-[2.4rem_1fr] gap-3">
+                    <span className="pt-1 font-mono text-[11px] text-accent tabular-nums">
+                      {two(i + 1)}
+                    </span>
+                    <div>
+                      <h3 className="text-[14.5px] font-semibold">{a.title}</h3>
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+                        {a.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* What it will not do */}
+        <section className="border-t border-border">
+          <div className="mx-auto w-full max-w-6xl px-5 py-18 sm:px-8">
+            <Eyebrow>Refusals, for the record</Eyebrow>
+            <h2 className="mt-4 max-w-2xl font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+              What it will not do.
+            </h2>
+            <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2">
+              {willNot.map((item, i) => (
+                <div key={item.title} className="border-t border-border pt-5">
+                  <p className="font-mono text-[11px] text-danger tabular-nums">
+                    N-{two(i + 1)}
+                  </p>
+                  <h3 className="mt-3 font-serif text-[1.2rem] leading-snug font-medium">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2.5 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Evidence & compliance */}
+        <section id="evidence" className="border-t border-border">
+          <div className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+            <div>
+              <Eyebrow>Evidence &amp; compliance</Eyebrow>
+              <h2 className="mt-4 font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+                Exportable the day the auditor asks.
+              </h2>
+              <p className="mt-5 max-w-lg text-[14px] leading-relaxed text-muted-foreground">
+                Track what share of your codebase AI wrote and how much of it
+                carried a human sign-off. Export a review packet that supports
+                EU AI Act human-oversight and SOC2 reviews — the record, not a
+                certification.
+              </p>
+              <p className="mt-4 max-w-lg text-[14px] leading-relaxed text-muted-foreground">
+                Every approval is written down the moment it happens: who signed
+                off, in what role, on which evidence. Nothing is reconstructed
+                after the fact.
+              </p>
+            </div>
+            <div className="self-start rounded-card border border-border-strong bg-surface-elevated shadow-card">
+              <div className="border-b border-border-strong px-5 py-3.5">
+                <p className="font-mono text-[10px] tracking-[0.24em] text-muted-foreground uppercase">
+                  Evidence packet · contents
+                </p>
+              </div>
+              <ul>
+                {packetFiles.map((f) => (
+                  <li
+                    key={f.name}
+                    className="flex items-baseline justify-between gap-4 border-t border-border px-5 py-3 first:border-t-0"
+                  >
+                    <span className="font-mono text-[12.5px]">{f.name}</span>
+                    <span className="text-right text-[12px] text-subtle-foreground">
+                      {f.note}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="border-t border-border">
+          <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-18 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+            <div className="lg:sticky lg:top-10 lg:self-start">
+              <Eyebrow>Questions</Eyebrow>
+              <h2 className="mt-4 font-serif text-[2rem] leading-[1.12] font-medium tracking-[-0.01em] sm:text-[2.6rem]">
+                Asked and answered.
+              </h2>
+              <p className="mt-4 max-w-sm text-[14px] leading-relaxed text-muted-foreground">
+                What MergeAttest does, what it touches, and what it costs — no
+                fine print.
+              </p>
+              <a
+                href="mailto:support@mergeattest.com"
+                className={`${inkLink} mt-5 inline-block font-mono text-[12px] text-muted-foreground`}
+              >
+                support@mergeattest.com
+              </a>
+            </div>
+            <dl className="border-t border-border-strong">
+              {faqs.map((item, i) => (
+                <div
+                  key={item.q}
+                  className="grid grid-cols-[2.4rem_1fr] gap-3 border-b border-border py-5"
+                >
+                  <span className="pt-1 font-mono text-[11px] text-accent tabular-nums">
+                    {two(i + 1)}
+                  </span>
+                  <div>
+                    <dt className="font-serif text-[1.05rem] leading-snug font-medium">
+                      {item.q}
                     </dt>
-                    <dd className="mt-2.5 pl-[2.1rem] text-[13.5px] leading-relaxed text-[var(--text-dim)]">
+                    <dd className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
                       {item.a}
                     </dd>
                   </div>
-                ))}
-              </dl>
-            </div>
-          </section>
-
-          {/* CTA */}
-          <section className="relative z-10 border-t border-[var(--line-soft)]">
-            <div className="mx-auto w-full max-w-6xl px-5 py-24 sm:px-8">
-              <div
-                data-reveal
-                className="mkt-card relative overflow-hidden rounded-2xl px-8 py-16 text-center"
-              >
-                <div className="mkt-bp pointer-events-none absolute inset-0 opacity-50" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--cyan)] to-transparent" />
-                <div className="relative">
-                  <Mark size={48} />
-                  <h2 className="mkt-display mt-7 text-4xl font-bold leading-tight tracking-tight sm:text-[3rem]">
-                    Ship AI code with confidence
-                  </h2>
-                  <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-[var(--text-dim)]">
-                    Connect your first repository and see risk scores on your
-                    open pull requests in minutes.
-                  </p>
-                  <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                    <Link
-                      href="/sign-up"
-                      className="mkt-cta group inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-semibold"
-                    >
-                      Start for free
-                      <ArrowRight
-                        aria-hidden="true"
-                        className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
-                      />
-                    </Link>
-                    <Link
-                      href="/sign-in"
-                      className="mkt-ghost inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-medium text-[var(--text-dim)]"
-                    >
-                      Sign in
-                    </Link>
-                  </div>
                 </div>
-              </div>
-            </div>
-          </section>
-        </main>
-
-        {/* Footer */}
-        <footer className="relative z-10 border-t border-[var(--line-soft)]">
-          <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-5 py-8 sm:flex-row sm:px-8">
-            <div className="flex items-center gap-2.5">
-              <Mark size={22} />
-              <span className="mkt-display text-sm font-semibold tracking-tight">
-                MergeAttest
-              </span>
-            </div>
-            <nav
-              aria-label="Footer"
-              className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-[var(--text-dim)]"
-            >
-              <a className="mkt-link" href="#capabilities">
-                Capabilities
-              </a>
-              <a className="mkt-link" href="#how-it-works">
-                How it works
-              </a>
-              <a className="mkt-link" href="#faq">
-                FAQ
-              </a>
-              <Link className="mkt-link" href="/privacy">
-                Privacy
-              </Link>
-              <Link className="mkt-link" href="/terms">
-                Terms
-              </Link>
-              <a className="mkt-link" href="mailto:support@mergeattest.com">
-                Contact
-              </a>
-            </nav>
-            <div className="flex flex-col items-center gap-1 sm:items-end">
-              <p className="mkt-mono text-[11px] text-[var(--text-faint)]">
-                © {new Date().getFullYear()} MergeAttest
-              </p>
-              <p className="mkt-mono text-[11px] text-[var(--text-faint)]">
-                From the{' '}
-                <a
-                  href="https://eastbase.studio"
-                  target="_blank"
-                  rel="noopener"
-                  aria-label="Eastbase studio"
-                  className="mkt-link text-[var(--cyan)]"
-                >
-                  Eastbase
-                </a>{' '}
-                studio
-              </p>
-            </div>
+              ))}
+            </dl>
           </div>
-        </footer>
-      </div>
-    </div>
-  )
-}
+        </section>
 
-function PipelineSchematic() {
-  const agentNames = ['claude code', 'copilot', 'cursor']
-  return (
-    <div className="mkt-card mkt-bracket rounded-2xl p-5 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.8)]">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="mkt-mono text-[11px] uppercase tracking-[0.18em] text-[var(--text-faint)]">
-          merge-boundary schematic
-        </span>
-        <span className="mkt-mono inline-flex items-center gap-1.5 text-[11px] text-[var(--cyan)]">
-          <span className="size-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_2px_rgba(69,214,230,0.5)]" />
-          live
-        </span>
-      </div>
-
-      <svg
-        viewBox="0 0 420 300"
-        className="w-full"
-        fill="none"
-        role="img"
-        aria-label="Schematic: AI coding agents flow into the MergeAttest gate, which scores risk and routes pull requests to merge or to human review."
-      >
-        {/* agent nodes */}
-        {agentNames.map((name, i) => {
-          const y = 50 + i * 80
-          return (
-            <g key={name}>
-              <rect
-                x="8"
-                y={y - 18}
-                width="108"
-                height="36"
-                rx="8"
-                fill="var(--panel-2)"
-                stroke="var(--line)"
-              />
-              <circle cx="26" cy={y} r="3" fill="var(--violet)" />
-              <text
-                x="40"
-                y={y + 4}
-                fill="var(--text-dim)"
-                style={{ font: '11px var(--font-geist-mono), monospace' }}
+        {/* Colophon CTA */}
+        <section className="border-t border-border-strong">
+          <div className="mx-auto w-full max-w-6xl px-5 py-20 text-center sm:px-8">
+            <div className="mx-auto flex justify-center">
+              <Seal size={84} />
+            </div>
+            <h2 className="mx-auto mt-7 max-w-xl font-serif text-[2.2rem] leading-[1.1] font-medium tracking-[-0.01em] text-balance sm:text-[2.9rem]">
+              Put your merges on the record.
+            </h2>
+            <p className="mx-auto mt-4 max-w-md text-[14px] leading-relaxed text-muted-foreground">
+              Connect a repository and the register opens on your next pull
+              request. Free during early access.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link href="/sign-up" className={primaryCta}>
+                Open the register — free
+              </Link>
+              <Link
+                href="/sign-in"
+                className={`${inkLink} inline-flex items-center justify-center px-2 py-3 text-sm text-muted-foreground`}
               >
-                {name}
-              </text>
-              {/* flow into gate */}
-              <path
-                className="mkt-flow"
-                d={`M116 ${y} C 150 ${y}, 150 150, 184 150`}
-                stroke="var(--cyan-dim)"
-                strokeWidth="1.5"
-              />
-            </g>
-          )
-        })}
-
-        {/* gate node */}
-        <rect
-          x="184"
-          y="104"
-          width="92"
-          height="92"
-          rx="14"
-          fill="var(--panel-2)"
-          stroke="var(--cyan)"
-          strokeWidth="1.5"
-        />
-        <g transform="translate(214, 128)">
-          <path
-            d="M2 40 V6 L16 22 L30 6 V40"
-            stroke="var(--text)"
-            strokeWidth="3.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M6 34 L14 42 L26 25"
-            stroke="var(--cyan)"
-            strokeWidth="3.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </g>
-        <text
-          x="230"
-          y="188"
-          textAnchor="middle"
-          fill="var(--cyan)"
-          style={{
-            font: '9px var(--font-geist-mono), monospace',
-            letterSpacing: '0.12em',
-          }}
-        >
-          SCAN
-        </text>
-
-        {/* gate to outputs */}
-        <path
-          className="mkt-flow"
-          d="M276 132 C 320 132, 320 70, 360 70"
-          stroke="var(--cyan-dim)"
-          strokeWidth="1.5"
-        />
-        <path
-          className="mkt-flow"
-          d="M276 168 C 320 168, 320 232, 360 232"
-          stroke="var(--cyan-dim)"
-          strokeWidth="1.5"
-        />
-
-        {/* merge output */}
-        <rect
-          x="304"
-          y="50"
-          width="108"
-          height="40"
-          rx="8"
-          fill="var(--panel-2)"
-          stroke="var(--line)"
-        />
-        <text
-          x="320"
-          y="68"
-          fill="var(--text)"
-          style={{ font: '600 12px var(--font-mkt-display), sans-serif' }}
-        >
-          approve
-        </text>
-        <text
-          x="320"
-          y="82"
-          fill="var(--text-faint)"
-          style={{ font: '9px var(--font-geist-mono), monospace' }}
-        >
-          on the record
-        </text>
-
-        {/* review output */}
-        <rect
-          x="304"
-          y="212"
-          width="108"
-          height="40"
-          rx="8"
-          fill="var(--panel-2)"
-          stroke="var(--coral)"
-          strokeOpacity="0.55"
-        />
-        <text
-          x="320"
-          y="230"
-          fill="var(--text)"
-          style={{ font: '600 12px var(--font-mkt-display), sans-serif' }}
-        >
-          human review
-        </text>
-        <text
-          x="320"
-          y="244"
-          fill="var(--coral)"
-          style={{ font: '9px var(--font-geist-mono), monospace' }}
-        >
-          risk {samplePr.score}/100
-        </text>
-      </svg>
-
-      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[var(--line)] pt-4">
-        {[
-          { k: 'attributed', v: 'claude-code' },
-          { k: 'risk', v: `${samplePr.score} · high` },
-          { k: 'verdict', v: 'review' },
-        ].map((m) => (
-          <div key={m.k}>
-            <div className="mkt-mono text-[9px] uppercase tracking-[0.14em] text-[var(--text-faint)]">
-              {m.k}
+                Sign in
+              </Link>
             </div>
-            <div className="mkt-mono mt-0.5 text-[12px] text-[var(--text)]">
-              {m.v}
-            </div>
+            <p className="mt-6 font-mono text-[11px] tracking-wide text-subtle-foreground">
+              3 repositories · 200 PR checks/month · no credit card
+            </p>
           </div>
-        ))}
-      </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border-strong">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-5 py-7 sm:flex-row sm:px-8">
+          <p className="font-serif text-sm font-semibold tracking-tight">
+            MergeAttest
+          </p>
+          <nav
+            aria-label="Footer"
+            className="flex flex-wrap items-center justify-center gap-5 text-[12px] text-muted-foreground"
+          >
+            <a className={inkLink} href="#method">
+              Method
+            </a>
+            <a className={inkLink} href="#faq">
+              FAQ
+            </a>
+            <Link className={inkLink} href="/privacy">
+              Privacy
+            </Link>
+            <Link className={inkLink} href="/terms">
+              Terms
+            </Link>
+            <a className={inkLink} href="mailto:support@mergeattest.com">
+              Contact
+            </a>
+          </nav>
+          <div className="flex flex-col items-center gap-1 sm:items-end">
+            <p className="font-mono text-[11px] text-subtle-foreground">
+              © {new Date().getFullYear()} MergeAttest
+            </p>
+            <p className="font-mono text-[11px] text-subtle-foreground">
+              From the{' '}
+              <a
+                href="https://eastbase.studio"
+                target="_blank"
+                rel="noopener"
+                className={`${inkLink} text-accent`}
+              >
+                Eastbase
+              </a>{' '}
+              studio
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

@@ -15,7 +15,7 @@ For architecture, page composition, and the three-layer component model, read [`
 
 MergeAttest follows Eastbase Studio's shared `eastbase-premium-ui` skill — read it (via the Skill tool) before any UI work. The skill is the **method and house invariants** that hold across every Eastbase product: personality lives in structure (not decoration), one signature hue plus a small semantic palette, atmosphere instead of gradient backgrounds, numerals typeset on purpose, bespoke components over stock, designed empty / loading / error states, hairline-precise restraint, first-class theming, and accessible motion.
 
-This document and [`../../app/globals.css`](../../app/globals.css) (the runtime token source) are **MergeAttest's own signature** — its implementation of that method — and they stay intact: the blueprint palette (cool navy surfaces + a single cyan accent), the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with mono `tabular-nums`, and the dot-grid / hairline atmosphere. Apply the skill's *moves*; never import a reference example's palette, metaphor, typeface, or components (the skill's BurnCap and editorial references are illustrations of the method, not templates for this product). The two are designed to agree — every rule below is this project's expression of a skill invariant; where they ever seem to differ, keep the house invariant as the method and this project's signature as the specifics, and reconcile rather than replace either.
+This document and [`../../app/globals.css`](../../app/globals.css) (the runtime token source) are **MergeAttest's own signature** — its implementation of that method — and they stay intact: the blueprint palette (cool navy surfaces + a single cyan accent), the GateScan mark, the engineering control-room metaphor, Geist Sans/Mono with mono `tabular-nums`, and the dot-grid / hairline atmosphere. Apply the skill's _moves_; never import a reference example's palette, metaphor, typeface, or components (the skill's BurnCap and editorial references are illustrations of the method, not templates for this product). The two are designed to agree — every rule below is this project's expression of a skill invariant; where they ever seem to differ, keep the house invariant as the method and this project's signature as the specifics, and reconcile rather than replace either.
 
 ## Direction
 
@@ -69,6 +69,12 @@ Current token strategy ("blueprint" palette — cool navy + cyan, hue ~250–255
 
 ## Typography utilities
 
+- `font-serif` — marketing ceremony face (Fraunces). The face loads via
+  `components/marketing/display-font.ts` (`displayFont.variable` must be
+  mounted on the surface root — landing, `AuthShell`, `LegalPageShell`);
+  `--font-serif` in `globals.css` maps the utility to `--font-display`.
+  Reserved for the "Paper of Record" register (marketing/auth/legal
+  headlines) — never for dense product data.
 - `text-display` (theme size) — page titles via `PageHeader` (size/leading/tracking/weight bundled).
 - `text-eyebrow` (`@utility`) — the uppercase micro-label (11px / 500 / 0.08em) used by
   `PageHeader`, `MetricCard`, `Table` headers, and dashboard stat/compliance tiles.

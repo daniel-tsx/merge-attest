@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { LogoMark } from '@/components/app/logo'
 import { ThemeToggle } from '@/components/app/theme-toggle'
+import { displayFont } from '@/components/marketing/display-font'
 import { Button } from '@/components/ui/button'
 
 export function LegalPageShell({
@@ -14,14 +15,16 @@ export function LegalPageShell({
   children: ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div
+      className={`${displayFont.variable} flex min-h-screen flex-col bg-background`}
+    >
       <header className="sticky top-0 z-50 border-b border-border bg-surface/85 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <span className="flex size-8 items-center justify-center rounded-control bg-primary text-primary-foreground">
               <LogoMark className="size-4" />
             </span>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
+            <span className="font-serif text-sm font-semibold tracking-tight text-foreground">
               MergeAttest
             </span>
           </Link>
@@ -37,7 +40,10 @@ export function LegalPageShell({
       <main className="flex-1">
         <article className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
           <header className="border-b border-border pb-8">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-subtle-foreground">
+              Public register · legal record
+            </p>
+            <h1 className="mt-4 font-serif text-3xl font-medium tracking-[-0.01em] text-foreground sm:text-4xl">
               {title}
             </h1>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">

@@ -216,6 +216,10 @@
   --radius-pill: var(--radius-pill);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* Marketing ceremony face (Fraunces via components/marketing/display-font.ts).
+     Resolves only where `displayFont.variable` is mounted; serif fallback
+     elsewhere. Reserved for marketing/auth/legal headlines. */
+  --font-serif: var(--font-display, Georgia), Georgia, serif;
   --animate-gate-scan: gate-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   --animate-gate-halo: gate-halo 2.4s ease-in-out infinite;
   --animate-skeleton-shimmer: skeleton-shimmer 1.8s ease-in-out infinite;
@@ -267,6 +271,21 @@
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Landing signature moment: the attestation seal's check stroke draws itself
+   once on load. The reduced-motion kill-switch collapses duration and delay,
+   so the final (drawn) state always shows. */
+@keyframes attest-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.attest-draw {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+  animation: attest-draw 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
 }
 
 /* Hero load-in stagger */
@@ -369,8 +388,16 @@
   }
 }
 
+/* Default border color lives in @layer base so border-color *utilities*
+   (border-danger-border, border-attention-border, …) can override it — an
+   un-layered `*` rule would beat every layered utility in the cascade. */
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+}
+
 * {
-  border-color: var(--border);
   /* Project-wide scrollbar theming in design-system colors. tailwind-scrollbar
      styles the viewport scrollbar via utilities on <html>; these standards-track
      properties cover every inner scroll container (tables, popovers, the command
@@ -452,6 +479,7 @@ textarea {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
